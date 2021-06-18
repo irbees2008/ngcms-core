@@ -9,7 +9,7 @@
 
 // Configure error display mode
 @error_reporting(E_ALL ^ E_NOTICE);
-
+session_start();
 // ============================================================================
 // Define global directory constants
 // ============================================================================
