@@ -33,7 +33,7 @@ class urlLibrary
         $this->CMD = [];
         $this->configLoaded = false;
         $this->fatalError = false;
-        $this->configFileName = confroot.'urlconf.php';
+        $this->configFileName = confroot . 'urlconf.php';
     }
 
     // Load config from DISK
@@ -78,7 +78,7 @@ class urlLibrary
             return false;
         }
 
-        fwrite($f, '<?php'."\n".'$urlLibrary = '.var_export($this->CMD, true).';');
+        fwrite($f, '<?php' . "\n" . '$urlLibrary = ' . var_export($this->CMD, true) . ';');
         fclose($f);
 
         return true;
@@ -245,6 +245,7 @@ class urlLibrary
 
 class urlHandler
 {
+    protected $configFileName;
     // constructor
     public function urlHandler($options = [])
     {
@@ -252,7 +253,7 @@ class urlHandler
 
         $this->hList = [];
         $this->configLoaded = false;
-        $this->configFileName = confroot.'rewrite.php';
+        $this->configFileName = confroot . 'rewrite.php';
 
         $this->options = $options;
     }
@@ -264,7 +265,7 @@ class urlHandler
         //
         // First - find references from URL library
         if (!isset($data['pluginName']) || !isset($data['handlerName']) || !isset($ULIB->CMD[$data['pluginName']][$data['handlerName']])) {
-            return [[1, 'No match with URL library'.var_export($data, true)], false];
+            return [[1, 'No match with URL library' . var_export($data, true)], false];
         }
 
         // Command catched
@@ -370,9 +371,9 @@ class urlHandler
             }
             if ($rec[0]) {
                 if (!isset($cmd['vars'][$rec[1]])) {
-                    return [[4, 'Variable "'.$rec[1].'" is unknown'], false];
+                    return [[4, 'Variable "' . $rec[1] . '" is unknown'], false];
                 }
-                $regex .= '('.$cmd['vars'][$rec[1]]['matchRegex'].')';
+                $regex .= '(' . $cmd['vars'][$rec[1]]['matchRegex'] . ')';
                 $regexMAP[$paramNum++] = $rec[1];
             } else {
                 $regex .= $rec[1];
@@ -545,7 +546,7 @@ class urlHandler
             }
         }
 
-        fwrite($f, '<?php'."\n".'$handlerList = '.var_export($this->hList, true).";\n".'$handlerPrimary = '.var_export($hPrimary, true).';');
+        fwrite($f, '<?php' . "\n" . '$handlerList = ' . var_export($this->hList, true) . ";\n" . '$handlerPrimary = ' . var_export($hPrimary, true) . ';');
         fclose($f);
 
         return true;
@@ -579,7 +580,7 @@ class urlHandler
         }
 
         if ($flags['debug']) {
-            echo 'urlHandler :: RUN('.$url.")<br>\n";
+            echo 'urlHandler :: RUN(' . $url . ")<br>\n";
         }
 
         // Modity calling URL if localPrefix is defined
@@ -588,12 +589,12 @@ class urlHandler
                 // Catched prefix
                 $url = mb_substr($url, mb_strlen($flags['localPrefix']));
                 if ($flags['debug']) {
-                    echo "urlHandler :: RUN [<font color='red'><b>LOCAL PREFIX</b></font>: `".$flags['localPrefix'].'`] ('.$url.")<br/>\n";
+                    echo "urlHandler :: RUN [<font color='red'><b>LOCAL PREFIX</b></font>: `" . $flags['localPrefix'] . '`] (' . $url . ")<br/>\n";
                 }
             } else {
                 // URL doesn't correspond to LOCAL PREFIX
                 if ($flags['debug']) {
-                    echo "urlHandler :: RUN [<font color='red'><b>LOCAL PREFIX</b></font>: `".$flags['localPrefix']."`] - <i><b>ERROR: URL DOES NOT CORRESPOND TO PREFIX</b></i><br/>\n";
+                    echo "urlHandler :: RUN [<font color='red'><b>LOCAL PREFIX</b></font>: `" . $flags['localPrefix'] . "`] - <i><b>ERROR: URL DOES NOT CORRESPOND TO PREFIX</b></i><br/>\n";
                 }
 
                 return 0;
@@ -604,7 +605,7 @@ class urlHandler
 
         foreach ($this->hList as $hNum => $h) {
             if ($flags['debug']) {
-                echo '&raquo; '.($h['flagDisabled'] ? '<b><font color="red">DISABLED</font></b> ' : '').'Scan ('.$hNum.')['.$h['pluginName'].']['.$h['handlerName'].'] ReGEX check [ <b><font color=blue>'.$h['rstyle']['regex']." </font></b>]<br>\n";
+                echo '&raquo; ' . ($h['flagDisabled'] ? '<b><font color="red">DISABLED</font></b> ' : '') . 'Scan (' . $hNum . ')[' . $h['pluginName'] . '][' . $h['handlerName'] . '] ReGEX check [ <b><font color=blue>' . $h['rstyle']['regex'] . " </font></b>]<br>\n";
             }
 
             // Skip disabled records
@@ -623,7 +624,7 @@ class urlHandler
                 }
 
                 if ($flags['debug']) {
-                    echo 'Find match [plugin: <b>'.$h['pluginName'].'</b>, handler: <b>'.$h['handlerName'].'</b>] with REGex <b><font color=blue>'.$h['rstyle']['regex'].'</font></b>, params: <pre>'.var_export($result, true)."</pre><br>\n";
+                    echo 'Find match [plugin: <b>' . $h['pluginName'] . '</b>, handler: <b>' . $h['handlerName'] . '</b>] with REGex <b><font color=blue>' . $h['rstyle']['regex'] . '</font></b>, params: <pre>' . var_export($result, true) . "</pre><br>\n";
                 }
 
                 if (!isset($h['callback'])) {
@@ -727,16 +728,15 @@ class urlHandler
 
         foreach ($xparams as $k => $v) {
             if (($k != 'plugin') && ($k != 'handler')) {
-                $uparams[] = $k.'='.urlencode($v);
+                $uparams[] = $k . '=' . urlencode($v);
             }
         }
 
         $linkPrefix = ($absoluteLink && isset($this->options['domainPrefix']) && ($this->options['domainPrefix'] != '')) ?
-            $this->options['domainPrefix'] :
-            ((isset($this->options['localPrefix']) && ($this->options['localPrefix'] != '')) ? $this->options['localPrefix'] : '');
+            $this->options['domainPrefix'] : ((isset($this->options['localPrefix']) && ($this->options['localPrefix'] != '')) ? $this->options['localPrefix'] : '');
 
-        return $linkPrefix.
-            implode('', $url).
-            (count($uparams) ? '?'.implode('&'.($intLink ? 'amp;' : ''), $uparams) : '');
+        return $linkPrefix .
+            implode('', $url) .
+            (count($uparams) ? '?' . implode('&' . ($intLink ? 'amp;' : ''), $uparams) : '');
     }
 }
