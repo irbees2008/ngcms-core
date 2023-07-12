@@ -8,10 +8,13 @@
 //
 
 // Load CORE
-@include_once 'engine/core.php';
+require_once 'engine/core.php';
+
 
 // Run CRON tasks
-$cron->run(true);
+if (isset($cron) && is_object($cron)) {
+    $cron->run(true);
+}
 
 // Terminate execution of script
 coreNormalTerminate();

@@ -8,21 +8,20 @@
 //
 
 // Configure error display mode
-@error_reporting(E_ALL ^ E_NOTICE);
+error_reporting(E_ALL ^ E_NOTICE);
 
-// ============================================================================
 // Define global directory constants
-// ============================================================================
+define('NGCoreDir', __DIR__.'/');                // Location of Core directory
+define('NGRootDir', dirname(__DIR__).'/');       // Location of SiteRoot
+define('NGClassDir', NGCoreDir.'classes/');      // Location of AutoLoaded classes
+define('NGVendorDir', NGRootDir.'vendor/');      // Location of Vendor classes
 
-@define('NGCoreDir', __DIR__.'/');                // Location of Core directory
-@define('NGRootDir', dirname(__DIR__).'/');       // Location of SiteRoot
-@define('NGClassDir', NGCoreDir.'classes/');      // Location of AutoLoaded classes
-@define('NGVendorDir', NGRootDir.'vendor/');      // Location of Vendor classes
 $loader = require NGVendorDir.'autoload.php';
 
 // Autoloader for NEW STYLE Classes
 spl_autoload_register(function ($className) {
-    if (file_exists($fName = NGClassDir.$className.'.class.php')) {
+    $fName = NGClassDir.$className.'.class.php';
+    if (file_exists($fName)) {
         require_once $fName;
     }
 });
@@ -64,23 +63,21 @@ global $currentHandler, $ngTrackID, $ngCookieDomain;
 global $twigGlobal, $twig, $twigLoader, $twigStringLoader;
 global $multiDomainName;
 
-// ============================================================================
 // Initialize global variables
-// ============================================================================
-$EXTRA_HTML_VARS = [];        // a list of added HTML vars in <head> block
+$EXTRA_HTML_VARS = [];
 $EXTRA_CSS = [];
 
 $AUTH_METHOD = [];
 $AUTH_CAPABILITIES = [];
 
-$PPAGES = [];        // plugin's pages
-$PFILTERS = [];        // filtering plugins
-$RPCFUNC = [];        // RPC functions
-$TWIGFUNC = [];        // TWIG defined functions
-$RPCADMFUNC = [];        // RPC admin functions
+$PPAGES = [];
+$PFILTERS = [];
+$RPCFUNC = [];
+$TWIGFUNC = [];
+$RPCADMFUNC = [];
 
-$PERM = [];        // PERMISSIONS
-$UGROUP = [];        // USER GROUPS
+$PERM = [];
+$UGROUP = [];
 
 $SUPRESS_TEMPLATE_SHOW = 0;
 $SUPRESS_MAINBLOCK_SHOW = 0;
@@ -122,35 +119,37 @@ $PLUGINS = [
     'config:loaded' => 0,
 ];
 
+// Set internal encoding and HTTP output to UTF-8
 mb_internal_encoding('UTF-8');
 mb_http_output('UTF-8');
 
 // Define global constants "root", "site_root"
-@define('root', __DIR__.'/');
-@define('site_root', dirname(__DIR__).'/');
+define('root', __DIR__.'/');
+define('site_root', dirname(__DIR__).'/');
 
 // Define domain name for cookies
 $ngCookieDomain = preg_match('#^www\.(.+)$#', $_SERVER['HTTP_HOST'], $mHost) ? $mHost[1] : $_SERVER['HTTP_HOST'];
-// Remove non-standart port from domain
+// Remove non-standard port from domain
 if (preg_match("#^(.+?)\:\d+$#", $ngCookieDomain, $m)) {
     $ngCookieDomain = $m[1];
 }
 // Manage trackID cookie - can be used for plugins that don't require authentication,
-// but need to track user according to his ID
+// but need to track the user according to their ID
 if (!isset($_COOKIE['ngTrackID'])) {
     $ngTrackID = md5(md5(uniqid(rand(), 1)));
-    @setcookie('ngTrackID', $ngTrackID, time() + 86400 * 365, '/', $ngCookieDomain, 0, 1);
+    setcookie('ngTrackID', $ngTrackID, time() + 86400 * 365, '/', $ngCookieDomain, 0, 1);
 } else {
     $ngTrackID = $_COOKIE['ngTrackID'];
 }
+
 
 // Initialize last variables
 $confArray = [
     // Pre-defined init values
     'predefined' => [
-        'HTTP_REFERER' => isset($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : '',
-        'PHP_SELF'     => isset($_SERVER['PHP_SELF']) ? $_SERVER['PHP_SELF'] : '',
-        'REQUEST_URI'  => isset($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : '',
+        'HTTP_REFERER' => $_SERVER['HTTP_REFERER'] ?? '',
+        'PHP_SELF'     => $_SERVER['PHP_SELF'] ?? '',
+        'REQUEST_URI'  => $_SERVER['REQUEST_URI'] ?? '',
         'config'       => [],
         'catz'         => [],
         'catmap'       => [],
@@ -159,16 +158,10 @@ $confArray = [
 ];
 
 // Load pre-defined variables
-$predefinedUnsetArray = [
-    '_GET',
-    '_POST',
-    '_SESSION',
-    '_COOKIE',
-    '_ENV',
-];
+$predefinedUnsetArray = ['_GET', '_POST', '_SESSION', '_COOKIE', '_ENV'];
 foreach ($confArray['predefined'] as $key => $value) {
     foreach ($predefinedUnsetArray as $arr) {
-        if (isset($$arr, $$arr[$key])) {
+        if (isset($$arr[$key])) {
             unset($$arr[$key]);
         }
     }
@@ -181,26 +174,23 @@ if (($tmp_pos = strpos($systemAccessURL, '?')) !== false) {
     $systemAccessURL = mb_substr($systemAccessURL, 0, $tmp_pos);
 }
 
-// ============================================================================
 // Initialize system libraries
-// ============================================================================
 // ** Time measurement functions
-include_once root.'includes/classes/timer.class.php';
+include_once root . 'includes/classes/timer.class.php';
 $timer = new microTimer();
 $timer->start();
 
 // ** Multisite engine
-include_once root.'includes/inc/multimaster.php';
-
+include_once root . 'includes/inc/multimaster.php';
 multi_multisites();
 /**
  * @var $multiDomainName
  * @var $multimaster
  */
-@define('confroot', root.'conf/'.($multiDomainName && $multimaster && ($multiDomainName != $multimaster) ? 'multi/'.$multiDomainName.'/' : ''));
+define('confroot', root . 'conf/' . ($multiDomainName && $multimaster && ($multiDomainName != $multimaster) ? 'multi/' . $multiDomainName . '/' : ''));
 
 // ** Load system config
-include_once confroot.'config.php';
+include_once confroot . 'config.php';
 // [[FIX config variables]]
 if (!isset($config['uprefix'])) {
     $config['uprefix'] = $config['prefix'];
@@ -218,13 +208,13 @@ multi_multidomains();
 
 // Initiate session - take care about right domain name for sites with/without www. prefix
 //print "<pre>".var_export($_SERVER, true).var_export($_COOKIE, true)."</pre>";
-@session_set_cookie_params(86400, '/', $ngCookieDomain);
-@session_start();
+session_set_cookie_params(86400, '/', $ngCookieDomain);
+session_start();
 
-// ** Load system libraries
-include_once root.'includes/inc/consts.inc.php';
-include_once root.'includes/inc/functions.inc.php';
-include_once root.'includes/inc/extras.inc.php';
+// Load system libraries
+include_once root . 'includes/inc/consts.inc.php';
+include_once root . 'includes/inc/functions.inc.php';
+include_once root . 'includes/inc/extras.inc.php';
 
 include_once 'includes/classes/templates.class.php';
 include_once 'includes/classes/parse.class.php';
@@ -234,45 +224,45 @@ include_once 'includes/classes/uhandler.class.php';
 // [[MARKER]] All system libraries are loaded
 $timer->registerEvent('Core files are included');
 
-// ** Activate URL processing library
+// Activate URL processing library
 $UHANDLER = new urlHandler();
 $UHANDLER->loadConfig();
 
-// ** Other libraries
+// Other libraries
 $parse = new parse();
 $tpl = new tpl();
 $ip = checkIP();
 
-// ** Load configuration file
-if ((!file_exists(confroot.'config.php')) || (filesize(confroot.'config.php') < 10)) {
+// Load configuration file
+if ((!file_exists(confroot . 'config.php')) || (filesize(confroot . 'config.php') < 10)) {
     if (preg_match("#^(.*?)(\/index\.php|\/engine\/admin\.php)$#", $_SERVER['PHP_SELF'], $ms)) {
-        @header('Location: '.$ms[1].'/engine/install.php');
+        header('Location: ' . $ms[1] . '/engine/install.php');
     } else {
-        @header('Location: '.adminDirName.'/install.php');
+        header('Location: ' . adminDirName . '/install.php');
     }
     echo 'NGCMS: Engine is not installed yet. Please run installer from /engine/install.php';
     exit;
 }
 
-// ** Load user groups
+// Load user groups
 loadGroups();
 
-// ** Init our own exception handler
+// Init our own exception handler
 set_exception_handler('ngExceptionHandler');
 set_error_handler('ngErrorHandler');
 register_shutdown_function('ngShutdownHandler');
 
-//
-// *** Initialize TWIG engine
+// Initialize TWIG engine
 $twigLoader = new NGTwigLoader(root);
 
-// - Configure environment and general parameters
+// Configure environment and general parameters
 $twig = new NGTwigEnvironment($twigLoader, [
-    'cache'       => root.'cache/twig/',
+    'cache'       => root . 'cache/twig/',
     'auto_reload' => true,
     'autoescape'  => false,
     'charset'     => 'UTF-8',
 ]);
+
 
 // [[MARKER]] TWIG template engine is loaded
 $timer->registerEvent('Template engine is activated');
@@ -285,12 +275,12 @@ if (preg_match('#^http\:\/\/([^\/])+(\/.+)#', $config['home_url'], $match)) {
     $UHANDLER->setOptions(['localPrefix' => $match[2]]);
 }
 
-// ** Load cache engine
-include_once root.'includes/classes/cache.class.php';
+// Load cache engine
+include_once root . 'includes/classes/cache.class.php';
 
 // NEW :: PDO driver with global classes handler
-NGRun(function () {
-    global $config, $mysql;
+NGRun(function () use ($config) {
+    global $mysql;
 
     $sx = NGEngine::getInstance();
     $sx->set('db', new NGPDO(['host' => $config['dbhost'], 'user' => $config['dbuser'], 'pass' => $config['dbpasswd'], 'db' => $config['dbname'], 'charset' => 'utf8']));
@@ -301,26 +291,26 @@ NGRun(function () {
     $mysql = $sx->getLegacyDB();
 
     // Sync PHP <=> MySQL timezones
-    $mysql->query('SET @@session.time_zone = "'.date('P').'"');
+    $mysql->query('SET @@session.time_zone = "' . date('P') . '"');
 });
 
 // [[MARKER]] MySQL connection is established
 $timer->registerEvent('DB connection established');
 
-// ** Load categories from DB
+// Load categories from DB
 ngLoadCategories();
 
 // [[MARKER]] Categories are loaded
 $timer->registerEvent('DB category list is loaded');
 
-// ** Load compatibility engine [ rewrite old links ]
+// Load compatibility engine [ rewrite old links ] if enabled
 if ($config['libcompat']) {
-    include_once root.'includes/inc/libcompat.php';
+    include_once root . 'includes/inc/libcompat.php';
     compatRedirector();
 }
 
 //
-// Special way to pass authentication cookie via POST params
+/// Special way to pass authentication cookie via POST params
 if (!isset($_COOKIE['zz_auth']) && isset($_POST['ngAuthCookie'])) {
     $_COOKIE['zz_auth'] = $_POST['ngAuthCookie'];
 }
@@ -329,7 +319,7 @@ if (!isset($_COOKIE['zz_auth']) && isset($_POST['ngAuthCookie'])) {
 $timer->registerEvent('Ready to load auth plugins');
 loadActionHandlers('auth');
 
-// ** Load user's permissions DB
+// Load user's permissions DB
 loadPermissions();
 
 // ============================================================================
@@ -343,14 +333,10 @@ if (!$AUTH_CAPABILITIES[$config['auth_db']]['db']) {
     $config['auth_db'] = 'basic';
 }
 
-if ((is_object($AUTH_METHOD[$config['auth_module']])) && (is_object($AUTH_METHOD[$config['auth_db']]))) {
+if (isset($AUTH_METHOD[$config['auth_module']]) && isset($AUTH_METHOD[$config['auth_db']])) {
     // Auth subsystem is activated
-    // * choose default or user defined auth module
-    if (isset($_REQUEST['auth_module']) && $AUTH_CAPABILITIES[$_REQUEST['auth_module']]['login'] && is_object($AUTH_METHOD[$_REQUEST['auth_module']])) {
-        $auth = &$AUTH_METHOD[$_REQUEST['auth_module']];
-    } else {
-        $auth = &$AUTH_METHOD[$config['auth_module']];
-    }
+    // Choose default or user-defined auth module
+    $auth = &$AUTH_METHOD[$config['auth_module']];
     $auth_db = &$AUTH_METHOD[$config['auth_db']];
 
     $xrow = $auth_db->check_auth();
@@ -370,30 +356,29 @@ if ((is_object($AUTH_METHOD[$config['auth_module']])) && (is_object($AUTH_METHOD
             header('X-NG-Login: '.htmlentities($username));
         }
 
-        // - Now every TWIG template will know if user is logged in
+        // Now every TWIG template will know if user is logged in
         $twigGlobal['flags']['isLogged'] = 1;
         $twigGlobal['user'] = $userROW;
-        //$twig->addGlobalRef('user',	$userROW);
     }
 } else {
     echo "Fatal error: No auth module is found.<br />Configuration is damaged, please restore from backup or perform manual fix.<br />\n";
 }
 
-// [[MARKER]] Authentification process is complete
+// [[MARKER]] Authentication process is complete
 $timer->registerEvent('Auth procedure is finished');
 
 if ($is_logged) {
-    @define('name', $userROW['name']);
+    define('name', $userROW['name']);
 }
 
 // Init internal cron module
 $cron = new cronManager();
 
-// ** Load action handlers for action 'all'
+// Load action handlers for action 'all'
 loadActionHandlers('all');
 $timer->registerEvent('ALL core-related plugins are loaded');
 
-// ** Execute 'core' action handler
+// Execute 'core' action handler
 executeActionHandler('core');
 $timer->registerEvent('ALL core-related plugins are executed');
 
@@ -401,14 +386,14 @@ $timer->registerEvent('ALL core-related plugins are executed');
 define('tpl_site', site_root.'templates/'.$config['theme'].'/');
 define('tpl_url', home.'/templates/'.$config['theme']);
 
-// - TWIG: Reconfigure allowed template paths - site template is also available
+// Reconfigure allowed template paths in TWIG - site template is also available
 $twigLoader->setPaths([tpl_site, root]);
 
-// - TWIG: Added global variable `tpl_url`, `scriptLibrary`
+// Add global variables `tpl_url` and `scriptLibrary` in TWIG
 $twig->addGlobal('tpl_url', tpl_url);
 $twig->addGlobal('scriptLibrary', scriptLibrary);
 
-// Lang files are loaded _after_ executing core scripts. This is done for switcher plugin
+// Load lang files after executing core scripts. This is done for the switcher plugin.
 $lang = LoadLang('common');
 $lang = LoadLangTheme();
 

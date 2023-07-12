@@ -16,26 +16,26 @@
 @header('last-modified: '.gmdate('D, d M Y H:i:s', time()).' GMT');
 
 // Determine captcha block identifier
-$blockName = isset($_REQUEST['id']) ? $_REQUEST['id'] : '';
+$blockName = $_REQUEST['id'] ?? '';
 
 // Determine captcha number to show
 $cShowNumber = 'n/c';
 
 // Check if special block is requested
-if ($blockName != '') {
+if ($blockName !== '') {
     // Check if captchaID is prepared for this block
-    if (isset($_SESSION['captcha.'.$blockName]) && ($_SESSION['captcha.'.$blockName])) {
+    if (!empty($_SESSION['captcha.'.$blockName])) {
         $cShowNumber = $_SESSION['captcha.'.$blockName];
     } else {
-        // No, captcha is not set. But we can generate it dynamically for ACTIVE plugins
+        // No captcha is set, but we can generate it dynamically for ACTIVE plugins
         if (getPluginStatusActive($blockName)) {
-            $cShowNumber = rand(00000, 99999);
+            $cShowNumber = rand(0, 99999);
             $_SESSION['captcha.'.$blockName] = $cShowNumber;
         }
     }
 } else {
     // Prepare general captcha
-    $cShowNumber = $_SESSION['captcha'];
+    $cShowNumber = $_SESSION['captcha'] ?? $cShowNumber;
 }
 
 $captc = new captcha();
