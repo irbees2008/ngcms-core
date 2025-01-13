@@ -1,11 +1,7 @@
 [TWIG]
 <article class="article">
 	<div class="article-img">
-		{% if (news.embed.imgCount > 0) %}
-			<img src="{{ news.embed.images[0] }}" width="315" height="161"/>
-		{% else %}
-			<img src="{{ tpl_url }}/img/img-none.png" width="315" height="161"/>
-		{% endif %}
+		<img src="{{ (news.embed.imgCount > 0 and news.embed.images[0] is defined) ? news.embed.images[0] : tpl_url ~ '/img/img-none.png' }}" width="315" height="161"/>
 		<div class="article-cat">{{ news.categories.masterText }}</div>
 	</div>
 	<div class="article-title"><a href="{{ news.url.full }}">{{ news.title }}</a></div>

@@ -428,7 +428,7 @@ function newsProcessFilter($conditions)
             if ($conditions[1] == 'category') {
                 switch ($conditions[2]) {
                     case '=':
-                        return "`catid` regexp '[[:<:]](".intval($conditions[3]).")[[:>:]]'";
+                        return "`catid` regexp '\\\\b(" . intval($conditions[3]) . ")\\\\b'";
                     default:
                         return '';
                 }

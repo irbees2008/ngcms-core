@@ -461,7 +461,7 @@ function listNewsForm()
 
     $conditions = [];
     if (!is_null($fCategoryId)) {
-        array_push($conditions, 'catid '.($fCategoryId ? ("regexp '[[:<:]](".intval($fCategoryId).")[[:>:]]'") : (' = ""')));
+        array_push($conditions, 'catid ' . ($fCategoryId ? ("regexp '\\\\b(" . intval($fCategoryId) . ")\\\\b'") : (' = ""')));
     }
 
     if ($fDateStart) {

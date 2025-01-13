@@ -37,6 +37,7 @@ CREATE TABLE `XPREFIX_category` (
   `posts` int default 0,
   `posorder` int default 999,
   `poslevel` int default 0,
+  `cat_show` tinyint(1) default '0',
   PRIMARY KEY  (`id`)
 ) ENGINE=InnoDB;
 
@@ -232,7 +233,7 @@ CREATE TABLE `XPREFIX_users` (
   `avatar` varchar(100) NOT NULL default '',
   `photo` varchar(100) NOT NULL default '',
   `activation` varchar(25) NOT NULL default '',
-  `ip` varchar(15) NOT NULL default '0',
+  `ip` varchar(45) NOT NULL default '0',
   `newpw` varchar(32) default NULL,
   `authcookie` varchar(50) default NULL,
   PRIMARY KEY  (`id`),
@@ -258,7 +259,6 @@ CREATE TABLE `XPREFIX_users_pm` (
   KEY `from_id` (`from_id`,`to_id`,`viewed`)
 ) ENGINE=InnoDB;
 
-
 -- --------------------------------------------------------
 
 -- 
@@ -276,7 +276,6 @@ CREATE TABLE `XPREFIX_load` (
   `exec_ppage` float,
   PRIMARY KEY (`dt`)
 ) ENGINE=InnoDB;
-
 
 -- --------------------------------------------------------
 
@@ -318,7 +317,6 @@ CREATE TABLE `XPREFIX_profiler` (
   PRIMARY KEY (`id`),
   INDEX `ondt` (`dt`)
 ) ENGINE=InnoDB;
-
 
 -- --------------------------------------------------------
 

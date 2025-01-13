@@ -9,6 +9,11 @@
 
 class microTimer
 {
+    public $events;
+
+    public $script_start;
+
+    public $last_event;
     // CONSTRUCTOR
     public function __construct()
     {

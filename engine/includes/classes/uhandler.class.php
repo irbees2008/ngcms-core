@@ -13,7 +13,6 @@
 
  Each plugin may register a list of it's supported commands with specified params
 
-
  params = array with supported params
         'vars'			=> array ( <VARIABLES> )
             '<NAME>'	=> array ( <PARAMS> )
@@ -166,7 +165,6 @@ class urlLibrary
  urlLibrary - manages a list of possible actions that are supported by different plugins
  urlHandler - manages a configuration that will be used for URL matching/catching
 
-
  Supported function:
   * registerHandler() - register new handler in internal library
     pluginName			- name of the plugin
@@ -178,8 +176,6 @@ class urlLibrary
                         is found - try to show news.
     callbackFunc		- function to call in case of successfull CATCH (it's return value is checked if
                         variable flagFailContinue is set
-
-
 
  Format of handlers:
 
@@ -254,7 +250,6 @@ class urlLibrary
    )
    // will generate URL like '?action=sync&name=HERE_IS_A_NAME'
 
-
    // // // FLAGS PARAMS // // //
    debug		-	flag if debug mode should be activated
    localPrefix	-	set if system is installed in subdirectory
@@ -268,12 +263,12 @@ class urlHandler
      * @var array
      */
     public $hList;
-
+    
     /**
      * @var bool
      */
     protected $configLoaded;
-
+    public $hPrimary;
     /**
      * @var string
      */
