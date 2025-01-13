@@ -11,16 +11,27 @@
 error_reporting(E_ALL ^ E_NOTICE);
 
 // Define global directory constants
-define('NGCoreDir', __DIR__.'/');                // Location of Core directory
-define('NGRootDir', dirname(__DIR__).'/');       // Location of SiteRoot
-define('NGClassDir', NGCoreDir.'classes/');      // Location of AutoLoaded classes
-define('NGVendorDir', NGRootDir.'vendor/');      // Location of Vendor classes
+if (!defined('NGCoreDir')) {
+    define('NGCoreDir', __DIR__ . '/'); // Location of Core directory
+}
 
-$loader = require NGVendorDir.'autoload.php';
+if (!defined('NGRootDir')) {
+    define('NGRootDir', dirname(__DIR__) . '/'); // Location of SiteRoot
+}
+
+if (!defined('NGClassDir')) {
+    define('NGClassDir', NGCoreDir . 'classes/'); // Location of AutoLoaded classes
+}
+
+if (!defined('NGVendorDir')) {
+    define('NGVendorDir', NGRootDir . 'vendor/'); // Location of Vendor classes
+}
+
+$loader = require NGVendorDir . 'autoload.php';
 
 // Autoloader for NEW STYLE Classes
 spl_autoload_register(function ($className) {
-    $fName = NGClassDir.$className.'.class.php';
+    $fName = NGClassDir . $className . '.class.php';
     if (file_exists($fName)) {
         require_once $fName;
     }
@@ -124,8 +135,13 @@ mb_internal_encoding('UTF-8');
 mb_http_output('UTF-8');
 
 // Define global constants "root", "site_root"
-define('root', __DIR__.'/');
-define('site_root', dirname(__DIR__).'/');
+if (!defined('root')) {
+    define('root', __DIR__ . '/');
+}
+
+if (!defined('site_root')) {
+    define('site_root', dirname(__DIR__) . '/');
+}
 
 // Define domain name for cookies
 $ngCookieDomain = preg_match('#^www\.(.+)$#', $_SERVER['HTTP_HOST'], $mHost) ? $mHost[1] : $_SERVER['HTTP_HOST'];
@@ -187,7 +203,26 @@ multi_multisites();
  * @var $multiDomainName
  * @var $multimaster
  */
-define('confroot', root . 'conf/' . ($multiDomainName && $multimaster && ($multiDomainName != $multimaster) ? 'multi/' . $multiDomainName . '/' : ''));
+if (!defined('confroot')) {
+    define('confroot', root . 'conf/' . ($multiDomainName && $multimaster && ($multiDomainName != $multimaster) ? 'multi/' . $multiDomainName . '/' : ''));
+}
+
+// Проверка наличия файла конфигурации
+if (!file_exists(confroot . 'config.php') || filesize(confroot . 'config.php') < 10) {
+    $scriptPath = $_SERVER['PHP_SELF'] ?? '';
+
+    // Проверяем, соответствует ли путь ожидаемым шаблонам
+    if (preg_match("#^(.*?)(/index\.php|/engine/admin\.php)$#", $scriptPath, $matches)) {
+        $redirectUrl = $matches[1] . '/engine/install.php';
+    } else {
+        $redirectUrl = adminDirName . '/install.php';
+    }
+
+    // Выполняем переадресацию
+    header('Location: ' . $redirectUrl);
+    echo 'NGCMS: Engine is not installed yet. Please run installer from /engine/install.php';
+    exit;
+}
 
 // ** Load system config
 include_once confroot . 'config.php';
@@ -233,16 +268,7 @@ $parse = new parse();
 $tpl = new tpl();
 $ip = checkIP();
 
-// Load configuration file
-if ((!file_exists(confroot . 'config.php')) || (filesize(confroot . 'config.php') < 10)) {
-    if (preg_match("#^(.*?)(\/index\.php|\/engine\/admin\.php)$#", $_SERVER['PHP_SELF'], $ms)) {
-        header('Location: ' . $ms[1] . '/engine/install.php');
-    } else {
-        header('Location: ' . adminDirName . '/install.php');
-    }
-    echo 'NGCMS: Engine is not installed yet. Please run installer from /engine/install.php';
-    exit;
-}
+
 
 // Load user groups
 loadGroups();
@@ -352,8 +378,8 @@ if (isset($AUTH_METHOD[$config['auth_module']]) && isset($AUTH_METHOD[$config['a
         $username = $xrow['name'];
         $userROW = $xrow;
         if ($config['x_ng_headers']) {
-            header('X-NG-UserID: '.(int) $userROW['id']);
-            header('X-NG-Login: '.htmlentities($username));
+            header('X-NG-UserID: ' . (int) $userROW['id']);
+            header('X-NG-Login: ' . htmlentities($username));
         }
 
         // Now every TWIG template will know if user is logged in
@@ -383,8 +409,8 @@ executeActionHandler('core');
 $timer->registerEvent('ALL core-related plugins are executed');
 
 // Define last consts
-define('tpl_site', site_root.'templates/'.$config['theme'].'/');
-define('tpl_url', home.'/templates/'.$config['theme']);
+define('tpl_site', site_root . 'templates/' . $config['theme'] . '/');
+define('tpl_url', home . '/templates/' . $config['theme']);
 
 // Reconfigure allowed template paths in TWIG - site template is also available
 $twigLoader->setPaths([tpl_site, root]);
