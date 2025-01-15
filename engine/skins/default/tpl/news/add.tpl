@@ -12,6 +12,25 @@
 	<a href="#" align="right" id="suggestClose">close</a>
 </div> -->
 
+<script>
+$(function(){
+	$("#newsTitle").on({blur:function(){
+		if($(this).val().length>2){
+			$.post('/engine/actions/news_relates.php', { title: $(this).val() }, function(data){
+				$('#news_relates').fadeIn(300).html(data);
+			});
+		}else $('#news_relates').fadeOut(300);
+		return false;
+	}});
+})
+</script>
+<style>
+#news_relates{display:none;background:#ffc;border:1px solid #9E9E9E;padding:5px;-moz-border-radius:4px;-webkit-border-radius:4px;border-radius:4px;}
+#news_relates li{display:block;padding:2px 75px 2px 5px;line-height:16px;border-bottom:1px dotted #ccc;color:#777;}
+#news_relates li span{float:right;height:16px;width:70px;margin-right:-75px;text-align:center;color:#333;font-weight:bold;}
+#news_relates li b{font-weight:bold;}
+</style>
+
 <form name="DATA_tmp_storage" action="" id="DATA_tmp_storage">
 	<input type="hidden" name="area" value=""/>
 </form>
@@ -50,6 +69,7 @@
 						<label class="col-lg-3 col-form-label">{{ lang.addnews['title'] }}</label>
 						<div class="col-lg-9">
 							<input id="newsTitle" type="text" name="title" value="" class="form-control" />
+							<ul id="news_relates"></ul>
 						</div>
 					</div>
 
