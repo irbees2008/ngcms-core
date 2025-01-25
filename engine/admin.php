@@ -56,6 +56,11 @@ if (defined('DEBUG')) {
 }
 
 $PHP_SELF = 'admin.php';
+// Handle LOGIN
+if ($action === 'login') {
+    include_once root . 'cmodules.php';
+    coreLogin();
+}
 
 // Handle LOGOUT
 if ($action === 'logout') {
@@ -69,7 +74,7 @@ if (!is_array($userROW)) {
         'php_self'   => $PHP_SELF,
         'redirect'   => $REQUEST_URI,
         'year'       => date('Y'),
-        'home_title' => $config['home_title'],
+        'home_title' => home_title,
         'error'      => ($SYSTEM_FLAGS['auth_fail']) ? $lang['msge_login'] : '',
         'is_error'   => ($SYSTEM_FLAGS['auth_fail']) ? '$1' : '',
     ];
@@ -162,7 +167,7 @@ if (is_array($userROW)) {
     $unapp1 = '';
     $unapp2 = '';
 
-    $newpm = $mysql->result("SELECT count(pmid) FROM " . prefix . "_users_pm WHERE to_id = " . db_squote($userROW['id']) . " AND viewed = '0'");
+$newpm = $mysql->result("SELECT count(pmid) FROM " . prefix . "_users_pm WHERE to_id = " . db_squote($userROW['id']) . " AND viewed = '0'");
     $newpmText = ($newpm != "0") ? $newpm . ' ' . Padeg($newpm, $lang['head_pm_skl']) : $lang['head_pm_no'];
 
     // Calculate number of un-approved news
@@ -188,7 +193,7 @@ $.timepicker.setDefaults($.timepicker.regional['" . $lang['langcode'] . "']);
 ";
 $datetimepicker_lang = ($lang['langcode'] == 'ru') ? $datetimepicker_lang_default : '';
 
-$tVars = array(
+$tVars = [
     'php_self'                => $PHP_SELF,
     'home_title'            => $config['home_title'],
     'newpm'                    => $newpm,
@@ -238,7 +243,7 @@ $tVars = array(
         'ipban'         => checkPermission(['plugin' => '#admin', 'item' => 'ipban'], null, 'view'),
         'users'         => checkPermission(['plugin' => '#admin', 'item' => 'users'], null, 'view'),
     ],
-);
+];
 
 // Register global vars
 $twigGlobal['action'] = $action;
