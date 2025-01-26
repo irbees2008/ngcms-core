@@ -15,6 +15,7 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Set up PHP
+        if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.ref != 'refs/heads/master')
         uses: shivammathur/setup-php@v2
         with:
           php-version: '7.3'
@@ -22,24 +23,28 @@ jobs:
           coverage: none
 
       - name: Install dependencies
+        if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.ref != 'refs/heads/master')
         run: |
           sudo apt-get update && sudo apt-get install -y git
           curl -sS https://getcomposer.org/installer | sudo php -- --install-dir=/usr/local/bin --filename=composer
           composer install --no-dev --prefer-dist
 
       - name: Download source code
+        if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.ref != 'refs/heads/master')
         run: |
           mkdir -p ~/build
           git clone --depth=1 https://github.com/irbees2008/ngcms-core ~/build/
           git clone --depth=1 https://github.com/irbees2008/ngcms-plugins ~/build/engine/plugins/
 
       - name: Install libraries via composer
+        if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.ref != 'refs/heads/master')
         run: |
           cd ~/build
           composer install --no-dev --prefer-dist
           echo ${{ github.sha }} > engine/cache/build
 
       - name: Cleanup
+        if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.ref != 'refs/heads/master')
         run: |
           cd ~/build
           rm -rf .git
@@ -49,6 +54,7 @@ jobs:
           tar -czf ~/package/ngcms-current-build.tgz .
 
       - name: Upload artifact
+        if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.ref != 'refs/heads/master')
         uses: actions/upload-artifact@v4
         with:
           name: ngcms-current-build
