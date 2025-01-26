@@ -3,39 +3,29 @@ name: Build source code
 on:
   push:
     branches: [ master ]
-  pull_request:
-    branches: [ master ]
 
 jobs:
   build:
     name: Build
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v2
-
       - name: Install deps
-        if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.ref != 'refs/heads/master')
         run: |
           sudo apt-get update && sudo apt-cache search php && sudo apt-get install php7.3 git
       - name: Install composer
-        if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.ref != 'refs/heads/master')
         run: |
           curl -sS https://getcomposer.org/installer | sudo php -- --install-dir=/usr/local/bin --filename=composer
       - name: Download source code
-        if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.ref != 'refs/heads/master')
         run: |
           mkdir ~/build
           git clone https://github.com/irbees2008/ngcms-core ~/build/
           git clone https://github.com/irbees2008/ngcms-plugins ~/build/engine/plugins/
       - name: Install libraries via composer
-        if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.ref != 'refs/heads/master')
         run: |
           cd ~/build
           composer install
           echo ${{ github.sha }} > engine/cache/build
       - name: Cleanup
-        if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.ref != 'refs/heads/master')
         run: |
           cd ~/build
           rm -rf .git
@@ -44,8 +34,7 @@ jobs:
           mkdir ~/package
           tar -czf ~/package/ngcms-current-build.tgz .
       - name: Make package
-        if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.ref != 'refs/heads/master')
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: ngcms-current-build
           path: ~/package
