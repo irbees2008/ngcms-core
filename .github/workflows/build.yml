@@ -9,7 +9,8 @@ on:
 jobs:
   build:
     name: Build
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04  # Используем конкретную версию runner-образа для стабильности
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
@@ -18,7 +19,7 @@ jobs:
         if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.ref != 'refs/heads/master')
         uses: shivammathur/setup-php@v2
         with:
-          php-version: '7.3'
+          php-version: '8.3'
           extensions: mbstring, intl, xml, curl, zip, pdo, pdo_mysql, gd, json
           coverage: none
 
@@ -26,7 +27,6 @@ jobs:
         if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.ref != 'refs/heads/master')
         run: |
           sudo apt-get update && sudo apt-get install -y git
-          curl -sS https://getcomposer.org/installer | sudo php -- --install-dir=/usr/local/bin --filename=composer
           composer install --no-dev --prefer-dist
 
       - name: Download source code
