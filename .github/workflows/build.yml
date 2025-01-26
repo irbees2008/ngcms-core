@@ -3,38 +3,53 @@ name: Build source code
 on:
   push:
     branches: [ master ]
+  pull_request:
+    branches: [ master ]
 
 jobs:
   build:
     name: Build
     runs-on: ubuntu-latest
     steps:
-      - name: Install deps
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '7.3'
+          extensions: mbstring, intl, xml, curl, zip, pdo, pdo_mysql, gd, json
+          coverage: none
+
+      - name: Install dependencies
         run: |
-          sudo apt-get update && sudo apt-cache search php && sudo apt-get install php7.3 git
-      - name: Install composer
-        run: |
+          sudo apt-get update && sudo apt-get install -y git
           curl -sS https://getcomposer.org/installer | sudo php -- --install-dir=/usr/local/bin --filename=composer
+          composer install --no-dev --prefer-dist
+
       - name: Download source code
         run: |
-          mkdir ~/build
-          git clone https://github.com/irbees2008/ngcms-core ~/build/
-          git clone https://github.com/irbees2008/ngcms-plugins ~/build/engine/plugins/
+          mkdir -p ~/build
+          git clone --depth=1 https://github.com/irbees2008/ngcms-core ~/build/
+          git clone --depth=1 https://github.com/irbees2008/ngcms-plugins ~/build/engine/plugins/
+
       - name: Install libraries via composer
         run: |
           cd ~/build
-          composer install
+          composer install --no-dev --prefer-dist
           echo ${{ github.sha }} > engine/cache/build
+
       - name: Cleanup
         run: |
           cd ~/build
           rm -rf .git
           rm -rf .github
           rm -rf engine/plugins/.git
-          mkdir ~/package
+          mkdir -p ~/package
           tar -czf ~/package/ngcms-current-build.tgz .
-      - name: Make package
-        uses: actions/upload-artifact@v3
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
         with:
           name: ngcms-current-build
           path: ~/package
