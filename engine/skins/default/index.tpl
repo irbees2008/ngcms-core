@@ -26,60 +26,28 @@
 				<span class="navbar-toggler-icon"></span>
 			</button>
 
-			<div class="btn-group ml-auto mr-2 py-1 " role="group" aria-label="Button group with nested dropdown">
-				<div class="btn-group">
-					<button type="button" class="btn btn-outline-danger dropdown-toggle btn-sm" data-toggle="dropdown"
-						aria-haspopup="true" aria-expanded="false">
-						<i class="fa fa-bell-o fa-lg"></i>
-						<span class="badge badge-danger">{{ unnAppLabel }}</span>
-					</button>
-					<div class="dropdown-menu dropdown-menu-right">
-						<a class="dropdown-item" href="#">{{ unnAppText }}</a>
-						<div class="dropdown-divider"></div>
-						{{ unapproved1 }}
-						{{ unapproved2 }}
-						{{ unapproved3 }}
-						<a class="dropdown-item" href="{{ php_self }}?mod=pm" title="{{ lang['pm_t'] }}"><i
-								class="fa fa-envelope-o"></i> {{ newpmText }}</a>
-					</div>
-				</div>
-				<div class="btn-group">
-					<button type="button" class="btn btn-outline-success dropdown-toggle btn-sm" data-toggle="dropdown"
-						aria-haspopup="true" aria-expanded="false">
-						<i class="fa fa-plus fa-lg"></i>
-					</button>
-					<div class="dropdown-menu dropdown-menu-right">
-						<a class="dropdown-item" href="{{ php_self }}?mod=news&action=add"><i class="fa fa-plus"></i> {{
-							lang['head_add_news'] }}</a>
-						<a class="dropdown-item" href="{{ php_self }}?mod=categories&action=add"><i class="fa fa-plus"></i> {{
-							lang['head_add_cat'] }}</a>
-						<a class="dropdown-item" href="{{ php_self }}?mod=static&action=addForm"><i class="fa fa-plus"></i> {{
-							lang['head_add_stat'] }}</a>
-						<a class="dropdown-item" href="{{ php_self }}?mod=users" class="add_form"><i class="fa fa-plus"></i> {{
-							lang['head_add_user'] }}</a>
-					</div>
-				</div>
-				<div class="btn-group">
-					<button type="button" class="btn btn-outline-primary dropdown-toggle btn-sm" data-toggle="dropdown"
-						aria-haspopup="true" aria-expanded="false">
-						<i class="fa fa-user-o fa-lg"></i>
-					</button>
-					<div class="dropdown-menu dropdown-menu-right">
-						<span class="dropdown-item dropdown-header"> <img src="{{ skin_UAvatar }}" class="mr-2" alt="User Image"
-							style="width: 16px;"> {{ user.name }}</span>
-						<div class="dropdown-divider"></div>
-						<a href="#" class="dropdown-item">
-							<i class="fa fa-address-card-o mr-2"></i> {{ skin_UStatus }}
-						</a>
-						<div class="dropdown-divider"></div>
-						<a class="dropdown-item" href="?mod=users&action=editForm&id={{ user.id }}"><i class="fa fa-user-o"></i> {{
-							lang['loc_profile'] }}</a>
-						<div class="dropdown-divider"></div>
-						<a class="dropdown-item" href="{{ php_self }}?action=logout"><i class="fa fa-sign-out"></i> {{
-							lang['logout'] }}</a>
-					</div>
-				</div>
-			</div>
+			<div class="btn-group ml-auto mr-2 py-1" role="group" aria-label="Button group with nested dropdown">
+				<ul class="navbar-nav ml-auto">
+        <li class="nav-item"><!-- Иконка уведомлений -->
+        <a type="button" class="nav-link" data-toggle="modal" data-target="#notificationsModal">
+            <i class="fa fa-bell-o fa-lg"></i>
+            <span class="badge badge-danger">{{ unnAppLabel }}</span>
+		</a>
+		</li>
+<li class="nav-item">
+        <!-- Иконка добавления контента -->
+        <a type="button" class="nav-link" data-toggle="modal" data-target="#addContentModal">
+            <i class="fa fa-plus fa-lg"></i>
+        </a>
+		</li>
+<li class="nav-item">
+        <!-- Иконка профиля пользователя -->
+        <a type="button" class="nav-link" data-toggle="modal" data-target="#userProfileModal">
+            <i class="fa fa-user-o fa-lg"></i>
+        </a>
+		</li>
+		</ul>
+    </div>
 
 		</nav>
 		<div class="container-fluid">
@@ -193,6 +161,93 @@
 						target="_blank">Next Generation CMS</a></p>
 			</footer>
 		</div>
+		<!-- Модальное окно для уведомлений -->
+<div class="modal fade" id="notificationsModal" tabindex="-1" role="dialog" aria-labelledby="notificationsModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="notificationsModalLabel">Уведомления</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <a class="dropdown-item" href="#">{{ unnAppText }}</a>
+                <div class="dropdown-divider"></div>
+                {{ unapproved1 }}
+                {{ unapproved2 }}
+                {{ unapproved3 }}
+                <a class="dropdown-item" href="{{ php_self }}?mod=pm" title="{{ lang['pm_t'] }}"><i class="fa fa-envelope-o"></i> {{ newpmText }}</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Модальное окно для добавления контента -->
+<div class="modal fade" id="addContentModal" tabindex="-1" role="dialog" aria-labelledby="addContentModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addContentModalLabel">Добавить контент</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <a class="dropdown-item" href="{{ php_self }}?mod=news&action=add"><i class="fa fa-plus"></i> {{ lang['head_add_news'] }}</a>
+                <a class="dropdown-item" href="{{ php_self }}?mod=categories&action=add"><i class="fa fa-plus"></i> {{ lang['head_add_cat'] }}</a>
+                <a class="dropdown-item" href="{{ php_self }}?mod=static&action=addForm"><i class="fa fa-plus"></i> {{ lang['head_add_stat'] }}</a>
+                <a class="dropdown-item" href="{{ php_self }}?mod=users" class="add_form"><i class="fa fa-plus"></i> {{ lang['head_add_user'] }}</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Модальное окно для профиля пользователя -->
+<div class="modal fade" id="userProfileModal" tabindex="-1" role="dialog" aria-labelledby="userProfileModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            
+            <div class="modal-body card card-widget widget-user">
+                
+                    <!-- Add the bg color to the header using any of the bg-* classes -->
+                    <div class="widget-user-header bg-info text-right">
+                        <h3 class="widget-user-username">{{ user.name }}</h3>
+                        <h5 class="widget-user-desc">{{ skin_UStatus }}</h5>
+                    </div>
+                    <div class="widget-user-image">
+                        <img class="img-circle elevation-2" src="{{ skin_UAvatar }}" alt="User Avatar">
+                    </div>
+                    <div class="card-footer">
+                        <div class="row">
+                            <div class="col-sm-6 border-right">
+                                <div class="description-block">
+                                    <a class="btn btn-block btn-outline-success btn-flat" href="?mod=users&action=editForm&id={{ user.id }}" title="{{ lang['loc_profile'] }}">
+                                        <i class="fa fa-user-o"></i> {{ lang['loc_profile'] }}
+                                    </a>
+                                </div>
+                                <!-- /.description-block -->
+                            </div>
+                            <!-- /.col -->
+                            <div class="col-sm-6">
+                                <div class="description-block">
+                                    <a class="btn btn-block btn-outline-danger btn-flat" href="{{ php_self }}?action=logout" title="{{ lang['logout'] }}">
+                                        <i class="fa fa-sign-out"></i> {{ lang['logout'] }}
+                                    </a>
+                                </div>
+                                <!-- /.description-block -->
+                            </div>
+                            <!-- /.col -->
+                        </div>
+                        <!-- /.row -->
+                    </div>
+                
+                <!-- /.widget-user -->
+            
+        </div>
+    </div>
+</div>
+
 		<script type="text/javascript">
 			{# Устанавливаем временную переменную, чтобы отловить ошибки JSON - декодирования.#}
 			{% set encode_lang = lang | json_encode(constant('JSON_PRETTY_PRINT') b-or constant('JSON_UNESCAPED_UNICODE')) %}
@@ -208,5 +263,65 @@
             $('#menu-content .sub-menu.show').not(this).removeClass('show');
         });
 		</script>
+		<script>
+    $(document).ready(function() {
+        // Функция для определения ширины скроллбара
+        function getScrollbarWidth() {
+            var outer = document.createElement("div");
+            outer.style.visibility = "hidden";
+            outer.style.width = "100px";
+            outer.style.msOverflowStyle = "scrollbar"; // needed for WinJS apps
+
+            document.body.appendChild(outer);
+
+            var widthNoScroll = outer.offsetWidth;
+            // force scrollbars
+            outer.style.overflow = "scroll";
+
+            // add inner div
+            var inner = document.createElement("div");
+            inner.style.width = "100%";
+            outer.appendChild(inner);        
+
+            var widthWithScroll = inner.offsetWidth;
+
+            // remove divs
+            outer.parentNode.removeChild(outer);
+
+            return widthNoScroll - widthWithScroll;
+        }
+
+        // Сохраняем ширину скроллбара в переменную
+        var scrollbarWidth = getScrollbarWidth();
+
+        // При открытии модального окна
+        $('.modal').on('show.bs.modal', function () {
+            if ($('body').height() > $(window).height()) {
+                $('body').addClass('modal-scrollbar-compensate');
+            }
+            $('body').addClass('modal-open-no-scroll');
+        });
+
+        // При закрытии модального окна
+        $('.modal').on('hidden.bs.modal', function () {
+            $('body').removeClass('modal-scrollbar-compensate');
+            $('body').removeClass('modal-open-no-scroll');
+        });
+
+        // Добавляем компенсацию ширины скроллбара
+        $(window).on('resize', function() {
+            if ($('body').hasClass('modal-scrollbar-compensate')) {
+                if (scrollbarWidth) {
+                    $('body').css('margin-right', scrollbarWidth);
+                } else {
+                    $('body').css('margin-right', '17px'); // Задаём стандартное значение на случай если не удалось определить ширину скроллбара
+                }
+            } else {
+                $('body').css('margin-right', '0');
+            }
+        }).trigger('resize');
+
+    });
+</script>
 	</body>
 </html>

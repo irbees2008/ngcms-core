@@ -15236,5 +15236,45 @@ body.modal-open {
     overflow: hidden;
     /* Обычно ширина скроллбара составляет 17px */
 }
+ .card-widget {
+    /* margin-top: 20px;*/
+ }
 
-;
+ .widget-user-header {
+     display: flex;
+     flex-direction: column;
+     justify-content: center;
+     /*align-items: center;*/
+     padding: 20px;
+     color: white;
+ }
+
+ .widget-user-image {
+     text-align: center;
+     margin: -60px auto 20px;
+ }
+
+ .img-circle {
+     width: 100px;
+     height: 100px;
+     border-radius: 50%;
+ }
+
+ .card-footer {
+     background-color: white;
+ }
+
+ .description-block {
+     text-align: center;
+ }
+
+ .description-header {
+     font-size: 1.5rem;
+     font-weight: bold;
+ }
+
+ .description-text {
+     display: block;
+     margin-top: 5px;
+     font-size: 1rem;
+ }
