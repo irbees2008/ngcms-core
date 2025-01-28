@@ -1,7 +1,7 @@
 <div class="container-fluid">
 	<div class="row mb-2">
 		<div class="col-sm-6 d-none d-md-block ">
-			<h1 class="m-0 text-dark">{{ lang['admin_panel'] }}</h1>
+			<h1 class="m-0 text-dark">{{ lang['statistics'] }}</h1>
 		</div>
 		<!-- /.col -->
 		<div class="col-sm-6">
@@ -11,7 +11,7 @@
 						<i class="fa fa-home"></i>
 					</a>
 				</li>
-				<li class="breadcrumb-item active" aria-current="page">{{ lang['admin_panel'] }}</li>
+				<li class="breadcrumb-item active" aria-current="page">{{ lang['statistics'] }}</li>
 			</ol>
 		</div>
 		<!-- /.col -->
