@@ -15280,3 +15280,32 @@ body.modal-open {
  }
  .admin{font-size: 24px;
     padding: 8px;}
+.btn-custom {
+    margin: 5px 0;
+    padding: 10px 20px;
+    font-size: 16px;
+    display: block;
+    /* Кнопки будут занимать всю ширину контейнера */
+    text-align: left;
+    /* Текст будет выровнен по левому краю */
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.btn-custom i {
+    margin-right: 10px;
+    /* Отступ между иконкой и текстом */
+}
+
+.btn-custom:hover {
+    background-color: #d4edda;
+    /* Изменение фона при наведении */
+    color: #155724;
+    /* Изменение цвета текста при наведении */
+}
+.badge-notife {font-size: .6rem;
+font-weight: 300;
+padding: 2px 4px;
+position: absolute;
+left: 30px;
+top: 9px;
+}

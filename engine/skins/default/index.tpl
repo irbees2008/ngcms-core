@@ -31,7 +31,7 @@
         <li class="nav-item"><!-- Иконка уведомлений -->
         <a type="button" class="nav-link" data-toggle="modal" data-target="#notificationsModal">
             <i class="fa fa-bell-o fa-lg"></i>
-            <span class="badge badge-danger">{{ unnAppLabel }}</span>
+            <span class="badge badge-notife badge-danger">{{ unnAppLabel }}</span>
 		</a>
 		</li>
 <li class="nav-item">
@@ -166,14 +166,12 @@
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="notificationsModalLabel">Уведомления</h5>
+                <h5 class="modal-title" id="notificationsModalLabel">Уведомления - {{ unnAppText }}</h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
             <div class="modal-body">
-                <a class="dropdown-item" href="#">{{ unnAppText }}</a>
-                <div class="dropdown-divider"></div>
                 {{ unapproved1 }}
                 {{ unapproved2 }}
                 {{ unapproved3 }}
@@ -193,12 +191,26 @@
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
-            <div class="modal-body">
-                <a class="dropdown-item" href="{{ php_self }}?mod=news&action=add"><i class="fa fa-plus"></i> {{ lang['head_add_news'] }}</a>
-                <a class="dropdown-item" href="{{ php_self }}?mod=categories&action=add"><i class="fa fa-plus"></i> {{ lang['head_add_cat'] }}</a>
-                <a class="dropdown-item" href="{{ php_self }}?mod=static&action=addForm"><i class="fa fa-plus"></i> {{ lang['head_add_stat'] }}</a>
-                <a class="dropdown-item" href="{{ php_self }}?mod=users" class="add_form"><i class="fa fa-plus"></i> {{ lang['head_add_user'] }}</a>
-            </div>
+           <div class="modal-body">
+                    <a class="btn btn-outline-success btn-custom" href="{{ php_self }}?mod=news&action=add">
+                        <i class="fa fa-newspaper-o" aria-hidden="true"></i> <i class="fa fa-plus"></i> {{ lang['head_add_news'] }}
+                    </a>
+                    <a class="btn btn-outline-success btn-custom" href="{{ php_self }}?mod=categories&action=add">
+                        <i class="fa fa-list" aria-hidden="true"></i> <i class="fa fa-plus"></i> {{ lang['head_add_cat'] }}
+                    </a>
+                    <a class="btn btn-outline-success btn-custom" href="{{ php_self }}?mod=static&action=addForm">
+                        <i class="fa fa-file-o" aria-hidden="true"></i> <i class="fa fa-plus"></i> {{ lang['head_add_stat'] }}
+                    </a>
+                    <a class="btn btn-outline-success btn-custom add_form" href="{{ php_self }}?mod=users">
+                        <i class="fa fa-user-o" aria-hidden="true"></i> <i class="fa fa-plus"></i> {{ lang['head_add_user'] }}
+                    </a>
+                    <a class="btn btn-outline-success btn-custom" href="{{ php_self }}?mod=images">
+                        <i class="fa fa-picture-o" aria-hidden="true"></i> <i class="fa fa-plus"></i> {{ lang['head_add_images'] }}
+                    </a>
+                    <a class="btn btn-outline-success btn-custom" href="{{ php_self }}?mod=files">
+                        <i class="fa fa-folder-o" aria-hidden="true"></i> <i class="fa fa-plus"></i> {{ lang['head_add_files'] }}
+                    </a>
+                </div>
         </div>
     </div>
 </div>
