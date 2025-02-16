@@ -423,7 +423,7 @@ return false;
 </script>
 <script>
 	$(function () {
-var reqReleas = "https://api.github.com/repos/vponomarev/ngcms-core/releases/latest";
+var reqReleas = "https://api.github.com/repos/irbees2008/ngcms-core/releases/latest";
 requestJSON(reqReleas, function (json) {
 if (json.message == "Not Found") {
 $('#syncLastVersion').html("No Info Found");
@@ -440,7 +440,7 @@ $('#syncLastVersion').html('<a href="' + json.zipball_url + '">' + json.tag_name
 }
 });
 
-var reqCommit = "https://api.github.com/repos/vponomarev/ngcms-core/commits";
+var reqCommit = "https://api.github.com/repos/irbees2008/ngcms-core/commits";
 requestJSON(reqCommit, function (json) {
 if (json.message == "Not Found") {
 $('#syncSVNVersion').html("No Info Found");
