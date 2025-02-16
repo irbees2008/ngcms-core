@@ -12,63 +12,105 @@
 	<a href="#" align="right" id="suggestClose">close</a>
 </div> -->
 
-<script>
-$(function(){
-	$("#newsTitle").on({blur:function(){
-		if($(this).val().length>2){
-			$.post('/engine/actions/news_relates.php', { title: $(this).val() }, function(data){
-				$('#news_relates').fadeIn(300).html(data);
-			});
-		}else $('#news_relates').fadeOut(300);
-		return false;
-	}});
+	<script>
+$(function () {
+$("#newsTitle").on({
+blur: function () {
+if ($(this).val().length > 2) {
+$.post('/engine/actions/news_relates.php', {
+title: $(this).val()
+}, function (data) {
+$('#news_relates').fadeIn(300).html(data);
+});
+} else 
+$('#news_relates').fadeOut(300);
+
+return false;
+}
+});
 })
 </script>
-<style>
-#news_relates{display:none;background:#ffc;border:1px solid #9E9E9E;padding:5px;-moz-border-radius:4px;-webkit-border-radius:4px;border-radius:4px;}
-#news_relates li{display:block;padding:2px 75px 2px 5px;line-height:16px;border-bottom:1px dotted #ccc;color:#777;}
-#news_relates li span{float:right;height:16px;width:70px;margin-right:-75px;text-align:center;color:#333;font-weight:bold;}
-#news_relates li b{font-weight:bold;}
+	<style>
+#news_relates {
+	display: none;
+	background: #ffc;
+	border: 1px solid #9E9E9E;
+	padding: 5px;
+	-moz-border-radius: 4px;
+	-webkit-border-radius: 4px;
+	border-radius: 4px;
+}
+#news_relates li {
+	display: block;
+	padding: 2px 75px 2px 5px;
+	line-height: 16px;
+	border-bottom: 1px dotted #ccc;
+	color: #777;
+}
+#news_relates li span {
+	float: right;
+	height: 16px;
+	width: 70px;
+	margin-right: -75px;
+	text-align: center;
+	color: #333;
+	font-weight: bold;
+}
+#news_relates li b {
+	font-weight: bold;
+}
 </style>
 
-<form name="DATA_tmp_storage" action="" id="DATA_tmp_storage">
-	<input type="hidden" name="area" value=""/>
+	<form name="DATA_tmp_storage" action="" id="DATA_tmp_storage"> <input type="hidden" name="area" value=""/>
 </form>
 <div class="container-fluid">
 	<div class="row mb-2">
-	  <div class="col-sm-6 d-none d-md-block ">
+		<div class="col-sm-6 d-none d-md-block ">
 			<h1 class="m-0 text-dark">{{ lang.addnews['addnews_title'] }}</h1>
-	  </div><!-- /.col -->
-	  <div class="col-sm-6">
-		<ol class="breadcrumb float-sm-right">
-			<li class="breadcrumb-item"><a href="admin.php"><i class="fa fa-home"></i></a></li>
-			<li class="breadcrumb-item"><a href="{{ php_self }}?mod=news">{{ lang.addnews['news_title'] }}</a></li>
-			<li class="breadcrumb-item active" aria-current="page">{{ lang.addnews['addnews_title'] }}</li>
-		</ol>
-	  </div><!-- /.col -->
-	</div><!-- /.row -->
-  </div><!-- /.container-fluid -->
-
+		</div>
+		<!-- /.col -->
+		<div class="col-sm-6">
+			<ol class="breadcrumb float-sm-right">
+				<li class="breadcrumb-item">
+					<a href="admin.php">
+						<i class="fa fa-home"></i>
+					</a>
+				</li>
+				<li class="breadcrumb-item">
+					<a href="{{ php_self }}?mod=news">{{ lang.addnews['news_title'] }}</a>
+				</li>
+				<li class="breadcrumb-item active" aria-current="page">{{ lang.addnews['addnews_title'] }}</li>
+			</ol>
+		</div>
+		<!-- /.col -->
+	</div>
+	<!-- /.row -->
+</div>
+<!-- /.container-fluid -->
 
 <!-- Main content form -->
 <form id="postForm" name="form" enctype="multipart/form-data" method="post" action="{{ php_self }}" target="_self">
-	<input type="hidden" name="token" value="{{ token }}" />
-	<input type="hidden" name="mod" value="news" />
-	<input type="hidden" name="action" value="add" />
-	<input type="hidden" name="subaction" value="submit" />
+	<input type="hidden" name="token" value="{{ token }}"/>
+	<input type="hidden" name="mod" value="news"/>
+	<input type="hidden" name="action" value="add"/>
+	<input type="hidden" name="subaction" value="submit"/>
 
-	<div class="row">
+	<div
+		class="row">
 		<!-- Left edit column -->
-		<div class="col-lg-8">
+		<div
+			class="col-lg-8">
 
 			<!-- MAIN CONTENT -->
 			<div id="maincontent" class="card mb-4">
-				<div class="card-header"><i class="fa fa-th-list mr-2"></i> {{ lang.addnews['bar.maincontent'] }}</div>
+				<div class="card-header">
+					<i class="fa fa-th-list mr-2"></i>
+					{{ lang.addnews['bar.maincontent'] }}</div>
 				<div class="card-body">
 					<div class="form-row mb-3">
 						<label class="col-lg-3 col-form-label">{{ lang.addnews['title'] }}</label>
 						<div class="col-lg-9">
-							<input id="newsTitle" type="text" name="title" value="" class="form-control" />
+							<input id="newsTitle" type="text" name="title" value="" class="form-control"/>
 							<ul id="news_relates"></ul>
 						</div>
 					</div>
@@ -77,7 +119,7 @@ $(function(){
 						<div class="form-row mb-3">
 							<label class="col-lg-3 col-form-label">{{ lang.addnews['alt_name'] }}</label>
 							<div class="col-lg-9">
-								<input type="text" name="alt_name" value="" class="form-control" />
+								<input type="text" name="alt_name" value="" class="form-control"/>
 							</div>
 						</div>
 					{% endif %}
@@ -86,7 +128,9 @@ $(function(){
 						<label class="col-lg-3 col-form-label">
 							{{ lang.addnews['category'] }}
 							{% if (flags.mondatory_cat) %}
-								<span style="font-size: 16px; color: red;"><b>*</b></span>
+								<span style="font-size: 16px; color: red;">
+									<b>*</b>
+								</span>
 							{% endif %}
 						</label>
 						<div class="col-lg-9">
@@ -104,7 +148,9 @@ $(function(){
 								<div class="modal-content">
 									<div class="modal-header">
 										<h5 id="smiles-modal-label" class="modal-title">Вставить смайл</h5>
-										<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+										<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+											<span aria-hidden="true">&times;</span>
+										</button>
 									</div>
 									<div class="modal-body">
 										{{ smilies }}
@@ -128,7 +174,7 @@ $(function(){
 							<div class="form-row mb-3">
 								<label class="col-lg-3 col-form-label">{{ lang.addnews['editor.divider'] }}</label>
 								<div class="col-lg-9">
-									<input type="text" name="content_delimiter" value="" class="form-control" />
+									<input type="text" name="content_delimiter" value="" class="form-control"/>
 								</div>
 							</div>
 						{% endif %}
@@ -158,18 +204,22 @@ $(function(){
 								<textarea name="keywords" cols="80" class="form-control"></textarea>
 							</div>
 						</div>
+						{% if (pluginIsActive('autokeys')) %}
+							{{ plugin.autokeys }}
+						{% endif %}
 					{% endif %}
 				</div>
 
 				{% if (pluginIsActive('xfields')) %}
-				<table class="table table-sm mb-0">
-					<tbody>
-					<!-- XFields -->
-					{{ plugin.xfields[1] }}
-					<!-- /XFields -->
-					</tbody>
-				</table>
+					<table class="table table-sm mb-0">
+						<tbody>
+							<!-- XFields -->
+							{{ plugin.xfields[1] }}
+							<!-- /XFields -->
+						</tbody>
+					</table>
 				{% endif %}
+
 			</div>
 
 			<!-- ADDITIONAL -->
@@ -184,15 +234,23 @@ $(function(){
 					<div id="collapseNewsAdditional" class="collapse" aria-labelledby="headingOne" data-parent="#additional">
 						<table class="table table-sm mb-0">
 							<tbody>
-							{% if (pluginIsActive('xfields')) %}
-								<!-- XFields -->
-								{{ plugin.xfields[0] }}
-								<!-- /XFields -->
-							{% endif %}
-							{% if (pluginIsActive('nsched')) %}{{ plugin.nsched }}{% endif %}
-							{% if (pluginIsActive('finance')) %}{{ plugin.finance }}{% endif %}
-							{% if (pluginIsActive('tags')) %}{{ plugin.tags }}{% endif %}
-							{% if (pluginIsActive('tracker')) %}{{ plugin.tracker }}{% endif %}
+								{% if (pluginIsActive('xfields')) %}
+									<!-- XFields -->
+									{{ plugin.xfields[0] }}
+									<!-- /XFields -->
+								{% endif %}
+								{% if (pluginIsActive('nsched')) %}
+									{{ plugin.nsched }}
+								{% endif %}
+								{% if (pluginIsActive('finance')) %}
+									{{ plugin.finance }}
+								{% endif %}
+								{% if (pluginIsActive('tags')) %}
+									{{ plugin.tags }}
+								{% endif %}
+								{% if (pluginIsActive('tracker')) %}
+									{{ plugin.tracker }}
+								{% endif %}
 							</tbody>
 						</table>
 					</div>
@@ -208,7 +266,8 @@ $(function(){
 						</a>
 					</div>
 
-					<div id="collapseNewsAttaches" class="collapse" aria-labelledby="headingTwo" data-parent="#attaches">
+					<div
+						id="collapseNewsAttaches" class="collapse" aria-labelledby="headingTwo" data-parent="#attaches">
 						<!-- <span class="f15">{{ lang.addnews['attach.list'] }}</span> -->
 						<table id="attachFilelist" class="table table-sm mb-0">
 							<thead>
@@ -224,7 +283,7 @@ $(function(){
 								<!-- <tr><td>*</td><td>New file</td><td colspan="2"><input type="file"/></td><td><input type="button" size="40" value="-"/></td></tr> -->
 								<tr>
 									<td colspan="5" class="text-right">
-										<input type="button" value="{{ lang.editnews['attach.more_rows'] }}" class="btn btn-sm btn-outline-primary" onclick="attachAddRow();" />
+										<input type="button" value="{{ lang.editnews['attach.more_rows'] }}" class="btn btn-sm btn-outline-primary" onclick="attachAddRow();"/>
 									</td>
 								</tr>
 							</tbody>
@@ -249,32 +308,32 @@ $(function(){
 				<div class="card-header">{{ lang['editor.configuration'] }}</div>
 				<div class="card-body">
 					<label class="col-form-label d-block">
-						<input id="mainpage" type="checkbox" name="mainpage" value="1" {% if (flags.mainpage) %}checked {% endif %} {% if flags['mainpage.disabled'] %}disabled {% endif %} />
+						<input id="mainpage" type="checkbox" name="mainpage" value="1" {% if (flags.mainpage) %} checked {% endif %} {% if flags['mainpage.disabled'] %} disabled {% endif %}/>
 						{{ lang.addnews['mainpage'] }}
 					</label>
 
 					<label class="col-form-label d-block">
-						<input id="pinned" type="checkbox" name="pinned" value="1" {% if (flags.pinned) %}checked {% endif %} {% if flags['pinned.disabled'] %}disabled {% endif %} />
+						<input id="pinned" type="checkbox" name="pinned" value="1" {% if (flags.pinned) %} checked {% endif %} {% if flags['pinned.disabled'] %} disabled {% endif %}/>
 						{{ lang.addnews['add_pinned'] }}
 					</label>
 
 					<label class="col-form-label d-block">
-						<input id="catpinned" type="checkbox" name="catpinned" value="1" {% if (flags.catpinned) %}checked {% endif %} {% if flags['catpinned.disabled'] %}disabled {% endif %} />
+						<input id="catpinned" type="checkbox" name="catpinned" value="1" {% if (flags.catpinned) %} checked {% endif %} {% if flags['catpinned.disabled'] %} disabled {% endif %}/>
 						{{ lang.addnews['add_catpinned'] }}
 					</label>
 
 					<label class="col-form-label d-block">
-						<input id="favorite" type="checkbox" name="favorite" value="1" {% if (flags.favorite) %}checked {% endif %} {% if flags['favorite.disabled'] %}disabled {% endif %} />
+						<input id="favorite" type="checkbox" name="favorite" value="1" {% if (flags.favorite) %} checked {% endif %} {% if flags['favorite.disabled'] %} disabled {% endif %}/>
 						{{ lang.addnews['add_favorite'] }}
 					</label>
 
 					<label class="col-form-label d-block">
-						<input id="flag_HTML" type="checkbox" name="flag_HTML" value="1" {% if (flags['html']) %}checked {% endif %} {% if (flags['html.disabled']) %}disabled {% endif %} />
+						<input id="flag_HTML" type="checkbox" name="flag_HTML" value="1" {% if (flags['html']) %} checked {% endif %} {% if (flags['html.disabled']) %} disabled {% endif %}/>
 						{{ lang.addnews['flag_html'] }}
 					</label>
 
 					<label class="col-form-label d-block">
-						<input id="flag_RAW" type="checkbox" name="flag_RAW" value="1" {% if (flags['raw']) %}checked {% endif %} {% if (flags['html.disabled']) %}disabled {% endif %} />
+						<input id="flag_RAW" type="checkbox" name="flag_RAW" value="1" {% if (flags['raw']) %} checked {% endif %} {% if (flags['html.disabled']) %} disabled {% endif %}/>
 						{{ lang.addnews['flag_raw'] }}
 					</label>
 				</div>
@@ -285,7 +344,8 @@ $(function(){
 					<div class="card-header">{{ lang.addnews['custom_date'] }}</div>
 					<div class="card-body">
 						<label class="col-form-label d-block">
-							<input type="checkbox" name="customdate" value="1" class=""  onclick="document.getElementById('setdate_current').checked=false;">
+							<input
+							type="checkbox" name="customdate" value="1" class="" onclick="document.getElementById('setdate_current').checked=false;">
 							<!-- setdate_custom -->
 							{{ lang.editnews['date.setdate'] }}
 						</label>
@@ -317,7 +377,9 @@ $(function(){
 			<div class="row">
 				<div class="col mt-4">
 					<button type="button" class="btn btn-outline-success" onclick="return preview();">
-						<span class="d-xl-none"><i class="fa fa-eye"></i></span>
+						<span class="d-xl-none">
+							<i class="fa fa-eye"></i>
+						</span>
 						<span class="d-none d-xl-block">{{ lang.addnews['preview'] }}</span>
 					</button>
 				</div>
@@ -333,7 +395,9 @@ $(function(){
 						</select>
 						<div class="input-group-append">
 							<button type="submit" class="btn btn-outline-success">
-								<span class="d-xl-none"><i class="fa fa-floppy-o"></i></span>
+								<span class="d-xl-none">
+									<i class="fa fa-floppy-o"></i>
+								</span>
 								<span class="d-none d-xl-block">{{ lang.addnews['addnews'] }}</span>
 							</button>
 						</div>
@@ -352,98 +416,96 @@ $(function(){
 
 <script type="text/javascript">
 	// Global variable: ID of current active input area
-	var currentInputAreaID = 'ng_news_content{{ flags.edit_split ? '_short' : '' }}';
+var currentInputAreaID = 'ng_news_content    {{ flags.edit_split ? '_short' : '' }}';
 
-	function preview() {
-		var form = document.getElementById("postForm");
+function preview() {
+var form = document.getElementById("postForm");
 
-		if (form.querySelector('[name*=ng_news_content]').value == '' || form.title.value == '') {
-			alert('{{ lang.addnews['msge_preview'] }}');
+if (form.querySelector('[name*=ng_news_content]').value == '' || form.title.value == '') {
+alert('{{ lang.addnews['msge_preview'] }}');
 
-			return false;
-		}
+return false;
+}
 
-		form['mod'].value = "preview";
-		form.target = "_blank";
-		form.submit();
+form['mod'].value = "preview";
+form.target = "_blank";
+form.submit();
 
-		form['mod'].value = "news";
-		form.target = "_self";
+form['mod'].value = "news";
+form.target = "_self";
 
-		return true;
-	}
+return true;
+}
 
-	function changeActive(name) {
-		if (name == 'full') {
-			document.getElementById('container.content.full').className = 'contentActive';
-			document.getElementById('container.content.short').className = 'contentInactive';
-			currentInputAreaID = 'ng_news_content_full';
-		} else {
-			document.getElementById('container.content.short').className = 'contentActive';
-			document.getElementById('container.content.full').className = 'contentInactive';
-			currentInputAreaID = 'ng_news_content_short';
-		}
-	}
+function changeActive(name) {
+if (name == 'full') {
+document.getElementById('container.content.full').className = 'contentActive';
+document.getElementById('container.content.short').className = 'contentInactive';
+currentInputAreaID = 'ng_news_content_full';
+} else {
+document.getElementById('container.content.short').className = 'contentActive';
+document.getElementById('container.content.full').className = 'contentInactive';
+currentInputAreaID = 'ng_news_content_short';
+}
+}
 </script>
 
 <script type="text/javascript">
 	// Restore variables if needed
-	var jev = {{ JEV }};
-	var form = document.getElementById('postForm');
-	for (i in jev) {
-		//try { alert(i+' ('+form[i].type+')'); } catch (err) {;}
-		if (typeof(jev[i]) == 'object') {
-			for (j in jev[i]) {
-				//alert(i+'['+j+'] = '+ jev[i][j]);
-				try {
-					form[i + '[' + j + ']'].value = jev[i][j];
-				} catch (err) {
-					;
-				}
-			}
-		} else {
-			try {
-				if ((form[i].type == 'text') || (form[i].type == 'textarea') || (form[i].type == 'select-one')) {
-					form[i].value = jev[i];
-				} else if (form[i].type == 'checkbox') {
-					form[i].checked = (jev[i] ? true : false);
-				}
-			} catch (err) {
-				;
-			}
-		}
-	}
+var jev = {{ JEV }};
+var form = document.getElementById('postForm');
+for (i in jev) { // try { alert(i+' ('+form[i].type+')'); } catch (err) {;}
+if (typeof(jev[i]) == 'object') {
+for (j in jev[i]) { // alert(i+'['+j+'] = '+ jev[i][j]);
+try {
+form[i + '[' + j + ']'].value = jev[i][j];
+} catch (err) {;
+}
+}
+} else {
+try {
+if ((form[i].type == 'text') || (form[i].type == 'textarea') || (form[i].type == 'select-one')) {
+form[i].value = jev[i];
+} else if (form[i].type == 'checkbox') {
+form[i].checked = (jev[i] ? true : false);
+}
+} catch (err) {;
+}
+}
+}
 </script>
 
 <script type="text/javascript">
 	function attachAddRow() {
-		var tbl = document.getElementById('attachFilelist');
-		var lastRow = tbl.rows.length;
-		var row = tbl.insertRow(lastRow - 1);
+var tbl = document.getElementById('attachFilelist');
+var lastRow = tbl.rows.length;
+var row = tbl.insertRow(lastRow - 1);
 
-		// Add cells
-		row.insertCell(0).innerHTML = '*';
-		row.insertCell(1).innerHTML = '{{ lang.editnews['attach.new_file '] }}';
+// Add cells
+row.insertCell(0).innerHTML = '*';
+row.insertCell(1).innerHTML = '{{ lang.editnews['attach.new_file '] }}';
 
-		// Add file input
-		var el = document.createElement('input');
-		el.setAttribute('type', 'file');
-		el.setAttribute('name', 'userfile[' + (++attachAbsoluteRowID) + ']');
-		el.setAttribute('size', '80');
+// Add file input
+var el = document.createElement('input');
+el.setAttribute('type', 'file');
+el.setAttribute('name', 'userfile[' + (
+++ attachAbsoluteRowID
+) + ']');
+el.setAttribute('size', '80');
 
-		var xCell = row.insertCell(2);
-		xCell.colSpan = 2;
-		xCell.appendChild(el);
+var xCell = row.insertCell(2);
+xCell.colSpan = 2;
+xCell.appendChild(el);
 
-		el = document.createElement('input');
-		el.setAttribute('type', 'button');
-		el.setAttribute('onclick', 'document.getElementById("attachFilelist").deleteRow(this.parentNode.parentNode.rowIndex);');
-		el.setAttribute('value', '-');
-		el.setAttribute('class', 'btn btn-sm btn-outline-danger');
-		row.insertCell(3).appendChild(el);
-	}
+el = document.createElement('input');
+el.setAttribute('type', 'button');
+el.setAttribute('onclick', 'document.getElementById("attachFilelist").deleteRow(this.parentNode.parentNode.rowIndex);');
+el.setAttribute('value', '-');
+el.setAttribute('class', 'btn btn-sm btn-outline-danger');
+row.insertCell(3).appendChild(el);
+}
 
-	// Add first row
-	var attachAbsoluteRowID = 0;
-	attachAddRow();
+// Add first row
+var attachAbsoluteRowID = 0;
+attachAddRow();
 </script>

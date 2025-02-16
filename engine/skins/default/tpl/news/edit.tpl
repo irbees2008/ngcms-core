@@ -12,70 +12,101 @@
 	<a href="#" align="right" id="suggestClose">close</a>
 </div> -->
 
-<form name="DATA_tmp_storage" action="" id="DATA_tmp_storage">
-	<input type="hidden" name="area" value=""/>
+	<form name="DATA_tmp_storage" action="" id="DATA_tmp_storage"> <input type="hidden" name="area" value=""/>
 </form>
 
 <div class="container-fluid">
 	<div class="row mb-2">
-	  <div class="col-sm-6 d-none d-md-block ">
+		<div class="col-sm-6 d-none d-md-block ">
 			<h1 class="m-0 text-dark">{{ lang['editnews_title'] }}</h1>
-	  </div><!-- /.col -->
-	  <div class="col-sm-6">
-		<ol class="breadcrumb float-sm-right">
-			<li class="breadcrumb-item"><a href="admin.php"><i class="fa fa-home"></i></a></li>
-		<li class="breadcrumb-item"><a href="{{ php_self }}?mod=news">{{ lang.editnews['news_title'] }}</a></li>
-		<li class="breadcrumb-item active" aria-current="page">{{ title }}</li>
-		</ol>
-	  </div><!-- /.col -->
-	</div><!-- /.row -->
-  </div><!-- /.container-fluid -->
+		</div>
+		<!-- /.col -->
+		<div class="col-sm-6">
+			<ol class="breadcrumb float-sm-right">
+				<li class="breadcrumb-item">
+					<a href="admin.php">
+						<i class="fa fa-home"></i>
+					</a>
+				</li>
+				<li class="breadcrumb-item">
+					<a href="{{ php_self }}?mod=news">{{ lang.editnews['news_title'] }}</a>
+				</li>
+				<li class="breadcrumb-item active" aria-current="page">{{ title }}</li>
+			</ol>
+		</div>
+		<!-- /.col -->
+	</div>
+	<!-- /.row -->
+</div>
+<!-- /.container-fluid -->
 
 {% if (flags['params.lost']) %}
-<div class="alert alert-warning">
-	<p>Обратите внимание – у вас недостаточно прав для полноценного редактирования новости.</p>
-	<hr>
-	<p>При сохранении будут произведены следующие изменения:</p>
-	<ul>
-		{% if flags['publish.lost'] %}<li>Новость будет снята с публикации</li>{% endif %}
-		{% if flags['html.lost'] %}<li>В новости будет запрещено использование HTML тегов и автоформатирование</li>{% endif %}
-		{% if flags['mainpage.lost'] %}<li>Новость будет убрана с главной страницы</li>{% endif %}
-		{% if flags['pinned.lost'] %}<li>С новости будет снято прикрепление на главной</li>{% endif %}
-		{% if flags['catpinned.lost'] %}<li>С новости будет снято прикрепление в категории</li>{% endif %}
-		{% if flags['favorite.lost'] %}<li>Новость будет удалена из закладок администратора</li>{% endif %}
-		{% if flags['multicat.lost'] %}<li>Из новости будут удалены все дополнительные категории</li>{% endif %}
-	</ul>
-</div>
+	<div class="alert alert-warning">
+		<p>Обратите внимание – у вас недостаточно прав для полноценного редактирования новости.</p>
+		<hr>
+		<p>При сохранении будут произведены следующие изменения:</p>
+		<ul>
+			{% if flags['publish.lost'] %}
+				<li>Новость будет снята с публикации</li>
+			{% endif %}
+			{% if flags['html.lost'] %}
+				<li>В новости будет запрещено использование HTML тегов и автоформатирование</li>
+			{% endif %}
+			{% if flags['mainpage.lost'] %}
+				<li>Новость будет убрана с главной страницы</li>
+			{% endif %}
+			{% if flags['pinned.lost'] %}
+				<li>С новости будет снято прикрепление на главной</li>
+			{% endif %}
+			{% if flags['catpinned.lost'] %}
+				<li>С новости будет снято прикрепление в категории</li>
+			{% endif %}
+			{% if flags['favorite.lost'] %}
+				<li>Новость будет удалена из закладок администратора</li>
+			{% endif %}
+			{% if flags['multicat.lost'] %}
+				<li>Из новости будут удалены все дополнительные категории</li>
+			{% endif %}
+		</ul>
+	</div>
 {% endif %}
 
 <!-- Main content form -->
 <form id="postForm" name="form" enctype="multipart/form-data" method="post" action="{{ php_self }}" target="_self">
-	<input type="hidden" name="token" value="{{ token }}" />
-	<input type="hidden" name="mod" value="news" />
-	<input type="hidden" name="action" value="edit" />
-	<input type="hidden" name="subaction" value="submit" />
-	<input type="hidden" name="id" value="{{ id }}" />
+	<input type="hidden" name="token" value="{{ token }}"/>
+	<input type="hidden" name="mod" value="news"/>
+	<input type="hidden" name="action" value="edit"/>
+	<input type="hidden" name="subaction" value="submit"/>
+	<input type="hidden" name="id" value="{{ id }}"/>
 
-	<div class="row">
+	<div
+		class="row">
 		<!-- Left edit column -->
-		<div class="col-lg-8">
+		<div
+			class="col-lg-8">
 
 			<!-- MAIN CONTENT -->
 			<div id="maincontent" class="card mb-4">
-				<div class="card-header"><i class="fa fa-th-list mr-2"></i> {{ lang.editnews['bar.maincontent'] }}</div>
+				<div class="card-header">
+					<i class="fa fa-th-list mr-2"></i>
+					{{ lang.editnews['bar.maincontent'] }}</div>
 				<div class="card-body">
 					<div class="form-row mb-3">
 						<label class="col-lg-3 col-form-label">{{ lang.editnews['title'] }}</label>
 						<div class="col-lg-9">
 							{% if (link) %}
 								<div class="input-group">
-									<input id="newsTitle" type="text" name="title" value="{{ title }}" class="form-control" />
+									<input id="newsTitle" type="text" name="title" value="{{ title }}" class="form-control"/>
 									<div class="input-group-append">
-										<span class="input-group-text"><a href="{{ link }}" target="_blank"><i class="fa fa-external-link"></i></a></span>
+										<span class="input-group-text">
+											<a href="{{ link }}" target="_blank">
+												<i class="fa fa-external-link"></i>
+											</a>
+										</span>
 									</div>
 								</div>
 							{% else %}
-								<input id="newsTitle" type="text" name="title" value="{{ title }}" class="form-control" />
+								<input id="newsTitle" type="text" name="title" value="{{ title }}" class="form-control"/>
 							{% endif %}
 						</div>
 					</div>
@@ -83,7 +114,7 @@
 					<div class="form-row mb-3">
 						<label class="col-lg-3 col-form-label">{{ lang.editnews['alt_name'] }}</label>
 						<div class="col-lg-9">
-							<input type="text" name="alt_name" value="{{ alt_name }}" {% if flags['altname.disabled'] %}disabled="disabled" {% endif %} class="form-control" />
+							<input type="text" name="alt_name" value="{{ alt_name }}" {% if flags['altname.disabled'] %} disabled="disabled" {% endif %} class="form-control"/>
 						</div>
 					</div>
 
@@ -91,7 +122,9 @@
 						<label class="col-lg-3 col-form-label">
 							{{ lang.editnews['category'] }}
 							{% if (flags.mondatory_cat) %}
-								<span style="font-size: 16px; color: red;"><b>*</b></span>
+								<span style="font-size: 16px; color: red;">
+									<b>*</b>
+								</span>
 							{% endif %}
 						</label>
 						<div class="col-lg-9">
@@ -109,7 +142,9 @@
 								<div class="modal-content">
 									<div class="modal-header">
 										<h5 id="smiles-modal-label" class="modal-title">Вставить смайл</h5>
-										<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+										<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+											<span aria-hidden="true">&times;</span>
+										</button>
 									</div>
 									<div class="modal-body">
 										{{ smilies }}
@@ -133,7 +168,7 @@
 							<div class="form-row mb-3">
 								<label class="col-lg-3 col-form-label">{{ lang.editnews['editor.divider'] }}</label>
 								<div class="col-lg-9">
-									<input type="text" name="content_delimiter" value="{{ content.delimiter }}" class="form-control" />
+									<input type="text" name="content_delimiter" value="{{ content.delimiter }}" class="form-control"/>
 								</div>
 							</div>
 						{% endif %}
@@ -163,17 +198,20 @@
 								<textarea name="keywords" cols="80" class="form-control">{{ keywords }}</textarea>
 							</div>
 						</div>
+						{% if (pluginIsActive('autokeys')) %}
+							{{ plugin.autokeys }}
+						{% endif %}
 					{% endif %}
 				</div>
 
 				{% if (pluginIsActive('xfields')) %}
-				<table class="table table-sm mb-0">
-					<tbody>
-					<!-- XFields -->
-					{{ plugin.xfields[1] }}
-					<!-- /XFields -->
-					</tbody>
-				</table>
+					<table class="table table-sm mb-0">
+						<tbody>
+							<!-- XFields -->
+							{{ plugin.xfields[1] }}
+							<!-- /XFields -->
+						</tbody>
+					</table>
 				{% endif %}
 			</div>
 
@@ -189,15 +227,23 @@
 					<div id="collapseNewsAdditional" class="collapse" aria-labelledby="headingOne" data-parent="#additional">
 						<table class="table table-sm mb-0">
 							<tbody>
-							{% if (pluginIsActive('xfields')) %}
-								<!-- XFields -->
-								{{ plugin.xfields[0] }}
-								<!-- /XFields -->
-							{% endif %}
-							{% if (pluginIsActive('nsched')) %}{{ plugin.nsched }}{% endif %}
-							{% if (pluginIsActive('finance')) %}{{ plugin.finance }}{% endif %}
-							{% if (pluginIsActive('tags')) %}{{ plugin.tags }}{% endif %}
-							{% if (pluginIsActive('tracker')) %}{{ plugin.tracker }}{% endif %}
+								{% if (pluginIsActive('xfields')) %}
+									<!-- XFields -->
+									{{ plugin.xfields[0] }}
+									<!-- /XFields -->
+								{% endif %}
+								{% if (pluginIsActive('nsched')) %}
+									{{ plugin.nsched }}
+								{% endif %}
+								{% if (pluginIsActive('finance')) %}
+									{{ plugin.finance }}
+								{% endif %}
+								{% if (pluginIsActive('tags')) %}
+									{{ plugin.tags }}
+								{% endif %}
+								{% if (pluginIsActive('tracker')) %}
+									{{ plugin.tracker }}
+								{% endif %}
 							</tbody>
 						</table>
 					</div>
@@ -209,11 +255,13 @@
 				<div class="card">
 					<div id="headingTwo" class="card-header">
 						<a href="#" class="btn-block collapsed" data-toggle="collapse" data-target="#collapseNewsAttaches" aria-expanded="false" aria-controls="collapseNewsAttaches">
-							{{ lang.editnews['bar.attaches'] }} ({{ attachCount }})
+							{{ lang.editnews['bar.attaches'] }}
+							({{ attachCount }})
 						</a>
 					</div>
 
-					<div id="collapseNewsAttaches" class="collapse" aria-labelledby="headingTwo" data-parent="#attaches">
+					<div
+						id="collapseNewsAttaches" class="collapse" aria-labelledby="headingTwo" data-parent="#attaches">
 						<!-- <span class="f15">{{ lang.editnews['attach.list'] }}</span> -->
 						<table id="attachFilelist" class="table table-sm mb-0">
 							<thead>
@@ -236,7 +284,9 @@
 												{{ lang['tags.file'] }}
 											</a>
 										</td>
-										<td><a href="{{ entry.url }}">{{ entry.orig_name }}</a></td>
+										<td>
+											<a href="{{ entry.url }}">{{ entry.orig_name }}</a>
+										</td>
 										<td>{{ entry.filesize }}</td>
 										<td><input type="checkbox" name="delfile_{{ entry.id }}" value="1"/></td>
 									</tr>
@@ -265,15 +315,22 @@
 				<div class="card-body">
 					<ul class="list-unstyled mb-0">
 						<li>
-							{{ lang['editor.author'] }}: <a href="{{ php_self }}?mod=users&action=editForm&id={{ authorid }}"><b>{{ author }}</b></a>
+							{{ lang['editor.author'] }}:
+							<a href="{{ php_self }}?mod=users&action=editForm&id={{ authorid }}">
+								<b>{{ author }}</b>
+							</a>
 							{% if (pluginIsActive('uprofile')) %}
 								<a href="{{ author_page }}" target="_blank" title="{{ lang.editnews['site.viewuser'] }}">
 									<i class="fa fa-external-link"></i>
 								</a>
 							{% endif %}
 						</li>
-						<li>{{ lang['editor.dcreate'] }}: <b>{{ createdate }}</b></li>
-						<li>{{ lang['editor.dedit'] }}: <b>{{ editdate }}</b></li>
+						<li>{{ lang['editor.dcreate'] }}:
+							<b>{{ createdate }}</b>
+						</li>
+						<li>{{ lang['editor.dedit'] }}:
+							<b>{{ editdate }}</b>
+						</li>
 						<li>{{ lang['news_status'] }}:
 							{% if (approve == -1) %}
 								<b class="text-danger">{{ lang['state.draft'] }}</b>
@@ -298,32 +355,32 @@
 				<div class="card-header">{{ lang['editor.configuration'] }}</div>
 				<div class="card-body">
 					<label class="col-form-label d-block">
-						<input id="mainpage" type="checkbox" name="mainpage" value="1" {% if (flags.mainpage) %}checked {% endif %} {% if flags['mainpage.disabled'] %}disabled {% endif %} />
+						<input id="mainpage" type="checkbox" name="mainpage" value="1" {% if (flags.mainpage) %} checked {% endif %} {% if flags['mainpage.disabled'] %} disabled {% endif %}/>
 						{{ lang.editnews['mainpage'] }}
 					</label>
 
 					<label class="col-form-label d-block">
-						<input id="pinned" type="checkbox" name="pinned" value="1" {% if (flags.pinned) %}checked {% endif %} {% if flags['pinned.disabled'] %}disabled {% endif %} />
+						<input id="pinned" type="checkbox" name="pinned" value="1" {% if (flags.pinned) %} checked {% endif %} {% if flags['pinned.disabled'] %} disabled {% endif %}/>
 						{{ lang.editnews['add_pinned'] }}
 					</label>
 
 					<label class="col-form-label d-block">
-						<input id="catpinned" type="checkbox" name="catpinned" value="1" {% if (flags.catpinned) %}checked {% endif %} {% if flags['catpinned.disabled'] %}disabled {% endif %} />
+						<input id="catpinned" type="checkbox" name="catpinned" value="1" {% if (flags.catpinned) %} checked {% endif %} {% if flags['catpinned.disabled'] %} disabled {% endif %}/>
 						{{ lang.editnews['add_catpinned'] }}
 					</label>
 
 					<label class="col-form-label d-block">
-						<input id="favorite" type="checkbox" name="favorite" value="1" {% if (flags.favorite) %}checked {% endif %} {% if flags['favorite.disabled'] %}disabled {% endif %} />
+						<input id="favorite" type="checkbox" name="favorite" value="1" {% if (flags.favorite) %} checked {% endif %} {% if flags['favorite.disabled'] %} disabled {% endif %}/>
 						{{ lang.editnews['add_favorite'] }}
 					</label>
 
 					<label class="col-form-label d-block">
-						<input id="flag_HTML" type="checkbox" name="flag_HTML" value="1" {% if (flags['html']) %}checked {% endif %} {% if (flags['html.disabled']) %}disabled {% endif %} />
+						<input id="flag_HTML" type="checkbox" name="flag_HTML" value="1" {% if (flags['html']) %} checked {% endif %} {% if (flags['html.disabled']) %} disabled {% endif %}/>
 						{{ lang.editnews['flag_html'] }}
 					</label>
 
 					<label class="col-form-label d-block">
-						<input id="flag_RAW" type="checkbox" name="flag_RAW" value="1" {% if (flags['raw']) %}checked {% endif %} {% if (flags['html.disabled']) %}disabled {% endif %} />
+						<input id="flag_RAW" type="checkbox" name="flag_RAW" value="1" {% if (flags['raw']) %} checked {% endif %} {% if (flags['html.disabled']) %} disabled {% endif %}/>
 						{{ lang.editnews['flag_raw'] }}
 						<div class="{{ flags['raw.disabled'] ? 'alert alert-warning mb-0' : 'd-none' }}">{{ lang.editnews['flags_lost'] }}</div>
 					</label>
@@ -336,10 +393,10 @@
 					<div class="input-group">
 						<div class="input-group-prepend">
 							<div class="input-group-text">
-								<input type="checkbox" name="setViews" class="" value="1" {% if (flags['setviews.disabled']) %}disabled{% endif %}>
+								<input type="checkbox" name="setViews" class="" value="1" {% if (flags['setviews.disabled']) %} disabled {% endif %}>
 							</div>
 						</div>
-						<input type="number" name="views" value="{{ views }}" class="form-control" {% if (flags['setviews.disabled']) %}disabled{% endif %} autocomplete="off">
+						<input type="number" name="views" value="{{ views }}" class="form-control" {% if (flags['setviews.disabled']) %} disabled {% endif %} autocomplete="off">
 					</div>
 				</div>
 			</div>
@@ -354,7 +411,7 @@
 						</label>
 
 						<label class="col-form-label d-block">
-							<input id="setdate_custom" type="checkbox" name="setdate_custom" value="1"  onclick="document.getElementById('setdate_current').checked=false;">
+							<input id="setdate_custom" type="checkbox" name="setdate_custom" value="1" onclick="document.getElementById('setdate_current').checked=false;">
 							{{ lang.editnews['date.setdate'] }}
 						</label>
 
@@ -385,13 +442,17 @@
 			<div class="row">
 				<div class="col-md-6 mt-4">
 					<button type="button" class="btn btn-outline-success" onclick="return preview();">
-						<span class="d-xl-none"><i class="fa fa-eye"></i></span>
+						<span class="d-xl-none">
+							<i class="fa fa-eye"></i>
+						</span>
 						<span class="d-none d-xl-block">{{ lang.addnews['preview'] }}</span>
 					</button>
 
 					{% if flags.deleteable %}
 						<button type="button" class="btn btn-outline-danger" onclick="confirmit('{{ php_self }}?mod=news&action=manage&subaction=mass_delete&selected_news[]={{ id }}&token={{ token }}', '{{ lang.editnews['sure_del'] }}')">
-							<span class="d-xl-none"><i class="fa fa-trash"></i></span>
+							<span class="d-xl-none">
+								<i class="fa fa-trash"></i>
+							</span>
 							<span class="d-none d-xl-block">{{ lang.editnews['delete'] }}</span>
 						</button>
 					{% endif %}
@@ -401,13 +462,21 @@
 					{% if flags.editable %}
 						<div class="input-group">
 							<select name="approve" class="custom-select">
-								{% if flags['can_publish'] %}<option value="1" {{ approve ? 'selected' : '' }}>{{ lang.addnews['publish'] }}</option>{% endif %}
-								{% if flags.can_unpublish %}<option value="0" {{ not(approve) ? 'selected' : '' }}>{{ lang.addnews['send_moderation'] }}</option>{% endif %}
-								{% if flags.can_draft %}<option value="-1" {{ approve == -1 ? 'selected' : '' }}>{{ lang.addnews['save_draft'] }}</option>{% endif %}
+								{% if flags['can_publish'] %}
+									<option value="1" {{ approve ? 'selected' : '' }}>{{ lang.addnews['publish'] }}</option>
+								{% endif %}
+								{% if flags.can_unpublish %}
+									<option value="0" {{ not(approve) ? 'selected' : '' }}>{{ lang.addnews['send_moderation'] }}</option>
+								{% endif %}
+								{% if flags.can_draft %}
+									<option value="-1" {{ approve == -1 ? 'selected' : '' }}>{{ lang.addnews['save_draft'] }}</option>
+								{% endif %}
 							</select>
 							<div class="input-group-append">
 								<button type="submit" class="btn btn-outline-success">
-									<span class="d-xl-none"><i class="fa fa-floppy-o"></i></span>
+									<span class="d-xl-none">
+										<i class="fa fa-floppy-o"></i>
+									</span>
 									<span class="d-none d-xl-block">{{ lang.editnews['do_editnews'] }}</span>
 								</button>
 							</div>
@@ -424,24 +493,25 @@
 		<!-- /XFields [GENERAL] -->
 	{% endif %}
 </form>
-
 {% if (pluginIsActive('comments')) %}
 	<!-- COMMENTS -->
 	<div id="additional" class="accordion mt-5">
 		<div class="card">
 			<div class="card-header" id="headingThree">
 				<a href="#" class="btn-block collapsed" data-toggle="collapse" data-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
-					{{ lang.editnews['bar.comments'] }} ({{ plugin.comments.count }})
+					{{ lang.editnews['bar.comments'] }}
+					({{ plugin.comments.count }})
 				</a>
 			</div>
 
 			<div id="collapseThree" class="collapse" aria-labelledby="headingThree" data-parent="#additional">
 				<form id="commentsForm" name="commentsForm" action="{{ php_self }}?mod=news" method="post">
-					<input type="hidden" name="token" value="{{ token }}" />
-					<input type="hidden" name="mod" value="news" />
-					<input type="hidden" name="action" value="edit" />
-					<input type="hidden" name="subaction" value="mass_com_delete" />
-					<input type="hidden" name="id" value="{{ id }}" />
+					<input type="hidden" name="token" value="{{ token }}"/>
+					<input type="hidden" name="mod" value="news"/>
+					<input type="hidden" name="action" value="edit"/>
+					<input type="hidden" name="subaction" value="mass_com_delete"/>
+					<input
+					type="hidden" name="id" value="{{ id }}"/>
 
 					<!-- COMMENTS -->
 					<div id="comments" class="table-responsive">
@@ -475,73 +545,73 @@
 		</div>
 	</div>
 {% endif %}
-
 <script type="text/javascript">
 	// Global variable: ID of current active input area
-	var currentInputAreaID = 'ng_news_content{{ flags.edit_split ? '_short' : '' }}';
+var currentInputAreaID = 'ng_news_content    {{ flags.edit_split ? '_short' : '' }}';
 
-	function preview() {
-		var form = document.getElementById("postForm");
+function preview() {
+var form = document.getElementById("postForm");
 
-		if (form.querySelector('[name*=ng_news_content]').value == '' || form.title.value == '') {
-			alert('{{ lang.addnews['msge_preview'] }}');
+if (form.querySelector('[name*=ng_news_content]').value == '' || form.title.value == '') {
+alert('{{ lang.addnews['msge_preview'] }}');
 
-			return false;
-		}
+return false;
+}
 
-		form['mod'].value = "preview";
-		form.target = "_blank";
-		form.submit();
+form['mod'].value = "preview";
+form.target = "_blank";
+form.submit();
 
-		form['mod'].value = "news";
-		form.target = "_self";
+form['mod'].value = "news";
+form.target = "_self";
 
-		return true;
-	}
+return true;
+}
 
-	function changeActive(name) {
-		if (name == 'full') {
-			document.getElementById('container.content.full').className = 'contentActive';
-			document.getElementById('container.content.short').className = 'contentInactive';
-			currentInputAreaID = 'ng_news_content_full';
-		} else {
-			document.getElementById('container.content.short').className = 'contentActive';
-			document.getElementById('container.content.full').className = 'contentInactive';
-			currentInputAreaID = 'ng_news_content_short';
-		}
-	}
+function changeActive(name) {
+if (name == 'full') {
+document.getElementById('container.content.full').className = 'contentActive';
+document.getElementById('container.content.short').className = 'contentInactive';
+currentInputAreaID = 'ng_news_content_full';
+} else {
+document.getElementById('container.content.short').className = 'contentActive';
+document.getElementById('container.content.full').className = 'contentInactive';
+currentInputAreaID = 'ng_news_content_short';
+}
+}
 </script>
-
 <script type="text/javascript">
 	function attachAddRow() {
-		var tbl = document.getElementById('attachFilelist');
-		var lastRow = tbl.rows.length;
-		var row = tbl.insertRow(lastRow - 1);
+var tbl = document.getElementById('attachFilelist');
+var lastRow = tbl.rows.length;
+var row = tbl.insertRow(lastRow - 1);
 
-		// Add cells
-		row.insertCell(-1).innerHTML = '*';
-		row.insertCell(-1).innerHTML = '{{ lang.editnews['attach.new_file'] }}';
-		row.insertCell(-1).innerHTML = '';
+// Add cells
+row.insertCell(-1).innerHTML = '*';
+row.insertCell(-1).innerHTML = '{{ lang.editnews['attach.new_file'] }}';
+row.insertCell(-1).innerHTML = '';
 
-		// Add file input
-		var el = document.createElement('input');
-		el.setAttribute('type', 'file');
-		el.setAttribute('name', 'userfile[' + (++attachAbsoluteRowID) + ']');
-		el.setAttribute('size', '80');
+// Add file input
+var el = document.createElement('input');
+el.setAttribute('type', 'file');
+el.setAttribute('name', 'userfile[' + (
+++ attachAbsoluteRowID
+) + ']');
+el.setAttribute('size', '80');
 
-		var xCell = row.insertCell(-1);
-		xCell.colSpan = 2;
-		xCell.appendChild(el);
+var xCell = row.insertCell(-1);
+xCell.colSpan = 2;
+xCell.appendChild(el);
 
-		el = document.createElement('input');
-		el.setAttribute('type', 'button');
-		el.setAttribute('onclick', 'document.getElementById("attachFilelist").deleteRow(this.parentNode.parentNode.rowIndex);');
-		el.setAttribute('value', '-');
-		el.setAttribute('class', 'btn btn-sm btn-outline-danger');
-		row.insertCell(-1).appendChild(el);
-	}
+el = document.createElement('input');
+el.setAttribute('type', 'button');
+el.setAttribute('onclick', 'document.getElementById("attachFilelist").deleteRow(this.parentNode.parentNode.rowIndex);');
+el.setAttribute('value', '-');
+el.setAttribute('class', 'btn btn-sm btn-outline-danger');
+row.insertCell(-1).appendChild(el);
+}
 
-	// Add first row
-	var attachAbsoluteRowID = 0;
-	attachAddRow();
+// Add first row
+var attachAbsoluteRowID = 0;
+attachAddRow();
 </script>
