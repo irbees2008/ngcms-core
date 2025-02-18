@@ -416,7 +416,7 @@ return false;
 
 <script type="text/javascript">
 	// Global variable: ID of current active input area
-var currentInputAreaID = 'ng_news_content    {{ flags.edit_split ? '_short' : '' }}';
+var currentInputAreaID = 'ng_news_content{{ flags.edit_split ? '_short' : '' }}';
 
 function preview() {
 var form = document.getElementById("postForm");
