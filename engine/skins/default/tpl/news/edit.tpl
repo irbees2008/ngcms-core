@@ -344,12 +344,14 @@
 				</div>
 			</div>
 
-			<div class="card mb-4">
-				<div class="card-header">{{ lang['editor.extcat'] }}</div>
-				<div class="card-body">
-					<div style="overflow: auto; height: 150px;">{{ extcat }}</div>
-				</div>
-			</div>
+{% if extcat|trim is not empty %}
+	<div class="card mb-4">
+		<div class="card-header">{{ lang['editor.extcat'] }}</div>
+		<div class="card-body">
+			<div style="overflow: auto; height: 150px;">{{ extcat }}</div>
+		</div>
+	</div>
+{% endif %}
 
 			<div class="card mb-4">
 				<div class="card-header">{{ lang['editor.configuration'] }}</div>

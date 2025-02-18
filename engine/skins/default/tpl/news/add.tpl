@@ -11,7 +11,6 @@
 	<table id="suggestBlock" cellspacing="0" cellpadding="0" width="100%"></table>
 	<a href="#" align="right" id="suggestClose">close</a>
 </div> -->
-
 	<script>
 $(function () {
 $("#newsTitle").on({
@@ -30,37 +29,6 @@ return false;
 });
 })
 </script>
-	<style>
-#news_relates {
-	display: none;
-	background: #ffc;
-	border: 1px solid #9E9E9E;
-	padding: 5px;
-	-moz-border-radius: 4px;
-	-webkit-border-radius: 4px;
-	border-radius: 4px;
-}
-#news_relates li {
-	display: block;
-	padding: 2px 75px 2px 5px;
-	line-height: 16px;
-	border-bottom: 1px dotted #ccc;
-	color: #777;
-}
-#news_relates li span {
-	float: right;
-	height: 16px;
-	width: 70px;
-	margin-right: -75px;
-	text-align: center;
-	color: #333;
-	font-weight: bold;
-}
-#news_relates li b {
-	font-weight: bold;
-}
-</style>
-
 	<form name="DATA_tmp_storage" action="" id="DATA_tmp_storage"> <input type="hidden" name="area" value=""/>
 </form>
 <div class="container-fluid">
@@ -295,14 +263,14 @@ return false;
 
 		<!-- Right edit column -->
 		<div id="rightBar" class="col col-lg-4">
-			{% if flags['multicat.show'] %}
-				<div class="card mb-4">
-					<div class="card-header">{{ lang['editor.extcat'] }}</div>
-					<div class="card-body">
-						<div style="overflow: auto; height: 150px;">{{ extcat }}</div>
-					</div>
-				</div>
-			{% endif %}
+{% if flags['multicat.show'] and extcat is not empty %}
+	<div class="card mb-4">
+		<div class="card-header">{{ lang['editor.extcat'] }}</div>
+		<div class="card-body">
+			<div style="overflow: auto; height: 150px;">{{ extcat }}</div>
+		</div>
+	</div>
+{% endif %}
 
 			<div class="card mb-4">
 				<div class="card-header">{{ lang['editor.configuration'] }}</div>
@@ -483,7 +451,7 @@ var row = tbl.insertRow(lastRow - 1);
 
 // Add cells
 row.insertCell(0).innerHTML = '*';
-row.insertCell(1).innerHTML = '{{ lang.editnews['attach.new_file '] }}';
+row.insertCell(1).innerHTML = '{{ lang.editnews['attach.new_file'] }}';
 
 // Add file input
 var el = document.createElement('input');
