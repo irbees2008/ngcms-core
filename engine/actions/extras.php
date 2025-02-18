@@ -43,14 +43,15 @@ function admGeneratePluginList()
         }
 
         $tEntry = [
+            'title'       => $extra['name'],
             'version'     => $extra['version'],
             'description' => isset($extra['description']) ? $extra['description'] : '',
             'author_url'  => ($extra['author_uri']) ? ('<a href="'.((strpos($extra['author_uri'], '@') !== false) ? 'mailto:' : '').$extra['author_uri'].'">'.$extra['author'].'</a>') : $extra['author'],
             'author'      => $extra['author'],
             'id'          => $extra['id'],
             'style'       => getPluginStatusActive($id) ? 'pluginEntryActive' : 'pluginEntryInactive',
-            'readme'      => file_exists(extras_dir.'/'.$id.'/readme') && filesize(extras_dir.'/'.$id.'/readme') ? ('<a href="'.admin_url.'/includes/showinfo.php?mode=plugin&amp;item=readme&amp;plugin='.$id.'" target="_blank" title="'.$lang['entry.readme'].'"><img src="'.skins_url.'/images/readme.png" width=16 height=16/></a>') : '',
-            'history'     => file_exists(extras_dir.'/'.$id.'/history') && filesize(extras_dir.'/'.$id.'/history') ? ('<a href="'.admin_url.'/includes/showinfo.php?mode=plugin&amp;item=history&amp;plugin='.$id.'" target="_blank" title="'.$lang['entry.history'].'"><img src="'.skins_url.'/images/history.png" width=16 height=16/></a>') : '',
+            'readme'      => file_exists(extras_dir.'/'.$id.'/readme') && filesize(extras_dir.'/'.$id.'/readme') ? (admin_url.'/includes/showinfo.php?mode=plugin&amp;item=readme&amp;plugin='.$id) : '',
+            'history'     => file_exists(extras_dir.'/'.$id.'/history') && filesize(extras_dir.'/'.$id.'/history') ? (admin_url.'/includes/showinfo.php?mode=plugin&amp;item=history&amp;plugin='.$id ) : '',
             'flags'       => [
                 'isCompatible'  => $extra['isCompatible'],
             ],
@@ -81,17 +82,27 @@ function admGeneratePluginList()
         $tEntry['install'] = '';
         if (getPluginStatusInstalled($extra['id'])) {
             if (isset($extra['deinstall']) && $extra['deinstall'] && is_file(extras_dir.'/'.$extra['dir'].'/'.$extra['deinstall'])) {
-                $tEntry['install'] = '<a href="'.$PHP_SELF.'?mod=extra-config&amp;plugin='.$extra['id'].'&amp;stype=deinstall">'.$lang['deinstall'].'</a>';
+                $tEntry['install'] = '<a href="'.$PHP_SELF.'?mod=extra-config&amp;plugin='.$extra['id']. '&amp;stype=deinstall" class="btn btn-outline-danger btn-sm">'.$lang['deinstall'].'</a>';
             }
         } else {
             if (isset($extra['install']) && $extra['install'] && is_file(extras_dir.'/'.$extra['dir'].'/'.$extra['install'])) {
-                $tEntry['install'] = '<a href="'.$PHP_SELF.'?mod=extra-config&amp;plugin='.$extra['id'].'&amp;stype=install">'.$lang['install'].'</a>';
+                $tEntry['install'] = '<a href="'.$PHP_SELF.'?mod=extra-config&amp;plugin='.$extra['id']. '&amp;stype=install" class="btn btn-outline-danger btn-sm">'.$lang['install'].'</a>';
                 $needinstall = 1;
             }
         }
 
-        $tEntry['url'] = (isset($extra['config']) && $extra['config'] && (!$needinstall) && is_file(extras_dir.'/'.$extra['dir'].'/'.$extra['config'])) ? '<a href="'.$PHP_SELF.'?mod=extra-config&amp;plugin='.$extra['id'].'">'.$extra['name'].'</a>' : $extra['name'];
-        $tEntry['link'] = (getPluginStatusActive($id) ? '<a href="'.$PHP_SELF.'?mod=extras&amp;&amp;token='.genUToken('admin.extras').'&amp;disable='.$id.'">'.$lang['switch_off'].'</a>' : '<a href="'.$PHP_SELF.'?mod=extras&amp;&amp;token='.genUToken('admin.extras').'&amp;enable='.$id.'">'.$lang['switch_on'].'</a>');
+        $tEntry['url'] = '';
+
+        // Проверяем условия для отображения ссылки "Настройки"
+        if (
+            isset($extra['config']) &&
+            $extra['config'] &&
+            !$needinstall &&
+            is_file(extras_dir . '/' . $extra['dir'] . '/' . $extra['config'])
+        ) {
+            $tEntry['url'] = '<a href="' . $PHP_SELF . '?mod=extra-config&amp;plugin=' . $extra['id'] . '" class="btn btn-outline-primary btn-sm">' . $lang['settings'] . '</a>';
+        }
+        $tEntry['link'] = (getPluginStatusActive($id) ? '<a href="'.$PHP_SELF.'?mod=extras&amp;&amp;token='.genUToken('admin.extras').'&amp;disable='.$id. '"class="btn btn-outline-success btn-sm">'.$lang['switch_off'].'</a>' : '<a href="'.$PHP_SELF.'?mod=extras&amp;&amp;token='.genUToken('admin.extras').'&amp;enable='.$id. '"class="btn btn-outline-success btn-sm">'.$lang['switch_on'].'</a>');
 
         if ($needinstall) {
             $tEntry['link'] = '';
