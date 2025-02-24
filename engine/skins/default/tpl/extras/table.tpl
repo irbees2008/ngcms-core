@@ -59,36 +59,46 @@
 	<div class="row" id="plugin-list">
 		{% for entry in entries %}
 			<div class="col-md-6 col-lg-4 mb-4 plugin-card {{ entry.style }}" data-status="{{ entry.status }}">
-				<div class="card">
-					<div class="card-body">
-						<h5 class="card-title">
-							{{ entry.title }}
-							<span class="badge badge-secondary float-right">{{ entry.version }}</span>
-						</h5>
-						<p class="card-text">{{ entry.description }}</p>
-						<span class="badge badge-{{ entry.flags.isCompatible ? 'success' : 'warning' }}">{{ entry.flags.isCompatible ? 'Совместим' : 'Не совместим' }}</span>
-						<!-- Дополнительные ссылки (readme, history) -->
-						<div class="mt-2">
-							{% if entry.readme %}
-								<a href="#" class="mr-2 open-modal" data-toggle="modal" data-target="#readmeModal" data-url="{{ entry.readme }}" title="{{ lang['entry.readme'] }}">
-									<i class="fa fa-book"></i>
-									{{ lang['entry.readme'] }}</a>
-							{% endif %}
-							{% if entry.history %}
-								<a href="#" class="open-modal" data-toggle="modal" data-target="#historyModal" data-url="{{ entry.history }}" title="{{ lang['entry.history'] }}">
-									<i class="fa fa-clock-o"></i>
-									{{ lang['entry.history'] }}</a>
-							{% endif %}
-						</div>
+<div class="card border-dark">
+	<div class="card-header">
+		<h5 class="card-title">
+			{{ entry.title }}
+			<span class="badge badge-secondary float-right">{{ entry.version }}</span>
+		</h5>
+	</div>
+	<div
+		class="card-body">
+		<!-- Блок с иконкой -->
+		<div class="card-icon">
+		{{ entry.icons }}
+		</div>
+		<p class="card-text">{{ entry.description }}</p>
+		<span class="badge badge-{{ entry.flags.isCompatible ? 'success' : 'warning' }}">
+			{{ entry.flags.isCompatible ? 'Совместим' : 'Не совместим' }}
+		</span>
+		<!-- Дополнительные ссылки (readme, history) -->
+		<div class="mt-2">
+			{% if entry.readme %}
+				<a href="#" class="mr-2 open-modal" data-toggle="modal" data-target="#readmeModal" data-url="{{ entry.readme }}" title="{{ lang['entry.readme'] }}">
+					<i class="fa fa-book"></i>
+					{{ lang['entry.readme'] }}
+				</a>
+			{% endif %}
+			{% if entry.history %}
+				<a href="#" class="open-modal" data-toggle="modal" data-target="#historyModal" data-url="{{ entry.history }}" title="{{ lang['entry.history'] }}">
+					<i class="fa fa-clock-o"></i>
+					{{ lang['entry.history'] }}
+				</a>
+			{% endif %}
+		</div>
+	</div>
+	<div class="card-footer text-muted">
+		{{ entry.url }}
+		{{ entry.link }}
+		{{ entry.install }}
+	</div>
+</div>
 
-						<div class="mt-3">
-							{{ entry.url }}
-							{{ entry.link }}
-							{{ entry.install }}
-
-						</div>
-					</div>
-				</div>
 			</div>
 		{% endfor %}
 	</div>
