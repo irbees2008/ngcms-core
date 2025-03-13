@@ -1,36 +1,48 @@
-<div class="post">
-	<div class="post-header">
-		<div class="post-title"><a href="{link}">{title}</a></div>
+<!-- Page Header -->
+<header class="intro-header" style="background-image: url('{tpl_url}/img/home-bg.jpg')">
+	<div class="container">
+		<div class="row justify-content-center">
+			<div class="col-lg-8 col-md-10">
+				<div class="post-heading">
+					<h1>{title}</h1>
+					<hr class="small">
+					<span class="subheading">Все комментарии посетителей к записи <a href="{link}">{title}</a></span>
+				</div>
+			</div>
+		</div>
 	</div>
-	<div style="height: 10px;"></div>
-	<div class="post-text">
-		<p>[comheader]Все комментарии посетителей к данной новости[/comheader]</p>
+</header>
+
+<!-- Page Content -->
+<div class="container">
+	<div class="row justify-content-center">
+		<div class="col-lg-8 col-md-10">
+			<section class="section comments-list">
+
+				<ul class="list-unstyled">
+					{entries}
+					<li id="new_comments"></li>
+				</ul>
+
+				<nav>
+					<ul class="pagination">{more_comments}</ul>
+				</nav>
+
+				{form}
+
+				[regonly]
+				<div class="alert alert-info">
+					Уважаемый посетитель, Вы зашли на сайт как незарегистрированный пользователь.<br />
+					Мы рекомендуем Вам <a href="{home}/register/">зарегистрироваться</a> либо <a href="{home}/login/">войти</a> на сайт под своим именем.
+				</div>
+				[/regonly]
+
+				[commforbidden]
+				<div class="alert alert-danger">
+					Комментирование данной новости запрещено.
+				</div>
+				[/commforbidden]
+			</section>
+		</div>
 	</div>
-	<div class="post-footer">
-		<a class="btn" href="{link}">Назад</a>
-	</div>
-</div>
-<div id="comments">
-	[comheader]
-	<div class="title">Комменарии:</div>
-	[/comheader]
-	<!-- Here is user's comments -->
-	<div id="new_comments_rev"></div>
-	{entries}
-	<!-- Here is `add comments` form -->
-	[regonly]
-	<div class="ng-message">Только зарегистрированные пользователи могут оставлять в данной новости свои комментарии.
-	</div>
-	[/regonly]
-	[commforbidden]
-	<div class="ng-message">Комментирование данной новости запрещено.</div>
-	[/commforbidden]
-	[more_comments]
-	<div class="paginator nonebr" style="margin-top: 25px; margin-bottom: 25px;">
-		<ul>
-			<li>{more_comments}</li>
-		</ul>
-	</div>
-	[/more_comments]
-	{form}
 </div>

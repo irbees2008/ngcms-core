@@ -1,176 +1,160 @@
-[TWIG]
 <!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="{{ lang['langcode'] }}" lang="{{ lang['langcode'] }}" dir="ltr">
-<head>
-	<meta http-equiv="content-type" content="text/html; charset={{ lang['encoding'] }}"/>
-	<meta http-equiv="content-language" content="{{ lang['langcode'] }}"/>
-	<meta name="generator" content="{{ what }} {{ version }}"/>
-	<meta name="document-state" content="dynamic"/>
-	{{ htmlvars }}
-	<link href="{{ tpl_url }}/css/style.css" type="text/css" rel="stylesheet">
-	<!--[if IE 7]>
-	<link href="{{ tpl_url }}/css/ie8.css" type="text/css" rel="stylesheet"><![endif]-->
-	{% if pluginIsActive('rss_export') %}
-		<link href="{{ home }}/rss.xml" rel="alternate" type="application/rss+xml" title="RSS" />{% endif %}
-	<script src="{{ tpl_url }}/js/jquery-1.8.3.min.js"></script>
-	<script type="text/javascript" src="{{ scriptLibrary }}/functions.js"></script>
-	<script type="text/javascript" src="{{ scriptLibrary }}/ajax.js"></script>
-	<title>{{ titles }}</title>
-</head>
-<body>
-{% block body %}
-<div id="loading-layer" style="display:none;"><img src="{{ tpl_url }}/img/loading.gif" alt=""/></div>
-<div id="wrapper">
-	<div id="header">
-		<div id="menu">
-			<ul>
-				<li><a href="{{ home }}">{{ lang.theme.home }}</a></li>
-				<li><a href="#">{{ lang.theme.forum }}</a></li>
-				<li><a href="#">{{ lang.theme.about_site }}</a></li>
-				<li><a href="#">{{ lang.theme.contacts }}</a></li>
-				<li><a href="#">{{ lang.theme.statistic }}</a></li>
-				<li><a href="#">{{ lang.theme.menu_link }}</a>
-					<ul>
-						<li><a href="#">{{ lang.theme.under_menu_link }}</a></li>
-						<li><a href="#">{{ lang.theme.under_menu_link }}</a></li>
-						<li><a href="#">{{ lang.theme.under_menu_link }}</a></li>
+<!--[TWIG] {% apply spaceless %}-->
+
+<html lang="{{ lang['langcode'] }}">
+	<head>
+		<title>{{ titles }}</title>
+		<meta charset="{{ lang['encoding'] }}"/>
+		<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+		<meta name="generator" content="{{ what }} {{ version }}"/>
+		<meta name="document-state" content="dynamic"/>
+		{{ htmlvars }}
+		<!-- Bootstrap Core CSS -->
+		<link href="{{ tpl_url }}/css/bootstrap.css" rel="stylesheet">
+
+		<!-- Additional fonts for this theme -->
+
+		<link href="https://fonts.googleapis.com/css?family=Roboto:300" rel="stylesheet">
+		<link href="{{ tpl_url }}/css/fontawesome-4.7.0/fontawesome.css" rel="stylesheet">
+
+		<!-- Custom styles for this theme -->
+		<link href="{{ tpl_url }}/css/style.css" rel="stylesheet">
+		<!--[if lt IE 9]>
+				        <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+				        <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+				        <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+		 <![endif]-->
+		<!-- jQuery first, then Tether, then Popper, then Bootstrap JS. -->
+        
+        <script src="{{ tpl_url }}/js/jquery-3.2.1.js"> </script>
+		<script src="{{ tpl_url }}/js/tether-1.4.0.js"></script>
+		<script src="{{ tpl_url }}/js/popper-1.11.0.js"></script>
+		<script src="{{ tpl_url }}/js/bootstrap.js"></script>
+		<script src="{{ tpl_url }}/js/notify-3.1.5.js"></script>
+
+		<!-- Theme JavaScript -->
+		<script type="text/javascript" src="{{ scriptLibrary }}/functions.js"></script>
+		<script type="text/javascript" src="{{ scriptLibrary }}/ajax.js"></script>
+
+		<script src="{{ tpl_url }}/js/script.js"></script>
+		{% if pluginIsActive('rss_export') %}<link href="{{ home }}/rss.xml" rel="alternate" type="application/rss+xml" title="RSS"/>
+		{% endif %}
+	</head>
+
+	<body>
+
+		<!-- Navigation navbar navbar-expand-md navbar-dark bg-dark-->
+		<nav class="navbar fixed-top navbar-expand-md navbar-light" id="mainNav">
+			<div class="container">
+				<a class="navbar-brand" href="{{ home }}">{{ home_title }}</a>
+				<button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation">
+					<span class="navbar-toggler-icon"></span>
+				</button>
+				<div class="collapse navbar-collapse" id="navbarResponsive">
+					<ul class="navbar-nav ml-auto">
+						<li class="nav-item">
+							<a class="nav-link page-scroll" href="{{ home }}">Главная</a>
+						</li>
+						<li class="nav-item">
+							<a class="nav-link page-scroll" href="{{ home }}/static/about.html">О нас </a>
+						</li>
+						<li class="nav-item">
+							<a class="nav-link page-scroll" href="{{ home }}/static/contact.html">Контакты</a>
+						</li>
+						<li class="nav-item dropdown">
+							<a href="{{ home }}#" class="nav-link dropdown-toggle" data-toggle="dropdown" aria-expanded="false">Категории
+							</a>
+							<div class="dropdown-menu dropdown-menu-right">
+								{{ categories }}
+							</div>
+						</li>
+						<li class="nav-item dropdown">
+							<a href="{{ home }}#" class="nav-link dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
+								<i class="fa fa-user fa-lg"></i>
+							</a>
+							<div class="dropdown-menu dropdown-menu-right">
+								{% if (global.flags.isLogged) %}
+									{{ personal_menu }}
+								{% else %}
+									<a href="{{ home }}/register/" class="dropdown-item">{{ lang['registration'] }}</a>
+									<a href="{{ home }}/login/" class="dropdown-item" data-toggle="modal" data-target="#auth-modal">{{ lang['login'] }}</a>
+									<div class="dropdown-divider"></div>
+									<a href="{{ home }}/lostpassword/" class="dropdown-item">{{ lang['lostpassword'] }}</a>
+								{% endif %}
+							</div>
+						</li>
+						<li class="nav-item">
+							<a class="nav-link page-scroll" href="{{ home }}/search/">
+								<i class="fa fa-search"></i>
+							</a>
+						</li>
 					</ul>
-				</li>
-				<li><a href="#">{{ lang.theme.menu_link2 }}</a>
-					<ul>
-						<li><a href="#">{{ lang.theme.under_menu_link }}</a></li>
-						<li><a href="#">{{ lang.theme.under_menu_link }}</a></li>
-						<li><a href="#">{{ lang.theme.under_menu_link }}</a></li>
-					</ul>
-				</li>
-				{% if pluginIsActive('nsm') %}
-					<li><a href="/plugin/nsm/" class="auth-add-news">{{ lang.theme.add_news }}</a></li>{% endif %}
-			</ul>
-		</div>
-		<div id="social">
-			<a href="#" class="rss"></a>
-			<a href="#" class="vk"></a>
-			<a href="#" class="twitter"></a>
-		</div>
-		<div class="clr"></div>
-		<div id="logo">
-			<a href="{{ home }}"><img src="{{ tpl_url }}/img/logo.png" alt=""></a>
-		</div>
-		<div id="right-control">
-			<div id="search">
-				{{ search_form }}
+				</div>
 			</div>
+		</nav>
+
+		{{ mainblock }}
+
+		<hr>
+
+		<!-- Footer -->
+		<footer>
+			<div class="container">
+				<div class="row justify-content-center">
+					<div class="col-lg-8 col-md-10">
+						<ul class="list-inline text-center">
+							<li class="list-inline-item">
+								<a href="#">
+									<span class="fa-stack fa-lg">
+										<i class="fa fa-circle fa-stack-2x"></i>
+										<i class="fa fa-twitter fa-stack-1x fa-inverse"></i>
+									</span>
+								</a>
+							</li>
+							<li class="list-inline-item">
+								<a href="#">
+									<span class="fa-stack fa-lg">
+										<i class="fa fa-circle fa-stack-2x"></i>
+										<i class="fa fa-facebook fa-stack-1x fa-inverse"></i>
+									</span>
+								</a>
+							</li>
+							<li class="list-inline-item">
+								<a href="#">
+									<span class="fa-stack fa-lg">
+										<i class="fa fa-circle fa-stack-2x"></i>
+										<i class="fa fa-github fa-stack-1x fa-inverse"></i>
+									</span>
+								</a>
+							</li>
+						</ul>
+						<p class="copyright text-muted">Copyright &copy;
+							<a title="{{ home_title }}" href="{{ home }}">{{ home_title }}</a>. Powered by
+							<a title="Next Generation CMS" target="_blank" href="http://ngcms.ru/">NG CMS</a>
+
+							2006-{{ now|date("Y") }}.
+							<br/>{{ lang.sql_queries }}:
+							<b>{{ queries }}</b>
+							|
+							{{ lang.page_generation }}:
+							<b>{{ exectime }}</b>
+							{{ lang.sec }}
+							|
+							<b>{{ memPeakUsage }}</b>
+							Mb&nbsp;</p>
+					</div>
+				</div>
+			</div>
+		</footer>
+
+		{% if not (global.flags.isLogged) %}
 			{{ personal_menu }}
-		</div>
-	</div><!--#HEADER END-->
-	<div class="clr"></div>
-	<div id="container">
-		<div class="bg"></div>
-		<div id="mainblock">
-			{{ mainblock }}
-		</div>
-		<div id="sidebar">
-			{% if pluginIsActive('xnews') %}
-				<div class="block">
-					<div class="block-title last-news">
-						{{ lang.theme.popular }}
-						<span>{{ lang.theme.popular_last }}</span>
-						<div class="icon-last-news"></div>
-					</div>
-					<div class="block-menu">
-						{{ callPlugin('xnews.show', {'order' : 'viewed', 'count': '6', 'template' : 'xnews1'}) }}
-					</div>
-				</div>
-			{% endif %}
-			{% if pluginIsActive('voting') %}
-				<div class="block">
-					<div class="block-title polls">
-						{{ lang.theme.voting }}
-						<span>{{ lang.theme.voting_desc }}</span>
-						<div class="icon-polls"></div>
-					</div>
-					<div class="block-polls">
-						{{ voting }}
-					</div>
-				</div>
-			{% endif %}
-			{% if pluginIsActive('switcher') %}
-				<div class="block">
-					<div class="block-title">
-						{{ lang.theme.switcher }}
-						<span>{{ lang.theme.switcher_desc }}</span>
-					</div>
-					<div class="block">
-						{{ switcher }}
-					</div>
-				</div>
-			{% endif %}
-		</div>
-		<div class="clr"></div>
-		<div id="sidebar-2">
-			{% if pluginIsActive('archive') %}
-				<div class="block archiv">
-					<div class="block-title">
-						<span class="icon icon-archiv"></span> {{ lang.theme.archive }}
-					</div>
-					<div class="block-archiv">
-						<!-- ≈сли в архиве более 6 мес¤цев то с работает спойлер -->
-						{{ callPlugin('archive.show', {'maxnum' : 12, 'counter' : 1, 'template': 'archive', 'cacheExpire': 60}) }}
-					</div>
-				</div>
-			{% endif %}
-			{% if pluginIsActive('tags') %}
-				<div class="block tags">
-					<div class="block-title">
-						<span class="icon icon-tags"></span> {{ lang.theme.tags_cloud }}
-					</div>
-					<div class="block-tags">
-						{{ plugin_tags }}
-					</div>
-				</div>
-			{% endif %}
-			{% if pluginIsActive('calendar') %}
-				<div class="block calendar">
-					<div class="block-title">
-						<span class="icon icon-calendar"></span> {{ lang.theme.calendar }}
-					</div>
-					<div class="block-calendar">
-						{{ plugin_calendar }}
-					</div>
-				</div>
-			{% endif %}
-		</div>
-		<div id="sidebar-3">
-			{% if pluginIsActive('k_online') %}
-				<div class="block stats">
-					<div class="block-title">
-						<span class="icon-stats"></span> {{ lang.theme.statistic }}
-					</div>
-					<div class="block-stats">
-						{{ k_online }}
-					</div>
-				</div>
-			{% endif %}
-		</div>
-	</div><!--#CONTAINER END-->
-	<div class="clr"></div>
-	<div id="footer">
-		<div class="copyright">
-			<em>Powered by <a title="Next Generation CMS" target="_blank" href="http://ngcms.ru/">NG CMS</a> 2007
-				Ч {{ now|date("Y") }}. | {{ lang.sql_queries }}: <b>{{ queries }}</b> | {{ lang.page_generation }}:
-				<b>{{ exectime }}</b> {{ lang.sec }} | <b>{{ memPeakUsage }}</b> Mb&nbsp;</em><br>
-			© <a href="{{ home }}">{{ home_title }}</a>
-		</div>
-		<div class="by">
-			<a href="http://bymel.ru/" target="_blank"><img src="{{ tpl_url }}/img/by.png" alt=""></a>
-		</div>
-	</div><!--#FOOTER END-->
-</div><!--#WRAPPER END-->
-<script src="{{ tpl_url }}/js/script.js"></script>
-{% endblock %}
-</body>
+		{% endif %}
+		<div id="loading-layer" class="col-md-3">
+			<i class="fa fa-spinner fa-pulse"></i>
+			{{ lang.loading }}</div>
+
+		[debug]{debug_queries}{debug_profiler}[/debug]
+	</body>
 </html>
-[debug]
-{debug_queries}<br/>{debug_profiler}
-[/debug]
-[/TWIG]
+<!--{% endapply %} [/TWIG]-->

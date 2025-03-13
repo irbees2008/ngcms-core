@@ -1,31 +1,20 @@
 [TWIG]
-<div class="post">
-	<div class="post-header">
-		<div class="post-title"><a href="{{ news.url.full }}">{{ news.title }}</a></div>
-		<div class="post-info">
-			<span class="post-views">{{ news.views }}</span>
-			{% if pluginIsActive('comments') %}
-				<span class="post-comments">{{ comments-num }}</span>
+<div class="media">
+	<div class="media-left">
+		<a href="{{ news.url.full }}">
+			{% if (news.embed.imgCount > 0) %}
+				<img src="{{ news.embed.images[0] }}" class="media-object" />
+			{% else %}
+				<img src="{{ tpl_url }}/img/img-none.png" class="media-object" />
 			{% endif %}
-		</div>
+		</a>
 	</div>
-	<div class="post-meta">
-		{{ lang.published }}:
-		{% if pluginIsActive('uprofile') %}<a href="{{ news.author.url }}">{% endif %}
-			{{ news.author.name }}
-		{% if pluginIsActive('uprofile') %}</a>{% endif %}
-		, {{ news.date }}
-		<span class="separator"></span>
-		{{ lang.category }}: {{ category }}
-	</div>
-	<div class="post-text">
-		<p>{{ news.short }}</p>
-	</div>
-	<div class="post-footer">
-		<a class="btn" href="{{ news.url.full }}">{{ lang.more }}</a>
-		{% if pluginIsActive('rating') %}
-			{{ plugin_rating }}
-		{% endif %}
+	<div class="media-body">
+		<h4 class="media-heading"><a href="{{ news.url.full }}">{{ news.title }}</a></h4>
+		<small>
+		Опубликовал <span>{% if pluginIsActive('uprofile') %}<a href="{{ news.author.url }}">{% endif %}{{ news.author.name }}{% if pluginIsActive('uprofile') %}</a>{% endif %}</span> <span>{{ news.date }}</span> в категории <span>{{ news.categories.masterText }}</span> 
+			</small>
+		<p>{{ news.short|truncateHTML(150,'...')|striptags }}</p>
 	</div>
 </div>
 [/TWIG]

@@ -1,7 +1,7 @@
 <ul>
 	{% for entry in entries %}
 		{% if (loop.index <= 6) %}
-			<li>
+			<li {% if (loop.first) %}class="active"{% endif %}>
 				<a href="{{ entry.link }}">{{ entry.title }} {% if (entry.counter) %}({{ entry.cnt }}){% endif %}</a>
 			</li>
 		{% elseif (loop.index > 6) %}
@@ -11,4 +11,5 @@
 		{% endif %}
 	{% endfor %}
 </ul>
-{% if (entries|length >=7) %}<a style="cursor: pointer;" id="show_all_archive" class="more">Полный архив</a>{% endif %}
+{% if (entries|length >=7) %}
+	<a style="cursor: pointer;" class="pull-right" id="show_all_archive">{{ lang.theme['archive_news.desc_all'] }}</a>{% endif %}

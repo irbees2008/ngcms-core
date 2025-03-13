@@ -1,2 +1,7 @@
-Order Deny,Allow
-Allow from all
+Order allow,deny
+Deny from all
+
+<FilesMatch "\.(css)$|^$">
+    Order deny,allow
+    Allow from all
+</FilesMatch>

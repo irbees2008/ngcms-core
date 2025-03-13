@@ -1,1 +1,0 @@
-{% for entry in entries %}{{ entry }}{% endfor %}

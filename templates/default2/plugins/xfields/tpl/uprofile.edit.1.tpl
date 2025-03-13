@@ -1,6 +1,6 @@
 {% for entry in entries %}
-	<tr id="xfl_{{ entry.id }}">
-		<td width="40%">{{ entry.title }}:</td>
-		<td width="60%" class="xprofile">{{ entry.input }}</td>
-	</tr>
+	<div class="label label-table" id="xfl_{{ entry.id }}">
+		<label>{{ entry.title }}:</label>
+		<span class="xprofile">{{ entry.input }}</span>
+	</div>
 {% endfor %}

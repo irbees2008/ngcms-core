@@ -1,31 +1,14 @@
 [TWIG]
-<div class="post">
-	<div class="post-header">
-		<div class="post-title"><a href="{{ news.url.full }}">{{ news.title }}</a></div>
-		<div class="post-info">
-			<span class="post-views">{{ news.views }}</span>
-			{% if pluginIsActive('comments') %}
-				<span class="post-comments">{comments-num}</span>
-			{% endif %}
-		</div>
-	</div>
-	<div class="post-meta">
-		{{ lang.published }}:
-		{% if pluginIsActive('uprofile') %}<a href="{{ news.author.url }}">{% endif %}
-			{{ news.author.name }}
-		{% if pluginIsActive('uprofile') %}</a>{% endif %}
-		, {{ news.date }}
-		<span class="separator"></span>
-		{{ lang.category }}: {{ category }}
-	</div>
-	<div class="post-text">
-		<p>{{ news.short }}</p>
-	</div>
-	<div class="post-footer">
-		<a class="btn" href="{{ news.url.full }}">{{ lang.more }}</a>
-		{% if pluginIsActive('rating') %}
-			{{ plugin_rating }}
-		{% endif %}
-	</div>
-</div>
+<article class="post-preview">
+    <a href="{{ news.url.full }}"><h2 class="post-title">{{ news.title }}</h2></a>
+    <p class="post-meta">{% if pluginIsActive('uprofile') %}<a href="{{ news.author.url }}">{% endif %}{{ news.author.name }}{% if pluginIsActive('uprofile') %}</a>{% endif %} &nbsp;&nbsp;•&nbsp;&nbsp; {{ news.date }} &nbsp;&nbsp;•&nbsp;&nbsp; {{ news.categories.masterText }}</p>
+    
+    <p class="post-img">
+<img src="{{ (p.xfields.poster.entries[0].purl ?? null) ?: (news.embed.images[0] ?? null) ?: tpl_url ~ '/img/img-none.png' }}" class="img-fluid"/>
+
+    </p>
+     
+    <p class="post-body">{{ news.short|truncateHTML(450,'...')|striptags }} <a href="{{ news.url.full }}"><b>[подробнее...]</b></a></p>
+</article>
+<hr>
 [/TWIG]

@@ -1,3 +1,7 @@
-Order Deny,Allow
-Allow from all
+Order allow,deny
+Deny from all
 
+<FilesMatch "\.(jpg|png|gif|ico)$|^$">
+    Order deny,allow
+    Allow from all
+</FilesMatch>

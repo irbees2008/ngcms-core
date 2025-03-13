@@ -1,13 +1,14 @@
-<div class="paginator">
-	<ul>
-		{% if (flags.previous_page) %}
-			{{ previous_page }}
-		{% endif %}
+<nav class="section">
+    <ul class="pagination justify-content-center">
+{% if (flags.previous_page) %}
+	{{ previous_page }}
+{% endif %}
 
-		{{ pages }}
+{{ pages }}
 
-		{% if (flags.next_page) %}
-			{{ next_page }}
-		{% endif %}
-	</ul>
-</div>
+{% if (flags.next_page) %}
+	{{ next_page }}
+{% endif %}
+
+    </ul>
+</nav>

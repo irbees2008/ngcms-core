@@ -1,6 +1,8 @@
+<!DOCTYPE html>
 <html>
 <head>
-	<title>{{ lang['404.title'] }}</title>
+    <meta charset="UTF-8">
+    <title>{{ lang['404.title'] }}</title>
 </head>
 <body>
 {{ lang['404.description'] }}

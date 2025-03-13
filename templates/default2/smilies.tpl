@@ -1,3 +1,2 @@
-<button type="button" class="btn btn-sm mb-2" onclick="insertext(':{{ smile }}: ', '', {{ area }})">
-    <img class="smilies" alt="{{ smile }}" src="{{ skins_url }}/smilies/{{ smile }}.png" />
-</button>
+<a href="#" onclick="insertext(':{{ smile }}: ', '', {{ area }})" class="btn btn-link btn-sm"><img alt="{{ smile }}" src="{{ skins_url }}/smilies/{{ smile }}.png"/></a>
+

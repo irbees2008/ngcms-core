@@ -1,23 +1,48 @@
-window.onload = function () {
-	$('#menu ul li:first-child, #right-control #user-panel > a:first').addClass('first');
-	$('#menu ul li:last-child, #menu ul li ul li:last, #right-control #user-panel > a:last').addClass('last');
-	$('#menu ul li ul').parent().addClass('parent');
-	$('#menu ul li').hover(function () {
-		$(this).children('ul').show();
-	}, function () {
-		$(this).children('ul').hide();
-	});
-	$('#login').click(function () {
-		$('#dialog').fadeIn();
-	});
-	$('#dialog .bg, #dialog .dialog-clouse').click(function () {
-		$('#dialog').fadeOut();
-	});
-}
-$(document).ready(function () {
-	$(".showhide").hide();
-});
+$(document).ready(function($) {
 
-$("#show_all_archive").click(function () {
-	$(".showhide").toggle("fast");
+	/* scrollTop */
+	$('body').append('<div class="scrollTop fa fa-angle-up"></div>');
+	$(window).scroll(function () {
+		if ($(this).scrollTop() > 60)
+			$('.scrollTop').show();
+		else
+			$('.scrollTop').hide();
+	});
+	$('.scrollTop').on('click', function(){$('html, body').animate({scrollTop:0}, 888);});
+
+	// Share news
+	$('.share').click(function() {
+		var nWin = window.open($(this).prop('href'), 'shareWindow', 'menubar=no,toolbar=no,resizable=yes,scrollbars=yes,height=300,width=600');
+		if (window.focus) nWin.focus();
+		return false;
+	});
+
+	// Navigation Scripts to Show Header on Scroll-Up
+	var MQL = 1170;
+
+	//primary navigation slide-in effect
+	if ($(window).width() > MQL) {
+		var headerHeight = $('#mainNav').height();
+		$(window).on('scroll', {
+				previousTop: 0
+			},
+			function() {
+				var currentTop = $(window).scrollTop();
+				//check if user is scrolling up
+				if (currentTop < this.previousTop) {
+					//if scrolling up...
+					if (currentTop > 0 && $('#mainNav').hasClass('is-fixed')) {
+						$('#mainNav').addClass('is-visible');
+					} else {
+						$('#mainNav').removeClass('is-visible is-fixed');
+					}
+				} else if (currentTop > this.previousTop) {
+					//if scrolling down...
+					$('#mainNav').removeClass('is-visible');
+					if (currentTop > headerHeight && !$('#mainNav').hasClass('is-fixed'))
+						$('#mainNav').addClass('is-fixed');
+				}
+				this.previousTop = currentTop;
+			});
+	}
 });

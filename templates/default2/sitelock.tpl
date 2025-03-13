@@ -1,45 +1,53 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ru" lang="ru">
+<!DOCTYPE html>
+<html lang="{{ lang['langcode'] }}">
 <head>
-	<meta http-equiv="content-type" content="text/html; charset={{ lang.encoding }}"/>
-	<meta http-equiv="content-language" content="{{ lang.langcode }}"/>
-	<meta name="generator" content="{{ what }} {{ version }}"/>
-	<meta name="document-state" content="dynamic"/>
-	<style type="text/css">
-		body {
-			font: 12px/16px Arial, Helvetica, Tahoma, sans-serif;
-			margin: 0;
-			padding: 0;
-			color: #1f282c;
-			word-wrap: break-word;
-		}
-
-		a {
-			color: #fff;
-			text-decoration: underline;
-		}
-
-		a:hover {
-			text-decoration: none;
-		}
-
-		.errorwrap {
-			margin: 0 auto;
-			width: 600px;
-			margin-top: 26%;
-			text-align: center;
-		}
-
-		.errorwrap p {
-			margin: 0 0 15px 0;
-		}
-
-	</style>
-	<title>Сайт временно отключен</title>
+    <title>{{ lang['site_temporarily_disabled'] }}</title>
+    <meta charset="{{ lang['encoding'] }}" />
+    <meta http-equiv="content-language" content="{{ lang['langcode'] }}" />
+    <meta http-equiv="Cache-Control" content="no-cache"/>
+    <meta name="document-state" content="dynamic" />
+    <meta name="generator" content="{{ what }} {{ version }}" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+    <style type="text/css">
+        body {
+            background: #fff;
+            color: #444;
+            font-family: -apple-system,system-ui,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+            font-size: 1rem;
+            margin: 0;
+            padding: 0;
+        }
+        .alert {
+            padding: 1em 2em;
+            border: 1px solid #bcdff1;
+            margin: 5em auto;
+            width: 50%;
+            max-width: 480px;
+            -webkit-box-shadow: 0 1px 3px rgba(0,0,0,0.13);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.13);
+            border-radius: .25rem;
+        }
+        .alert-info {
+            background-color: #d9edf7;
+            border-color: #bcdff1;
+            color: #31708f;
+        }
+        .alert-info .alert-link {
+            color: #245269;
+        }
+        p {
+            line-height: 1;
+            margin: 20px 0;
+        }
+        a {
+            color: #222;
+            font-weight: 500;
+        }
+    </style>
 </head>
 <body>
-<div align="center" class="errorwrap">
-	<p>{{ lock_reason }}</p>
-</div>
+    <div class="alert alert-info" role="alert">
+        <p>{{ lock_reason }}</p>
+    </div>
 </body>
 </html>

@@ -1,38 +1,47 @@
 {% if (global.flags.isLogged) %}
-	<div id="user-panel">
-		{% if pluginIsActive('uprofile') %}<span class="none">
-			<a href="{{ profile_link }}"><img class="avatar" src="{{ avatar_url }}" alt=""/></a></span>
-		<a href="{{ profile_link }}"><span class="icon"></span>{{ lang['myprofile'] }}</a>{% endif %}
-		{% if pluginIsActive('pm') %}<a href="{{ p.pm.link }}">�� ({{ p.pm.pm_unread }})</a>{% endif %}
-		[if-have-perm]<a href="{{ admin_url }}" target="_blank"><b>{{ lang['adminpanel'] }}</b></a>[/if-have-perm]
-		<span class="none"><a href="{{ logout_link }}" title="{{ lang['logout'] }}" class="exit"></a></span>
-	</div>
+    {% if pluginIsActive('nsm') %}<a href="{{ home }}/plugin/nsm/" class="dropdown-item">Добавить новость</a>{% endif %}
+    {% if (global.flags.isLogged and (global.user['status'] <= 3)) %}<a href="{{ admin_url }}" target="_blank" class="dropdown-item"><b>{{ lang.admin_panel }}</b></a>
+    <a href="{{ addnews_link }}" class="dropdown-item">{{ lang.add_news }}</a>{% endif %}
+    {% if pluginIsActive('uprofile') %}<a href="{{ profile_link }}" class="dropdown-item">{{ lang.edit_profile }}</a>{% endif %}
+    {% if pluginIsActive('pm') %}<a href="{{ p.pm.link }}" class="dropdown-item">{{ lang['private_messages'] }} ({{ p.pm.pm_unread }})</a>{% endif %}
+    <div class="dropdown-divider"></div>
+    <a href="{{ logout_link }}" class="dropdown-item">{{ lang['log_out'] }}</a>
 {% else %}
-	<script language="javascript">
-		var set_login = 0;
-		var set_pass = 0;
-	</script>
-	<div id="user-panel">
-		<a href="#" id="login"><span class="icon icon-key"></span>{{ lang['login'] }}</a>
-		<a href="{{ reg_link }}"><span class="icon icon-address"></span>{{ lang['registration'] }}</a>
-	</div>
-	<div id="dialog">
-		<div class="bg"></div>
-		<div class="dialog">
-			<div class="dialog-clouse"></div>
-			<div class="dialog-title">
-				<img src="{{ tpl_url }}/img/logo.png" alt="">
-			</div>
-			<div class="dialog-message">
-				{{ lang.theme['login_header'] }}
-				<form name="login" method="post" action="{{ form_action }}" id="login">
-					<input type="hidden" name="redirect" value="{{ redirect }}"/>
-					<input type="text" name="username" placeholder="{{ lang['username'] }}:" class="input">
-					<input type="password" name="password" placeholder="{{ lang['password'] }}:" class="input"><br>
-					<input type="submit" value="{{ lang['login'] }}" class="btn">
-					<a href="{{ lost_link }}" class="btn">{{ lang['lostpassword'] }}</a>
-				</form>
-			</div>
-		</div>
-	</div>
+
+    <script>
+        var set_login = 0;
+        var set_pass = 0;
+    </script>
+
+    <div class="modal fade" id="auth-modal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-sm" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">{{ lang['login_title'] }}</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                </div>
+                <form name="login" action="{{ form_action }}" method="post" class="form-horizontal">
+                    <input type="hidden" name="redirect" value="{{ redirect }}" />
+
+                    <fieldset>
+                        <div class="modal-body">
+                            <div class="form-group">
+                                <div class="input-group">
+                                    <input type="text" name="username" id="username" placeholder="{{ lang.username }}" class="form-control" required />
+                                    <span class="input-group-addon"><i class="fa fa-user"></i></span>
+                                </div>
+                            </div>
+                            <div class="input-group">
+                                <input type="password" name="password" id="password" placeholder="{{ lang.password }}" class="form-control" required />
+                                <span class="input-group-addon"><i class="fa fa-lock"></i></span>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="submit" class="btn btn-primary">{{ lang['login'] }}</button>
+                        </div>
+                    </fieldset>
+                </form>
+            </div>
+        </div>
+    </div>
 {% endif %}

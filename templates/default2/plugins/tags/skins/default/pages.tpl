@@ -1,5 +1,5 @@
-<div class="paginator">
+<div class="pagination">
 	<ul>
-		[prev-link]Предыдущая[/prev-link] {pages} [next-link]Следующая[/next-link]
+		[prev-link]Prev[/prev-link] {pages} [next-link]Next[/next-link]
 	</ul>
 </div>
