@@ -159,6 +159,7 @@
 			<footer class="border-top mt-5">
 				<p class="text-right text-muted py-4 my-0">2008-{{ year }} © <a href="http://ngcms.ru"
 						target="_blank">Next Generation CMS</a></p>
+
 			</footer>
 		</div>
 		<!-- Модальное окно для уведомлений -->

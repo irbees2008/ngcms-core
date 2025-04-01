@@ -4264,7 +4264,7 @@ pre code {
     .container-md,
     .container-sm,
     .container-xl {
-        max-width: 1140px
+        max-width: 100%;
     }
 }
 
@@ -15339,4 +15339,44 @@ top: 9px;
 
 #news_relates li b {
     font-weight: bold;
+}
+.card-icon {
+    float: left;
+    /* Обтекание текстом */
+    margin-right: 15px;
+    /* Отступ справа от иконки */
+    margin-bottom: 10px;
+    /* Отступ снизу для разделения контента */
+    width: 80px;
+    /* Ширина блока с иконкой */
+    height: 80px;
+    /* Высота блока с иконкой */
+    border: 1px solid #ddd;
+    /* Граница вокруг иконки */
+    border-radius: 5px;
+    /* Скругление углов */
+    background-color: #f8f9fa;
+    /* Фон для иконки */
+    display: flex;
+    /* Центрирование иконки внутри блока */
+    align-items: center;
+    /* Вертикальное центрирование */
+    justify-content: center;
+    /* Горизонтальное центрирование */
+}
+
+.icon-image {
+    max-width: 100%;
+    /* Масштабирование иконки */
+    max-height: 100%;
+    /* Масштабирование иконки */
+    object-fit: cover;
+    /* Сохранение пропорций изображения */
+}
+
+.card-body::after {
+    content: "";
+    /* Очистка обтекания */
+    display: table;
+    clear: both;
 }
