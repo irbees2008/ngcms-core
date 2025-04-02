@@ -2,29 +2,25 @@
 //
 // Copyright (C) 2006-2014 Next Generation CMS (http://ngcms.ru/)
 // Name: upgrade.php
-// Description: General DB upgrade tool (enhanced version)
-// Author: NGCMS Development Team + security/error handling additions
+// Description: General DB upgrade tool
+// Author: NGCMS Development Team
 //
 
 @include_once 'core.php';
 
-// ========== Configuration ========== //
-define('SAFE_MODE', false); // Режим проверок без реального выполнения
-define('BACKUP_BEFORE_UPGRADE', false); // Создавать резервную копию (требует настройки доступа)
-// ================================== //
-
 // Upgrade matrix
 $upgradeMatrix = [
-    1 => [
+    1   => [
         'insert into ' . prefix . "_config (name, value) values ('database.engine.revision', '1')",
     ],
-    2 => [
-        'safe_alter_table ' . prefix . '_news add column content_delta text after content',
-        'safe_alter_table ' . prefix . '_news add column content_source int default 0 after content_delta',
+    2   => [
+        'alter table ' . prefix . '_news add column content_delta text after content',
+        'alter table ' . prefix . '_news add column content_source int default 0 after content_delta',
         'update ' . prefix . "_config set value=2 where name='database.engine.revision'",
         'update ' . prefix . "_config set value='" . engineVersion . "' where name='database.engine.version'",
     ],
     3 => [
+        // Удаление полей content_delta и content_source
         'safe_alter_table ' . prefix . '_news drop column if exists content_delta',
         'safe_alter_table ' . prefix . '_news drop column if exists content_source',
         'update ' . prefix . "_config set value=3 where name='database.engine.revision'",
