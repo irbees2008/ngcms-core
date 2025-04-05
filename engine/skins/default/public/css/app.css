@@ -8275,6 +8275,10 @@ select:not([class]) {
     border-color: #dee2e6 #dee2e6 #fff
 }
 
+.nav-item.plugin {
+    padding-left: 140px;
+}
+
 .nav-tabs .dropdown-menu {
     margin-top: -1px;
     border-top-left-radius: 0;
@@ -15236,50 +15240,55 @@ body.modal-open {
     overflow: hidden;
     /* Обычно ширина скроллбара составляет 17px */
 }
- .card-widget {
+
+.card-widget {
     /* margin-top: 20px;*/
- }
+}
 
- .widget-user-header {
-     display: flex;
-     flex-direction: column;
-     justify-content: center;
-     /*align-items: center;*/
-     padding: 20px;
-     color: white;
- }
+.widget-user-header {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    /*align-items: center;*/
+    padding: 20px;
+    color: white;
+}
 
- .widget-user-image {
-     text-align: center;
-     margin: -60px auto 20px;
- }
+.widget-user-image {
+    text-align: center;
+    margin: -60px auto 20px;
+}
 
- .img-circle {
-     width: 100px;
-     height: 100px;
-     border-radius: 50%;
- }
+.img-circle {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+}
 
- .card-footer {
-     background-color: white;
- }
+.card-footer {
+    background-color: white;
+}
 
- .description-block {
-     text-align: center;
- }
+.description-block {
+    text-align: center;
+}
 
- .description-header {
-     font-size: 1.5rem;
-     font-weight: bold;
- }
+.description-header {
+    font-size: 1.5rem;
+    font-weight: bold;
+}
 
- .description-text {
-     display: block;
-     margin-top: 5px;
-     font-size: 1rem;
- }
- .admin{font-size: 24px;
-    padding: 8px;}
+.description-text {
+    display: block;
+    margin-top: 5px;
+    font-size: 1rem;
+}
+
+.admin {
+    font-size: 24px;
+    padding: 8px;
+}
+
 .btn-custom {
     margin: 5px 0;
     padding: 10px 20px;
@@ -15302,13 +15311,16 @@ body.modal-open {
     color: #155724;
     /* Изменение цвета текста при наведении */
 }
-.badge-notife {font-size: .6rem;
-font-weight: 300;
-padding: 2px 4px;
-position: absolute;
-left: 30px;
-top: 9px;
+
+.badge-notife {
+    font-size: .6rem;
+    font-weight: 300;
+    padding: 2px 4px;
+    position: absolute;
+    left: 30px;
+    top: 9px;
 }
+
 #news_relates {
     display: none;
     background: #ffc;
@@ -15340,6 +15352,7 @@ top: 9px;
 #news_relates li b {
     font-weight: bold;
 }
+
 .card-icon {
     float: left;
     /* Обтекание текстом */
