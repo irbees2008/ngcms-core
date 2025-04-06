@@ -62,7 +62,10 @@
 <div class="card border-dark">
 	<div class="card-header">
 		<h5 class="card-title">
-			{{ entry.title }}
+{{ entry.id }}
+-
+{{ entry.title }}
+
 			<span class="badge badge-secondary float-right">{{ entry.version }}</span>
 		</h5>
 	</div>
