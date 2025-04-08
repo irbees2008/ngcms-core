@@ -1232,11 +1232,6 @@ function convert($content)
     return $content;
 }
 
-function utf2cp1251($text)
-{
-    return convert($text);
-}
-
 //
 
 function GetCategories($catid, $plain = false, $firstOnly = false)
@@ -2238,16 +2233,7 @@ function genUToken($identity = '')
 //	$data
 function arrayCharsetConvert($direction, $data)
 {
-    if (!is_array($data)) {
-        return iconv($direction ? 'UTF-8' : 'Windows-1251', $direction ? 'Windows-1251' : 'UTF-8', $data);
-    }
-
-    $result = [];
-    foreach ($data as $k => $v) {
-        $result[iconv($direction ? 'UTF-8' : 'Windows-1251', $direction ? 'Windows-1251' : 'UTF-8', $k)] = is_array($v) ? arrayCharsetConvert($direction, $v) : iconv($direction ? 'UTF-8' : 'Windows-1251', $direction ? 'Windows-1251' : 'UTF-8', $v);
-    }
-
-    return $result;
+    return $data; // игнорируем направление и возвращаем как есть
 }
 
 // Check if user $user have access to identity $identity with mode $mode
