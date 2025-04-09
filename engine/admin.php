@@ -97,11 +97,83 @@ define('ADMIN', 1);
 // Load library
 require_once './includes/inc/lib_admin.php';
 
-// Check if DB upgrade is required
-if (dbCheckUpgradeRequired()) {
-    echo "<html><body><div>Error: DB Upgrade is required! Please upgrade DB before proceed.<br/><a href='upgrade.php'>Upgrade now!</a></div></body></html>";
-    return;
+/**
+ * Проверяет необходимость обновления БД и показывает страницу обслуживания
+ */
+function checkDatabaseUpgradeRequirement(): void
+{
+    if (!dbCheckUpgradeRequired()) {
+        return;
+    }
+
+    $html = <<<HTML
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Требуется обновление БД | NGCMS</title>
+    <style>
+        .maintenance-container {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 600px;
+            margin: 10% auto;
+            padding: 30px;
+            border-radius: 5px;
+            background: #f5f5f5;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+        .maintenance-title {
+            color: #d9534f;
+            font-size: 24px;
+            margin-bottom: 15px;
+        }
+        .maintenance-message {
+            font-size: 16px;
+            margin-bottom: 25px;
+            line-height: 1.5;
+            color: #333;
+        }
+        .upgrade-button {
+            display: inline-block;
+            padding: 10px 20px;
+            background: #5cb85c;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            font-weight: 600;
+        }
+        .footer-note {
+            margin-top: 20px;
+            font-size: 13px;
+            color: #777;
+        }
+    </style>
+</head>
+<body>
+    <div class="maintenance-container">
+        <h1 class="maintenance-title">NGCMS: Требуется обновление базы данных</h1>
+        <div class="maintenance-message">
+            Система обнаружила, что структура вашей базы данных требует обновления<br>
+            для соответствия текущей версии программного обеспечения.<br>
+            Пожалуйста, выполните обновление перед продолжением работы.
+        </div>
+        <a href="upgrade.php" class="upgrade-button">Обновить базу данных</a>
+        <div class="footer-note">
+            После обновления система будет работать в штатном режиме
+        </div>
+    </div>
+</body>
+</html>
+HTML;
+
+    echo $html;
+    exit;
 }
+
+// Пример использования:
+checkDatabaseUpgradeRequirement();
 
 // Load plugins, that need to make any changes during user in admin panel
 load_extras('admin:init');

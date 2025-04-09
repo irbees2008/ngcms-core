@@ -1,222 +1,352 @@
 <?php
-//
-// Copyright (C) 2006-2014 Next Generation CMS (http://ngcms.ru/)
-// Name: upgrade.php
-// Description: General DB upgrade tool
-// Author: NGCMS Development Team
-//
+
+/**
+ * Инструмент обновления базы данных NGCMS
+ * 
+ * @copyright Copyright (C) 2006-2014 Next Generation CMS (http://ngcms.ru/)
+ * @license MIT
+ */
 
 @include_once 'core.php';
 
-// Upgrade matrix
+// Матрица обновлений
 $upgradeMatrix = [
-    1   => [
-        'insert into ' . prefix . "_config (name, value) values ('database.engine.revision', '1')",
+    1 => [
+        "INSERT IGNORE INTO " . prefix . "_config (name, value) VALUES ('database.engine.revision', '1')",
     ],
-    2   => [
-        'alter table ' . prefix . '_news add column content_delta text after content',
-        'alter table ' . prefix . '_news add column content_source int default 0 after content_delta',
-        'update ' . prefix . "_config set value=2 where name='database.engine.revision'",
-        'update ' . prefix . "_config set value='" . engineVersion . "' where name='database.engine.version'",
+    2 => [
+        "ALTER TABLE " . prefix . "_news ADD COLUMN content_delta TEXT AFTER content",
+        "ALTER TABLE " . prefix . "_news ADD COLUMN content_source INT DEFAULT 0 AFTER content_delta",
+        "UPDATE " . prefix . "_config SET value = 2 WHERE name = 'database.engine.revision'",
+        "UPDATE " . prefix . "_config SET value = '" . engineVersion . "' WHERE name = 'database.engine.version'",
     ],
     3 => [
-        // Удаление полей content_delta и content_source
-        'safe_alter_table ' . prefix . '_news drop column if exists content_delta',
-        'safe_alter_table ' . prefix . '_news drop column if exists content_source',
-        'update ' . prefix . "_config set value=3 where name='database.engine.revision'",
+        "ALTER TABLE " . prefix . "_news DROP COLUMN content_delta",
+        "ALTER TABLE " . prefix . "_news DROP COLUMN content_source",
+        "UPDATE " . prefix . "_config SET value = 3 WHERE name = 'database.engine.revision'",
     ],
 ];
 
-// ========== Main Execution ========== //
-$cv = getCurrentDBVersion();
-if ($cv < minDBVersion) {
-    echo '<h2>Database Upgrade Process</h2>';
-    echo 'Current version: ' . $cv . '<br>';
-    echo 'Target version: ' . minDBVersion . '<br><br>';
+// Получаем текущую версию БД
+$currentVersion = getCurrentDBVersion();
 
-    if (BACKUP_BEFORE_UPGRADE) {
-        createBackup();
-    }
-
-    // Временное отключение строгого режима MySQL
-    NGEngine::getInstance()->getDB()->exec("SET SESSION sql_mode = ''");
-
-    doUpgrade($cv + 1, minDBVersion);
+// Проверяем необходимость обновления
+if ($currentVersion < minDBVersion) {
+    echo renderUpgradeHeader($currentVersion, minDBVersion);
+    doUpgrade($currentVersion + 1, minDBVersion);
 } else {
-    echo '<div class="alert alert-success">No upgrade needed! Database is up to date.</div>';
+    echo renderNoUpgradeNeeded();
 }
 
-// ========== Functions ========== //
-
 /**
- * Получает текущую версию БД с обработкой ошибок
+ * Получает текущую версию БД
  */
 function getCurrentDBVersion(): int
 {
     $db = NGEngine::getInstance()->getDB();
+    $versionRecord = $db->record(
+        "SELECT * FROM " . prefix . "_config WHERE name = 'database.engine.revision'"
+    );
 
-    try {
-        $dbv = $db->record('select * from ' . prefix . '_config where name = "database.engine.revision"');
-        return is_array($dbv) ? (int)$dbv['value'] : 0;
-    } catch (Exception $e) {
-        // Таблица config или запись может не существовать
-        return 0;
-    }
+    return is_array($versionRecord) ? (int)$versionRecord['value'] : 0;
 }
 
 /**
- * Выполняет обновление с улучшенной обработкой ошибок
+ * Выполняет обновление БД
  */
-function doUpgrade($fromVersion, $toVersion)
+function doUpgrade(int $fromVersion, int $toVersion): void
 {
     global $upgradeMatrix;
-
     $db = NGEngine::getInstance()->getDB();
 
-    for ($i = $fromVersion; $i <= $toVersion; $i++) {
-        if (!isset($upgradeMatrix[$i])) {
-            echo "<div class='alert alert-warning'>No upgrade path for version $i - skipping</div>";
-            continue;
-        }
+    // Временное разрешение проблемных дат
+    $db->exec("SET SQL_MODE='ALLOW_INVALID_DATES'");
 
-        echo "<div class='version-block'><h3>Upgrading to revision: $i</h3>";
+    for ($version = $fromVersion; $version <= $toVersion; $version++) {
+        echo "<div class='upgrade-step'>";
+        echo "<h3><i class='icon-version'></i> Обновление до версии {$version}</h3>";
+        echo "<div class='step-actions'>";
 
-        foreach ($upgradeMatrix[$i] as $query) {
-            // Специальная обработка ALTER TABLE
-            if (strpos($query, 'safe_alter_table') === 0) {
-                $query = str_replace('safe_alter_table', 'alter table', $query);
-                $result = safeAlterTable($query);
-            } else {
-                $result = executeQuery($query);
+        foreach ($upgradeMatrix[$version] as $sql) {
+            echo "<div class='action'>";
+            echo "<div class='sql-query'><code>" . htmlspecialchars($sql) . "</code></div>";
+            echo "<div class='status'>";
+
+            try {
+                // Проверка для ADD COLUMN
+                if (strpos($sql, 'ADD COLUMN') !== false) {
+                    preg_match('/ADD COLUMN (\w+)/', $sql, $matches);
+                    $column = $matches[1] ?? '';
+                    $table = prefix . '_news';
+
+                    if ($column && columnExists($db, $table, $column)) {
+                        echo "<span class='skipped'><i class='icon-skip'></i> Пропущено (столбец уже существует)</span>";
+                        echo "</div></div>";
+                        continue;
+                    }
+                }
+
+                // Проверка для DROP COLUMN
+                if (strpos($sql, 'DROP COLUMN') !== false) {
+                    preg_match('/DROP COLUMN (\w+)/', $sql, $matches);
+                    $column = $matches[1] ?? '';
+                    $table = prefix . '_news';
+
+                    if ($column && !columnExists($db, $table, $column)) {
+                        echo "<span class='skipped'><i class='icon-skip'></i> Пропущено (столбец не найден)</span>";
+                        echo "</div></div>";
+                        continue;
+                    }
+                }
+
+                $result = $db->exec($sql);
+                if ($result === null) {
+                    throw new Exception("Ошибка запроса");
+                }
+                echo "<span class='success'><i class='icon-success'></i> Успешно</span>";
+            } catch (Exception $e) {
+                if (strpos($e->getMessage(), 'Duplicate column name') !== false) {
+                    echo "<span class='skipped'><i class='icon-skip'></i> Пропущено (столбец уже существует)</span>";
+                } elseif (strpos($e->getMessage(), 'check that column/key exists') !== false) {
+                    echo "<span class='skipped'><i class='icon-skip'></i> Пропущено (столбец не найден)</span>";
+                } elseif (strpos($e->getMessage(), 'Incorrect datetime value') !== false) {
+                    echo "<span class='error'><i class='icon-error'></i> Ошибка формата даты. Исправьте неверные даты.</span>";
+                    echo "</div></div></div>";
+                    renderFooter();
+                    return;
+                } else {
+                    echo "<span class='error'><i class='icon-error'></i> Ошибка: " . htmlspecialchars($e->getMessage()) . "</span>";
+                    echo "</div></div></div>";
+                    renderFooter();
+                    return;
+                }
             }
 
-            if (!$result) {
-                echo "<div class='alert alert-danger'><b>Upgrade failed!</b> Manual intervention required.</div>";
-                echo "<p>Return back to <a href='admin.php'>admin panel</a></p>";
-                return;
+            echo "</div></div>";
+        }
+
+        echo "</div></div>";
+    }
+
+    // Восстановление стандартного режима SQL
+    $db->exec("SET SQL_MODE=''");
+
+    echo renderSuccessMessage();
+    renderFooter();
+}
+
+/**
+ * Проверяет существование столбца
+ */
+function columnExists($db, $table, $column): bool
+{
+    $result = $db->record(
+        "SELECT COUNT(*) AS cnt FROM information_schema.columns 
+        WHERE table_schema = DATABASE() 
+        AND table_name = '{$table}' 
+        AND column_name = '{$column}'"
+    );
+
+    return $result && $result['cnt'] > 0;
+}
+
+/**
+ * Шапка страницы обновления
+ */
+function renderUpgradeHeader(int $current, int $target): string
+{
+    return <<<HTML
+    <!DOCTYPE html>
+    <html lang="ru">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Обновление базы данных NGCMS</title>
+        <style>
+            body {
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                line-height: 1.6;
+                color: #333;
+                background: #f5f7fa;
+                padding: 20px;
+                max-width: 1000px;
+                margin: 0 auto;
             }
-        }
-
-        echo "</div>";
-    }
-
-    echo "<div class='alert alert-success'><b>Upgrade completed successfully!</b></div>";
-    echo "<p>Return back to <a href='admin.php'>admin panel</a></p>";
+            .header {
+                background: #2c3e50;
+                color: white;
+                padding: 20px;
+                border-radius: 5px;
+                margin-bottom: 30px;
+                box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            }
+            .upgrade-step {
+                background: white;
+                border-radius: 5px;
+                padding: 20px;
+                margin-bottom: 20px;
+                box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            }
+            .step-actions {
+                margin-top: 15px;
+            }
+            .action {
+                padding: 10px;
+                margin-bottom: 10px;
+                border-left: 4px solid #eee;
+            }
+            .sql-query {
+                font-family: Consolas, Monaco, 'Andale Mono', monospace;
+                font-size: 14px;
+                color: #555;
+                margin-bottom: 5px;
+            }
+            .status {
+                font-weight: 500;
+            }
+            .success {
+                color: #27ae60;
+            }
+            .skipped {
+                color: #f39c12;
+            }
+            .error {
+                color: #e74c3c;
+            }
+            .icon-success:before {
+                content: "✓";
+                margin-right: 5px;
+            }
+            .icon-skip:before {
+                content: "↷";
+                margin-right: 5px;
+            }
+            .icon-error:before {
+                content: "✗";
+                margin-right: 5px;
+            }
+            .icon-version:before {
+                content: "➤";
+                margin-right: 10px;
+                color: #3498db;
+            }
+            .btn {
+                display: inline-block;
+                background: #3498db;
+                color: white;
+                padding: 10px 20px;
+                text-decoration: none;
+                border-radius: 5px;
+                font-weight: 500;
+                margin-top: 20px;
+                transition: background 0.3s;
+            }
+            .btn:hover {
+                background: #2980b9;
+            }
+            .success-message {
+                background: #27ae60;
+                color: white;
+                padding: 20px;
+                border-radius: 5px;
+                text-align: center;
+                margin-top: 20px;
+                box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            }
+        </style>
+    </head>
+    <body>
+        <div class="header">
+            <h1>Обновление базы данных NGCMS</h1>
+            <p>Текущая версия: {$current} → Новая версия: {$target}</p>
+        </div>
+    HTML;
 }
 
 /**
- * Безопасное выполнение ALTER TABLE с проверками
+ * Сообщение об успешном завершении
  */
-function safeAlterTable($query)
+function renderSuccessMessage(): string
 {
-    $db = NGEngine::getInstance()->getDB();
-
-    // Извлекаем данные о таблице и столбцах
-    preg_match('/alter table (\w+)\s+(add|drop)\s+column\s+(\w+)/i', $query, $matches);
-
-    if (count($matches) >= 4) {
-        $table = $matches[1];
-        $action = strtolower($matches[2]);
-        $column = $matches[3];
-
-        // Проверяем существование таблицы
-        if (!$db->tableExists($table)) {
-            echo "<div class='alert alert-danger'>Table $table doesn't exist!</div>";
-            return false;
-        }
-
-        // Проверяем существование столбца
-        $columns = $db->record("SHOW COLUMNS FROM $table LIKE '$column'");
-
-        if ($action == 'add' && $columns) {
-            echo "<div class='alert alert-warning'>Column $column already exists in $table - skipping</div>";
-            return true;
-        }
-
-        if ($action == 'drop' && !$columns) {
-            echo "<div class='alert alert-warning'>Column $column doesn't exist in $table - skipping</div>";
-            return true;
-        }
-    }
-
-    return executeQuery($query);
+    return <<<HTML
+    <div class="success-message">
+        <h2><i class="icon-success"></i> Обновление успешно завершено!</h2>
+        <p>База данных была успешно обновлена до последней версии.</p>
+    </div>
+    HTML;
 }
 
 /**
- * Выполнение SQL-запроса с обработкой ошибок
+ * Сообщение, что обновление не требуется
  */
-function executeQuery($query)
+function renderNoUpgradeNeeded(): string
 {
-    $db = NGEngine::getInstance()->getDB();
-
-    echo "<div class='query'>Executing: <code>" . htmlspecialchars($query) . "</code> ... ";
-
-    try {
-        $start = microtime(true);
-        $result = $db->exec($query);
-        $time = round((microtime(true) - $start) * 1000, 2);
-
-        if ($result === false) {
-            $error = $db->error();
-            echo "<span class='error'>FAILED</span> ({$time}ms)</div>";
-            echo "<div class='error-details'>MySQL Error: " . htmlspecialchars($error['message']) . "</div>";
-            return false;
-        }
-
-        echo "<span class='success'>OK</span> ({$time}ms)</div>";
-        return true;
-    } catch (Exception $e) {
-        echo "<span class='error'>ERROR</span></div>";
-        echo "<div class='error-details'>Exception: " . htmlspecialchars($e->getMessage()) . "</div>";
-        return false;
-    }
+    return <<<HTML
+    <!DOCTYPE html>
+    <html lang="ru">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Статус базы данных NGCMS</title>
+        <style>
+            body {
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                line-height: 1.6;
+                color: #333;
+                background: #f5f7fa;
+                padding: 20px;
+                max-width: 1000px;
+                margin: 0 auto;
+                text-align: center;
+            }
+            .message {
+                background: #27ae60;
+                color: white;
+                padding: 30px;
+                border-radius: 5px;
+                margin: 50px auto;
+                box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+                max-width: 600px;
+            }
+            .btn {
+                display: inline-block;
+                background: #3498db;
+                color: white;
+                padding: 12px 25px;
+                text-decoration: none;
+                border-radius: 5px;
+                font-weight: 500;
+                margin-top: 20px;
+                transition: background 0.3s;
+            }
+            .btn:hover {
+                background: #2980b9;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="message">
+            <h2>База данных актуальна</h2>
+            <p>Ваша база данных уже имеет последнюю версию. Обновление не требуется.</p>
+            <a href="admin.php" class="btn">Перейти в панель управления</a>
+        </div>
+    </body>
+    </html>
+    HTML;
 }
 
 /**
- * Создание резервной копии БД
+ * Подвал страницы с кнопкой
  */
-function createBackup()
+function renderFooter(): void
 {
-    echo "<div class='alert alert-info'>Creating database backup...</div>";
-
-    try {
-        $config = NGEngine::getInstance()->getConfig();
-        $backupFile = 'backup_' . date('Y-m-d_H-i-s') . '_pre_upgrade.sql';
-
-        // Получаем параметры подключения из конфигурации
-        $command = sprintf(
-            "mysqldump --user=%s --password=%s --host=%s %s > %s",
-            escapeshellarg($config['db_user']),
-            escapeshellarg($config['db_pass']),
-            escapeshellarg($config['db_host']),
-            escapeshellarg($config['db_name']),
-            escapeshellarg($backupFile)
-        );
-
-        system($command, $result);
-
-        if ($result === 0) {
-            echo "<div class='alert alert-success'>Backup created successfully: $backupFile</div>";
-        } else {
-            echo "<div class='alert alert-warning'>Backup creation failed! Please create backup manually.</div>";
-        }
-    } catch (Exception $e) {
-        echo "<div class='alert alert-warning'>Backup error: " . htmlspecialchars($e->getMessage()) . "</div>";
-    }
+    echo <<<HTML
+        <div style="text-align: center; margin-top: 30px;">
+            <a href="admin.php" class="btn">
+                <i class="icon-admin"></i> Перейти в панель управления
+            </a>
+        </div>
+    </body>
+    </html>
+    HTML;
 }
-
-// ========== HTML Styles ========== //
-echo <<<HTML
-<style>
-    .alert { padding: 15px; margin: 10px 0; border-radius: 4px; }
-    .alert-success { background: #dff0d8; color: #3c763d; }
-    .alert-danger { background: #f2dede; color: #a94442; }
-    .alert-warning { background: #fcf8e3; color: #8a6d3b; }
-    .alert-info { background: #d9edf7; color: #31708f; }
-    .query { font-family: monospace; margin: 5px 0; }
-    .success { color: green; font-weight: bold; }
-    .error { color: red; font-weight: bold; }
-    .error-details { color: #a94442; margin-left: 20px; }
-    .version-block { background: #f5f5f5; padding: 15px; margin-bottom: 20px; }
-</style>
-HTML;
