@@ -8275,14 +8275,14 @@ select:not([class]) {
     border-color: #dee2e6 #dee2e6 #fff
 }
 
-.nav-item.plugin {
-    padding-left: 140px;
-}
-
 .nav-tabs .dropdown-menu {
     margin-top: -1px;
     border-top-left-radius: 0;
     border-top-right-radius: 0
+}
+
+.nav-item.plugin {
+    padding-left: 140px;
 }
 
 .nav-pills .nav-link {
@@ -14935,7 +14935,18 @@ table.extra-config>tbody>tr:first-child td small {
 .nav-link .fa {
     margin-right: 8px
 }
+.menu-list {
+    list-style: none;
+    padding-left: 0;
+    margin: 0;
+}
 
+.menu-content {
+    list-style: none;
+    padding-left: 0;
+    margin: 0;
+}
+/* Основные стили остаются без изменений */
 .nav-side-menu {
     overflow: auto;
     font-family: verdana;
@@ -14946,99 +14957,149 @@ table.extra-config>tbody>tr:first-child td small {
     top: 49px;
     width: 17%;
     height: 100%;
-    color: #e1ffff
+    color: #e1ffff;
 }
 
-.nav-side-menu .brand {
-    background-color: #23282e;
-    line-height: 50px;
-    display: block;
-    text-align: center;
-    font-size: 14px
-}
-
-.nav-side-menu .toggle-btn {
-    display: none
-}
-
-.nav-side-menu li,
-.nav-side-menu ul {
-    list-style: none;
-    padding: 5px;
-    margin: 5px;
-    line-height: 30px;
-    cursor: pointer
-}
-
-.nav-side-menu li :not(collapsed) .arrow:before,
-.nav-side-menu ul :not(collapsed) .arrow:before {
-    font-family: FontAwesome;
-    content: "\F078";
-    display: inline-block;
-    padding-left: 10px;
-    padding-right: 10px;
-    vertical-align: middle;
-    float: right
-}
-
-.nav-side-menu li .active,
-.nav-side-menu ul .active {
-    border-left: 3px solid #d19b3d;
-    background-color: #4f5b69
-}
-
-.nav-side-menu li .sub-menu li.active,
-.nav-side-menu li .sub-menu li.active a,
-.nav-side-menu ul .sub-menu li.active,
-.nav-side-menu ul .sub-menu li.active a {
-    color: #d19b3d
-}
-
-.nav-side-menu li .sub-menu li,
-.nav-side-menu ul .sub-menu li {
-    background-color: #181c20;
-    line-height: 28px;
-    border: none;
+/* Исправленные стили для пунктов меню */
+.nav-side-menu li {
+    padding: 10px 0 10px 0;
+    border-left: 3px solid #2e353d;
     border-bottom: 1px solid #23282e;
-    margin-left: 0
+    position: relative;
+    /* Добавлено для позиционирования */
 }
 
-.nav-side-menu li .sub-menu li:hover,
-.nav-side-menu ul .sub-menu li:hover {
-    background-color: #020203
+/* Главное исправление - делаем ссылки блочными */
+.nav-side-menu li>a {
+    display: block;
+    text-decoration: none;
+    color: #e1ffff;
+    padding: 8px 15px;
+    /* Увеличиваем отступы */
+    margin: 0 -5px;
+    /* Компенсируем padding родителя */
 }
 
-.nav-side-menu li .sub-menu li:before,
-.nav-side-menu ul .sub-menu li:before {
+/* Иконки внутри ссылок */
+.nav-side-menu li a i {
+    padding-left: 10px;
+    width: 20px;
+    padding-right: 20px;
+}
+
+/* Стили для стрелки (чтобы не перекрывала ссылку) */
+.nav-side-menu li .arrow {
+    position: absolute;
+    right: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    pointer-events: none;
+    /* Чтобы не блокировала клик по ссылке */
+}
+
+/* Адаптация для подменю */
+.nav-side-menu .sub-menu li {
+    padding-left: 20px;
+}
+
+.nav-side-menu .sub-menu li:before {
     font-family: FontAwesome;
     content: "\F105";
     display: inline-block;
     padding-left: 10px;
     padding-right: 10px;
-    vertical-align: middle
+    vertical-align: middle;
 }
 
-.nav-side-menu li {
-    padding-left: 0;
-    border-left: 3px solid #2e353d;
-    border-bottom: 1px solid #23282e
-}
-
-.nav-side-menu li a {
-    text-decoration: none;
-    color: #e1ffff
-}
-
-.nav-side-menu li a i {
-    padding-left: 10px;
-    width: 20px;
-    padding-right: 20px
-}
-
+/* Ховер-эффекты */
 .nav-side-menu li:hover {
     border-left: 3px solid #d19b3d;
     background-color: #4f5b69;
-    transition: all 1s ease
+    transition: all 0.3s ease;
+    /* Уменьшил время анимации */
+}
+
+/* Активное состояние */
+.nav-side-menu li.active {
+    border-left: 3px solid #d19b3d;
+    background-color: #4f5b69;
+}
+
+/* Для элементов с выпадающим меню */
+.nav-side-menu li[data-toggle="collapse"]>a {
+    padding-right: 30px;
+    /* Оставляем место для стрелки */
+}
+
+/* Убираем маркеры у всех списков в меню */
+.nav-side-menu ul,
+.nav-side-menu .menu-list ul,
+.nav-side-menu .menu-content,
+.nav-side-menu .sub-menu {
+    list-style: none !important;
+    padding-left: 0 !important;
+}
+
+/* Убираем стандартные маркеры у пунктов меню */
+.nav-side-menu li,
+.nav-side-menu .menu-list li {
+    list-style-type: none !important;
+}
+
+/* Для WebKit-браузеров (Chrome, Safari) */
+.nav-side-menu li::before,
+.nav-side-menu li::marker {
+    content: none !important;
+    display: none !important;
+}
+/* Стили для стрелок в основном меню */
+.nav-side-menu li>a .arrow {
+    float: right;
+    transition: transform 0.3s ease;
+}
+
+/* Стрелка для развернутых пунктов */
+.nav-side-menu li:not(.collapsed)>a .arrow:before {
+    font-family: FontAwesome;
+    content: "\f078";
+    /* Иконка стрелки вниз */
+    display: inline-block;
+    padding-left: 10px;
+    padding-right: 10px;
+    vertical-align: middle;
+}
+
+/* Стрелка для свернутых пунктов (если нужно) */
+.nav-side-menu li.collapsed>a .arrow:before {
+    font-family: FontAwesome;
+    content: "\f054";
+    /* Иконка стрелки вправо */
+    display: inline-block;
+    padding-left: 10px;
+    padding-right: 10px;
+    vertical-align: middle;
+}
+
+/* Для подменю */
+.nav-side-menu .sub-menu li:before {
+    font-family: FontAwesome;
+    content: "\f105";
+    /* Иконка стрелки вправо */
+    display: inline-block;
+    padding-left: 10px;
+    padding-right: 10px;
+    vertical-align: middle;
+}
+/* Для Firefox */
+@-moz-document url-prefix() {
+    .nav-side-menu li {
+        list-style: none !important;
+    }
+
+    .nav-side-menu li::marker {
+        content: "" !important;
+        font-size: 0 !important;
+    }
 }
 
 @media (max-width:767px) {
@@ -15073,7 +15134,8 @@ table.extra-config>tbody>tr:first-child td small {
 
 @media (min-width:767px) {
     .nav-side-menu .menu-list .menu-content {
-        display: block
+        display: block;
+        margin-top: 5px;
     }
 }
 
