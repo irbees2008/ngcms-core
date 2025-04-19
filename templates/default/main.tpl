@@ -1,5 +1,5 @@
-[TWIG]
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!--[TWIG] {% apply spaceless %}-->
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="{{ lang['langcode'] }}" lang="{{ lang['langcode'] }}" dir="ltr">
 <head>
 	<meta http-equiv="content-type" content="text/html; charset={{ lang['encoding'] }}"/>
@@ -165,4 +165,5 @@
 [debug]
 {debug_queries}<br/>{debug_profiler}
 [/debug]
-[/TWIG]
+<!--{% endapply %} [/TWIG]-->
+
