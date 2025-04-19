@@ -25,6 +25,12 @@ $upgradeMatrix = [
         "ALTER TABLE " . prefix . "_news DROP COLUMN content_source",
         "UPDATE " . prefix . "_config SET value = 3 WHERE name = 'database.engine.revision'",
     ],
+    4 => [
+        "UPDATE " . prefix . "_config SET value = 4 WHERE name = 'database.engine.revision'",
+    ],
+    5 => [
+        "UPDATE " . prefix . "_config SET value = 5 WHERE name = 'database.engine.revision'",
+    ],
 ];
 
 // Получаем текущую версию БД
@@ -67,62 +73,15 @@ function doUpgrade(int $fromVersion, int $toVersion): void
         echo "<h3><i class='icon-version'></i> Обновление до версии {$version}</h3>";
         echo "<div class='step-actions'>";
 
-        foreach ($upgradeMatrix[$version] as $sql) {
-            echo "<div class='action'>";
-            echo "<div class='sql-query'><code>" . htmlspecialchars($sql) . "</code></div>";
-            echo "<div class='status'>";
-
-            try {
-                // Проверка для ADD COLUMN
-                if (strpos($sql, 'ADD COLUMN') !== false) {
-                    preg_match('/ADD COLUMN (\w+)/', $sql, $matches);
-                    $column = $matches[1] ?? '';
-                    $table = prefix . '_news';
-
-                    if ($column && columnExists($db, $table, $column)) {
-                        echo "<span class='skipped'><i class='icon-skip'></i> Пропущено (столбец уже существует)</span>";
-                        echo "</div></div>";
-                        continue;
-                    }
-                }
-
-                // Проверка для DROP COLUMN
-                if (strpos($sql, 'DROP COLUMN') !== false) {
-                    preg_match('/DROP COLUMN (\w+)/', $sql, $matches);
-                    $column = $matches[1] ?? '';
-                    $table = prefix . '_news';
-
-                    if ($column && !columnExists($db, $table, $column)) {
-                        echo "<span class='skipped'><i class='icon-skip'></i> Пропущено (столбец не найден)</span>";
-                        echo "</div></div>";
-                        continue;
-                    }
-                }
-
-                $result = $db->exec($sql);
-                if ($result === null) {
-                    throw new Exception("Ошибка запроса");
-                }
-                echo "<span class='success'><i class='icon-success'></i> Успешно</span>";
-            } catch (Exception $e) {
-                if (strpos($e->getMessage(), 'Duplicate column name') !== false) {
-                    echo "<span class='skipped'><i class='icon-skip'></i> Пропущено (столбец уже существует)</span>";
-                } elseif (strpos($e->getMessage(), 'check that column/key exists') !== false) {
-                    echo "<span class='skipped'><i class='icon-skip'></i> Пропущено (столбец не найден)</span>";
-                } elseif (strpos($e->getMessage(), 'Incorrect datetime value') !== false) {
-                    echo "<span class='error'><i class='icon-error'></i> Ошибка формата даты. Исправьте неверные даты.</span>";
-                    echo "</div></div></div>";
-                    renderFooter();
-                    return;
-                } else {
-                    echo "<span class='error'><i class='icon-error'></i> Ошибка: " . htmlspecialchars($e->getMessage()) . "</span>";
-                    echo "</div></div></div>";
-                    renderFooter();
-                    return;
-                }
+        if ($version == 5) {
+            // Выполняем конвертацию кодировки
+            echo "<h4>Конвертация базы данных в UTF-8 (utf8mb4)</h4>";
+            convertDatabaseEncodingToUtf8mb4($db);
+        } else {
+            // Стандартная обработка для других версий
+            foreach ($upgradeMatrix[$version] as $sql) {
+                executeSqlWithReporting($db, $sql);
             }
-
-            echo "</div></div>";
         }
 
         echo "</div></div>";
@@ -133,6 +92,158 @@ function doUpgrade(int $fromVersion, int $toVersion): void
 
     echo renderSuccessMessage();
     renderFooter();
+}
+
+/**
+ * Конвертирует кодировку базы данных в utf8mb4
+ */
+function convertDatabaseEncodingToUtf8mb4($db): void
+{
+    echo "<div class='action'><div class='status'>Начало конвертации в utf8mb4...</div></div>";
+
+    // 1. Отключаем строгий режим MySQL
+    executeSqlWithReporting($db, "SET SESSION sql_mode = 'NO_ENGINE_SUBSTITUTION'");
+
+    try {
+        // 2. Получаем имя базы данных
+        $dbName = '';
+        $result = $db->query("SELECT DATABASE() AS dbname");
+        if (is_array($result)) {
+            $dbName = $result[0]['dbname'] ?? '';
+        } else {
+            $row = $result->fetch(PDO::FETCH_ASSOC);
+            $dbName = $row['dbname'] ?? '';
+        }
+
+        if (empty($dbName)) {
+            throw new Exception("Не удалось определить имя базы данных");
+        }
+
+        echo "<div class='action'><div class='status'>Обнаружена база: {$dbName}</div></div>";
+
+        // 3. Изменяем кодировку всей базы
+        executeSqlWithReporting($db, "ALTER DATABASE `{$dbName}` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
+
+        // 4. Получаем список всех таблиц
+        $tables = [];
+        $result = $db->query("SHOW TABLES");
+
+        if (is_array($result)) {
+            foreach ($result as $row) {
+                $tables[] = reset($row);
+            }
+        } else {
+            while ($row = $result->fetch(PDO::FETCH_NUM)) {
+                $tables[] = $row[0];
+            }
+        }
+
+        foreach ($tables as $tableName) {
+            echo "<div class='action'>";
+            echo "<h4>Обработка таблицы: {$tableName}</h4>";
+
+            // 5. Проверяем текущую кодировку таблицы
+            $createResult = $db->query("SHOW CREATE TABLE `{$tableName}`");
+            $createTable = '';
+
+            if (is_array($createResult)) {
+                $createTable = $createResult[0]['Create Table'] ?? $createResult[0][1] ?? '';
+            } else {
+                $createRow = $createResult->fetch(PDO::FETCH_NUM);
+                $createTable = $createRow[1] ?? '';
+            }
+
+            if (strpos($createTable, 'CHARSET=utf8mb4') !== false) {
+                echo "<div class='skipped'>Таблица уже в utf8mb4, пропускаем</div>";
+                echo "</div>";
+                continue;
+            }
+
+            // 6. Конвертируем таблицу
+            executeSqlWithReporting($db, "ALTER TABLE `{$tableName}` CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
+
+            // 7. Обрабатываем проблемные столбцы
+            $columns = $db->query("SHOW FULL COLUMNS FROM `{$tableName}`");
+            $columnsData = [];
+
+            if (is_array($columns)) {
+                $columnsData = $columns;
+            } else {
+                $columnsData = $columns->fetchAll(PDO::FETCH_ASSOC);
+            }
+
+            foreach ($columnsData as $col) {
+                $field = $col['Field'] ?? $col[0];
+
+                // Пропускаем проблемные поля
+                if (in_array($field, ['nsched_activate', 'nsched_deactivate'])) {
+                    echo "<div class='skipped'>Пропускаем поле: {$field}</div>";
+                    continue;
+                }
+
+                $type = $col['Type'] ?? $col[1];
+
+                // Уменьшаем длину индексированных VARCHAR столбцов
+                if (preg_match('/varchar\((\d+)\)/i', $type, $matches)) {
+                    $length = (int)$matches[1];
+                    if ($length > 191) {
+                        $indexes = $db->query("SHOW INDEX FROM `{$tableName}` WHERE Column_name = '{$field}'");
+                        $hasIndex = false;
+
+                        if (is_array($indexes)) {
+                            $hasIndex = !empty($indexes);
+                        } else {
+                            $hasIndex = $indexes->rowCount() > 0;
+                        }
+
+                        if ($hasIndex) {
+                            $newType = str_replace("varchar({$length})", "varchar(191)", $type);
+                            executeSqlWithReporting(
+                                $db,
+                                "ALTER TABLE `{$tableName}` MODIFY `{$field}` {$newType} CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci"
+                            );
+                        }
+                    }
+                }
+            }
+
+            echo "<div class='success'>Таблица успешно конвертирована</div>";
+            echo "</div>";
+        }
+
+        // 8. Обновляем версию базы данных до 5
+        executeSqlWithReporting($db, "UPDATE " . prefix . "_config SET value = '5' WHERE name = 'database.engine.revision'");
+        executeSqlWithReporting($db, "UPDATE " . prefix . "_config SET value = '" . engineVersion . "' WHERE name = 'database.engine.version'");
+
+        echo "<div class='action'><div class='status success'>Конвертация базы {$dbName} успешно завершена! Версия базы обновлена до 5.</div></div>";
+    } catch (Exception $e) {
+        echo "<div class='action'><div class='status error'>Ошибка: " . htmlspecialchars($e->getMessage()) . "</div></div>";
+        throw $e;
+    }
+}
+
+/**
+ * Выполняет SQL запрос с подробным отчетом
+ */
+function executeSqlWithReporting($db, $sql): void
+{
+    echo "<div class='action'>";
+    echo "<div class='sql-query'><code>" . htmlspecialchars($sql) . "</code></div>";
+    echo "<div class='status'>";
+
+    try {
+        $result = $db->exec($sql);
+        if ($result === null) {
+            throw new Exception("Ошибка выполнения запроса");
+        }
+        echo "<span class='success'><i class='icon-success'></i> Успешно</span>";
+    } catch (Exception $e) {
+        echo "<span class='error'><i class='icon-error'></i> Ошибка: " . htmlspecialchars($e->getMessage()) . "</span>";
+        echo "</div></div>";
+        throw $e;
+    }
+
+    echo "</div></div>";
 }
 
 /**
