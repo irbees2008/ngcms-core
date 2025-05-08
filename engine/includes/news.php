@@ -15,7 +15,7 @@ if (!defined('NGCMS')) {
 $lang = LoadLang('news', 'site');
 
 // Load shared library
-include_once root.'includes/inc/libnews.php';
+include_once root . 'includes/inc/libnews.php';
 
 // ================================================================= //
 // Module code                                                       //
@@ -42,7 +42,7 @@ function showNews($handlerName, $params)
     }
 
     // Set default template path
-    $templatePath = tpl_dir.$config['theme'];
+    $templatePath = tpl_dir . $config['theme'];
 
     // Check for FULL NEWS mode
     if (($handlerName == 'news') || ($handlerName == 'print')) {
@@ -218,8 +218,8 @@ function showNews($handlerName, $params)
                 $tableVars['category'] = array_shift(makeCategoryInfo($currentCategory['id']));
 
                 // Check if template 'news.table.tpl' exists [first check custom category template (if set), after that - common template for the whole site
-                if ($currentCategory['tpl'] && file_exists(tpl_dir.$config['theme'].'/ncustom/'.$currentCategory['tpl'].'/news.table.tpl')) {
-                    $ntTemplateName = 'ncustom/'.$currentCategory['tpl'].'/'.$ntTemplateName;
+                if ($currentCategory['tpl'] && file_exists(tpl_dir . $config['theme'] . '/ncustom/' . $currentCategory['tpl'] . '/news.table.tpl')) {
+                    $ntTemplateName = 'ncustom/' . $currentCategory['tpl'] . '/' . $ntTemplateName;
                 }
 
                 break;
@@ -262,32 +262,108 @@ function showNews($handlerName, $params)
                 $year = intval(isset($params['year']) ? $params['year'] : $_REQUEST['year']);
                 $month = intval(isset($params['month']) ? $params['month'] : $_REQUEST['month']);
 
+                // Проверка корректности даты
                 if (($year < 1970) || ($year > 2100) || ($month < 1) || ($month > 12)) {
                     return false;
                 }
 
-                $tableVars['year'] = $year;
-                $tableVars['month'] = $month;
-                $tableVars['dateStamp'] = mktime('0', '0', '0', $month, 1, $year);
+                // Инициализация массива с правильной структурой
+                $tableVars = [
+                    'year' => $year,
+                    'month' => $month,
+                    'dateStamp' => mktime(0, 0, 0, $month, 1, $year),
+                    'vars' => [],
+                    'data' => [],
+                    'count' => 0,
+                    'handler' => 'by.month'
+                ];
 
-                $SYSTEM_FLAGS['info']['title']['group'] = LangDate('F Y', mktime(0, 0, 0, $month, 1, $year));
-                $paginationParams = checkLinkAvailable('news', 'by.month') ?
-                    ['pluginName' => 'news', 'pluginHandler' => 'by.month', 'params' => ['month' => sprintf('%02u', $month), 'year' => $year], 'xparams' => [], 'paginator' => ['page', 0, false]] :
-                    ['pluginName' => 'core', 'pluginHandler' => 'plugin', 'params' => ['plugin' => 'news', 'handler' => 'by.month'], 'xparams' => ['month' => sprintf('%02u', $month), 'year' => $year], 'paginator' => ['page', 1, false]];
+                // Устанавливаем заголовок страницы
+                $SYSTEM_FLAGS['info']['title']['group'] = LangDate('F Y', $tableVars['dateStamp']);
 
-                // Use extended return mode
-                $callingParams['extendedReturn'] = true;
-                $tableVars = news_showlist(['DATA', 'postdate', 'BETWEEN', [mktime(0, 0, 0, $month, 1, $year), mktime(23, 59, 59, $month, date('t', mktime(0, 0, 0, $month, 1, $year)), $year)]], $paginationParams, $callingParams);
+                // Формируем параметры пагинации
+                $paginationParams = checkLinkAvailable('news', 'by.month') ? [
+                    'pluginName' => 'news',
+                    'pluginHandler' => 'by.month',
+                    'params' => ['month' => sprintf('%02u', $month), 'year' => $year],
+                    'xparams' => [],
+                    'paginator' => ['page', 0, false]
+                ] : [
+                    'pluginName' => 'core',
+                    'pluginHandler' => 'plugin',
+                    'params' => ['plugin' => 'news', 'handler' => 'by.month'],
+                    'xparams' => ['month' => sprintf('%02u', $month), 'year' => $year],
+                    'paginator' => ['page', 1, false]
+                ];
 
-                // Check if there're output data
-                if ($tableVars['count'] <= 0) {
-                    // No data, stop execution
-                    if (!$params['FFC']) {
-                        error404();
+                // Настройки для выборки новостей
+                $callingParams = [
+                    'extendedReturn' => true,
+                    'extendedReturnData' => true,
+                    'entendedReturnPagination' => true,
+                    'style' => 'short'
+                ];
+
+                // Получаем список новостей за месяц
+                $newsResult = news_showlist(
+                    [
+                        'DATA',
+                        'postdate',
+                        'BETWEEN',
+                        [
+                            mktime(0, 0, 0, $month, 1, $year), // Начало месяца
+                            mktime(23, 59, 59, $month, date('t', $tableVars['dateStamp']), $year) // Конец месяца
+                        ]
+                    ],
+                    $paginationParams,
+                    $callingParams
+                );
+
+                // Объединяем результаты с сохранением структуры
+                if (is_array($newsResult)) {
+                    $tableVars = array_merge($tableVars, $newsResult);
+
+                    // Если есть данные, но нет счетчика - подсчитываем вручную
+                    if (!isset($tableVars['count']) && isset($tableVars['data']) && is_array($tableVars['data'])) {
+                        $tableVars['count'] = count($tableVars['data']);
                     }
-
-                    return false;
                 }
+
+                // Обработка случая, когда новостей нет
+                if (!isset($tableVars['count']) || $tableVars['count'] <= 0) {
+                    if (!$params['FFC']) {
+                        $langMonths = [
+                            'Январь',
+                            'Февраль',
+                            'Март',
+                            'Апрель',
+                            'Май',
+                            'Июнь',
+                            'Июль',
+                            'Август',
+                            'Сентябрь',
+                            'Октябрь',
+                            'Ноябрь',
+                            'Декабрь'
+                        ];
+
+                        $tableVars['vars']['no_news_message'] = sprintf(
+                            'Нет новостей за %s %d года',
+                            $langMonths[$month - 1] ?? 'этот месяц',
+                            $year
+                        );
+                        $tableVars['vars']['show_calendar'] = true;
+
+                        // Устанавливаем специальный шаблон для случая отсутствия новостей
+                        $twigLoader->setDefaultContent('news.table.tpl', '{% if vars.no_news_message %}<div class="alert alert-info">{{ vars.no_news_message }}</div>{% endif %}');
+                    } else {
+                        return false;
+                    }
+                } else {
+                    // Устанавливаем стандартный шаблон для отображения новостей
+                    $twigLoader->setDefaultContent('news.table.tpl', '{% for entry in data %}{{ entry }}{% else %}{{ engineMSG(\'common\', lang[\'msgi_no_news\']) }}{% endfor %} {{ pagination }}');
+                }
+
                 break;
 
             case 'by.year':
