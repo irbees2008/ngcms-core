@@ -578,7 +578,7 @@ function addNews($mode = [])
     } else {
         $SQL['description'] = '';
         $SQL['keywords'] = ''; 
-
+    }
     $SQL['author'] = $userROW['name'];
     $SQL['author_id'] = $userROW['id'];
     $SQL['catid'] = implode(',', array_keys($catids));
