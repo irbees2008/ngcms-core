@@ -573,9 +573,11 @@ function addNews($mode = [])
 
     // Metatags (only for adding via admin panel)
     if ($config['meta'] && (!isset($mode['no.meta']) || !$mode['no.meta'])) {
-        $SQL['description'] = $_REQUEST['description'];
-        $SQL['keywords'] = $_REQUEST['keywords'];
-    }
+        $SQL['description'] = isset($_REQUEST['description']) ? $_REQUEST['description'] : '';
+        $SQL['keywords'] = isset($_REQUEST['keywords']) ? $_REQUEST['keywords'] : ''; 
+    } else {
+        $SQL['description'] = '';
+        $SQL['keywords'] = ''; 
 
     $SQL['author'] = $userROW['name'];
     $SQL['author_id'] = $userROW['id'];
@@ -619,7 +621,6 @@ function addNews($mode = [])
             return 0;
         }
     }
-
 
     // Dummy parameter for API call
     $tvars = [];
