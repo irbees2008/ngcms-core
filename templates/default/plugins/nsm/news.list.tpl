@@ -1,7 +1,9 @@
 <div class="block-title">Список ваших новостей:</div>
 <table class="table table-striped table-bordered">
 	<tr>
-		<th colspan="4"><a href="{{ addURL }}">Добавить новость..</a></th>
+		<th colspan="4">
+			<a href="{{ addURL }}">Добавить новость..</a>
+		</th>
 	</tr>
 	<tr align="center">
 		<td width="40">Статус</td>
@@ -20,20 +22,34 @@
 					<img src="{{ skins_url }}/images/no_plug.png" alt="{{ lang['state.draft'] }}"/>
 				{% endif %}
 			</td>
-			<td width="60">{% if entry.flags.canEdit %}
-				<a href="{{ entry.editlink }}">{% endif %}{{ entry.itemdate }}{% if entry.flags.canView %}</a>{% endif %}
+			<td width="60">
+				{% if entry.flags.canEdit %}
+					<a href="{{ entry.editlink }}">
+					{% endif %}
+					{{ entry.itemdate }}
+					{% if entry.flags.canView %}
+					</a>
+				{% endif %}
 			</td>
-			<td width="48" cellspacing=0 cellpadding=0 align="center">
+			<td width="48" cellspacing="0" cellpadding="0" align="center">
 				{% if entry.flags.mainpage %}
-					<img src="{{ skins_url }}/images/mainpage.png" border="0" width="16" height="16" title="На главной"/> {% endif %}
+					<img src="{{ skins_url }}/images/mainpage.png" border="0" width="16" height="16" title="На главной"/>
+				{% endif %}
 				{% if (entry.attach_count > 0) %}
-					<img src="{{ skins_url }}/images/attach.png" border="0" width="16" height="16" title="Файлов: {{ entry.attach_count }}"/> {% endif %}
+					<img src="{{ skins_url }}/images/attach.png" border="0" width="16" height="16" title="Файлов: {{ entry.attach_count }}"/>
+				{% endif %}
 				{% if (entry.images_count > 0) %}
-					<img src="{{ skins_url }}/images/img_group.png" border="0" width="16" height="16" title="Картинок: {{ entry.images_count }}"/> {% endif %}
+					<img src="{{ skins_url }}/images/img_group.png" border="0" width="16" height="16" title="Картинок: {{ entry.images_count }}"/>
+				{% endif %}
 			</td>
 			<td>
 				{% if entry.flags.status %}
-				<a href="{{ entry.link }}">{% endif %}{{ entry.title }}{% if entry.flags.status %}</a>{% endif %}
+					<a href="{{ entry.link }}">
+					{% endif %}
+					{{ entry.title }}
+					{% if entry.flags.status %}
+					</a>
+				{% endif %}
 			</td>
 		</tr>
 	{% else %}
@@ -42,3 +58,44 @@
 		</tr>
 	{% endfor %}
 </table>
+{% if pagination %}
+	<div class="pagination-block">
+		{{ pagination }}
+	</div>
+{% endif %}
+<style>
+	.pagination {
+		display: inline-block;
+		padding: 0;
+		margin: 20px 0;
+	}
+
+	.pagination ul {
+		margin: 0;
+		padding: 0;
+		list-style: none;
+	}
+
+	.pagination li {
+		display: inline;
+		margin: 0 2px;
+	}
+
+	.pagination li a,
+	.pagination li span {
+		padding: 5px 10px;
+		border: 1px solid #ddd;
+		text-decoration: none;
+		color: #337ab7;
+	}
+
+	.pagination li.active span {
+		background-color: #337ab7;
+		color: white;
+		border-color: #337ab7;
+	}
+
+	.pagination li a:hover {
+		background-color: #eee;
+	}
+</style>
