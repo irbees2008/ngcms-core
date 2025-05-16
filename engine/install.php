@@ -9,10 +9,150 @@
 
 @header('content-type: text/html; charset=utf-8');
 
-// Check for minimum supported PHP version
-if (version_compare(PHP_VERSION, '7.2.0') < 0) {
-    @header('content-type: text/html; charset=utf-8');
-    echo "<html><head><title>NGCMS required PHP version 7.2+ / Необходима версия PHP 7.2 или выше</title></head><body><div style='font: 24px verdana; background-color: #EEEEEE; border: #ABCDEF 1px solid; margin: 1px; padding: 3px;'><span style='color: red;'>FATAL ERROR / Фатальная ошибка</span><br/><br/><span style=\"font: 16px arial;\"> NGCMS requires PHP version <b>7.2+</b><br/>Please ask your hosting provider to upgrade your account</span><br/><hr/><span style=\"font: 16px arial;\"> Для работы NGCMS требуется PHP версии <b>7.2</b> или выше.<br/>Обратитесь к вашему хостинг провайдеру для обновления версии</span></div></body></html>";
+if (version_compare(PHP_VERSION, '8.1.0') < 0) {
+    @header('Content-Type: text/html; charset=utf-8');
+    $current_version = PHP_VERSION;
+    echo <<<HTML
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NGCMS | PHP Version Requirement</title>
+    <style>
+        :root {
+            --primary: #4361ee;
+            --error: #ef233c;
+            --light: #f8f9fa;
+            --dark: #212529;
+            --gray: #6c757d;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f1f3f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 800px;
+            width: 100%;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: var(--primary);
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        .content {
+            padding: 30px;
+        }
+        
+        h1 {
+            color: var(--error);
+            margin-bottom: 20px;
+            font-size: 28px;
+        }
+        
+        .message {
+            margin-bottom: 25px;
+        }
+        
+        .message h2 {
+            font-size: 20px;
+            color: var(--dark);
+            margin-bottom: 10px;
+        }
+        
+        .message p {
+            color: var(--gray);
+            margin-bottom: 15px;
+        }
+        
+        .current-version {
+            background: #fff8e1;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+            border-left: 4px solid #ffc107;
+        }
+        
+        .version {
+            font-weight: bold;
+            color: var(--primary);
+        }
+        
+        .required {
+            font-weight: bold;
+            color: #2e7d32;
+        }
+        
+        .divider {
+            height: 1px;
+            background: #e0e0e0;
+            margin: 25px 0;
+        }
+        
+        .footer {
+            text-align: center;
+            color: var(--gray);
+            font-size: 14px;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>NGCMS System Requirement Error</h1>
+        </div>
+        
+        <div class="content">
+            <div class="message">
+                <h2>FATAL ERROR / Фатальная ошибка</h2>
+                <p>Your PHP version doesn't meet the system requirements for NGCMS.</p>
+                
+                <div class="current-version">
+                    Current PHP version: <span class="version">$current_version</span><br>
+                    Required PHP version: <span class="required">8.1.0 or higher</span>
+                </div>
+                
+                <h2>English</h2>
+                <p>NGCMS requires PHP version <b>8.1.0</b> or higher to run properly.</p>
+                <p>Please contact your hosting provider and ask them to upgrade your PHP version.</p>
+                
+                <div class="divider"></div>
+                
+                <h2>Русский</h2>
+                <p>Для работы NGCMS требуется PHP версии <b>8.1.0</b> или выше.</p>
+                <p>Пожалуйста, обратитесь к вашему хостинг-провайдеру с просьбой обновить версию PHP.</p>
+            </div>
+            
+            <div class="footer">
+                NGCMS &copy; 2023 | PHP Engine Requirement
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+HTML;
     exit;
 }
 
