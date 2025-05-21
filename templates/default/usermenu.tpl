@@ -1,7 +1,7 @@
 {% if (global.flags.isLogged) %}
 	<div id="auth">
 		{% if pluginIsActive('nsm') %}
-			<a href="/plugin/nsm/" class="auth-add-news">{{ lang.add_news }}</a>
+			<a href="{{ p.nsm.link }}" class="auth-add-news">{{ lang.add_news }}</a>
 		{% endif %}
 		<a href="#" class="auth-profile">{{ lang.profile }}</a>
 		<div id="profile">
@@ -27,7 +27,6 @@
 							<a href="{{ user_link }}">{{ lang.profile }}</a>
 						</li>
 					{% endif %}
-
 					{% if pluginIsActive('pm') %}
 						<li>
 							<a href="{{ p.pm.link }}">{{ lang.private_messages }}
