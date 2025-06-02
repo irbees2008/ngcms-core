@@ -1278,7 +1278,7 @@ function makeCategoryInfo($ctext)
             ];
             if ($row['icon_id'] && $row['icon_folder']) {
                 $record['icon'] = [
-                    'url'        => $config['attach_url'] . '/' . $row['icon_folder'] . '/' . $row['icon_name'],
+                    'url' => $config['attach_url'] . '/' . $row['icon_folder'] . '/' . ($row['icon_preview'] ? 'thumb/' : '') . $row['icon_name'],
                     'purl'       => $row['icon_preview'] ? ($config['attach_url'] . '/' . $row['icon_folder'] . '/thumb/' . $row['icon_name']) : '',
                     'width'      => $row['icon_width'],
                     'height'     => $row['icon_height'],
@@ -1370,6 +1370,23 @@ function generateCategoryMenu($treeMasterCategory = null, $flags = [])
                 }
             }
 
+            // Формируем данные иконки как в makeCategoryInfo()
+            $iconData = null;
+            if ($v['icon_id'] && $v['icon_folder']) {
+                $iconData = [
+                    'url'        => $config['attach_url'] . '/' . $v['icon_folder'] . '/' . ($v['icon_preview'] ? 'thumb/' : '') . $v['icon_name'],
+                    'purl'       => $v['icon_preview'] ? ($config['attach_url'] . '/' . $v['icon_folder'] . '/thumb/' . $v['icon_name']) : '',
+                    'isExtended' => true,
+                    'hasPreview' => $v['icon_preview'] ? true : false,
+                ];
+            } elseif ($v['icon']) {
+                $iconData = [
+                    'url'        => $v['icon'],
+                    'isExtended' => false,
+                    'hasPreview' => false,
+                ];
+            }
+
             $tEntry = [
                 'id'      => $v['id'],
                 'cat'     => $v['name'],
@@ -1378,9 +1395,8 @@ function generateCategoryMenu($treeMasterCategory = null, $flags = [])
                 'level'   => $v['poslevel'],
                 'info'    => $v['info'],
                 'counter' => $v['posts'],
-                'icon'    => $v['icon'],
-
-                'flags' => [
+                'icon'    => $iconData, // ← Теперь с правильными данными
+                'flags'   => [
                     'active'  => (isset($SYSTEM_FLAGS['news']['currentCategory.id']) && ($v['id'] == $SYSTEM_FLAGS['news']['currentCategory.id'])) ? true : false,
                     'counter' => ($config['category_counters'] && $v['posts']) ? true : false,
                 ],
