@@ -4,6 +4,9 @@
     <!-- Если не стоит флаг `flags.active`, т.е. если эта категория - не текущая, то показываем ссылку -->
     <!-- В текущей категории показываем имя категории жирным шрифтом -->
     <li>
+    {% if entry.icon %}
+	    <img src="{{ entry.icon.url }}" alt="{{ entry.cat }}">
+    {% endif %}
     {% if (not entry.flags.active) %}
         <a href="{{ entry.link }}">
     {% else %}
@@ -20,7 +23,6 @@
     {% if (entry.flags.counter) %}
         [ {{ entry.counter }}]
     {% endif %}
-
 
     <!-- Если у категории есть подкатегории, то открываем новый уровень вложенности -->
     {% if (entry.flags.hasChildren) %}
