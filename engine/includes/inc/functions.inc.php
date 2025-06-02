@@ -1374,7 +1374,7 @@ function generateCategoryMenu($treeMasterCategory = null, $flags = [])
             $iconData = null;
             if ($v['icon_id'] && $v['icon_folder']) {
                 $iconData = [
-                    'url'        => $config['attach_url'] . '/' . $v['icon_folder'] . '/' . ($v['icon_preview'] ? 'thumb/' : '') . $v['icon_name'],
+                    'url' => $config['attach_url'] . '/' . $v['icon_folder'] . '/' . $v['icon_name'],
                     'purl'       => $v['icon_preview'] ? ($config['attach_url'] . '/' . $v['icon_folder'] . '/thumb/' . $v['icon_name']) : '',
                     'isExtended' => true,
                     'hasPreview' => $v['icon_preview'] ? true : false,
