@@ -14,12 +14,6 @@
 			{% endif %}
 		{% endif %}
 	</div>
-	<div class="avatar">
-		<img src="{{ user.photo_thumb }}" alt=""/>
-		{% if (user.flags.hasPhoto) %}
-			<a href="{{ user.photo }}" target="_blank">{{ lang.uprofile['zoom_photo'] }}</a>
-		{% endif %}
-	</div>
 	<div class="user-info">
 		<table class="table" cellspacing="0" cellpadding="0">
 			<tr>
@@ -52,9 +46,6 @@
 	</div>
 </div>
 <div class="block-title-mini">{{ lang.uprofile['contact_data'] }}</div>
-<p>
-		{{ lang.uprofile['site'] }}:	{{ user.site }}
-</p>
 <div class="block-title-mini">{{ lang.uprofile['activity_data'] }}</div>
 <p>
 	{{ lang.uprofile['all_news'] }}:

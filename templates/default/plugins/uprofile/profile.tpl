@@ -33,10 +33,6 @@
 		<input type="text" name="editmail" value="{{ user.email }}" class="input"/>
 	</div>
 	<div class="label label-table">
-		<label>{{ lang.uprofile['site'] }}:</label>
-		<input type="text" name="editsite" value="{{ user.site }}" class="input"/>
-	</div>
-	<div class="label label-table">
 		<label>{{ lang.uprofile['from'] }}:</label>
 		<input type="text" name="editfrom" value="{{ user.from }}" class="input"/>
 	</div>
@@ -56,26 +52,6 @@
 		<input type="password" name="oldpass" value="" class="input"/>
 		<div class="label-desc">{{ lang.uprofile['oldpass#desc'] }}</div>
 	</div>
-	{% if (flags.photoAllowed) %}
-		<div class="label label-table">
-			<label>{{ lang.uprofile['photo'] }}:</label>
-			<div class="input-fileform">
-				<div class="fileformlabel"></div>
-				<div class="selectbutton">{{ lang.uprofile['upload_file'] }}</div>
-				<input type="file" name="newphoto" class="upload"/>
-			</div>
-			{% if (user.flags.hasPhoto) %}
-				<a href="{{ user.photo }}" target="_blank"><img src="{{ user.photo_thumb }}" style="margin: 5px; border: 0px; max-width: 80px; max-height: 80px;" alt=""/></a>
-				<br/>
-				<input type="checkbox" name="delphoto" id="delphoto"/>&nbsp;{{ lang.uprofile['delete'] }}
-			{% endif %}
-		</div>
-	{% else %}
-		<div class="label label-table">
-			<label>{{ lang.uprofile['photo'] }}:</label>
-			{{ lang.uprofile['photos_denied'] }}
-		</div>
-	{% endif %}
 	{% if (flags.avatarAllowed) %}
 		<div class="label label-table">
 			<label>{{ lang.uprofile['avatar'] }}:</label>
