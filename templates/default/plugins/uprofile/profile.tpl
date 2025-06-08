@@ -7,12 +7,6 @@
 	}
 	function validate_form() {
 		var f = document.getElementById('profileForm');
-		// ICQ
-		var icq = f.editicq.value;
-		if ((icq.length > 0) && (!icq.match(/^\d{4,10}$/))) {
-			alert("{{ lang.uprofile['wrong_icq'] }}");
-			return false;
-		}
 		// Email
 		var email = f.editmail.value;
 		if ((email.length > 0) && (!emailCheck(email))) {
@@ -41,10 +35,6 @@
 	<div class="label label-table">
 		<label>{{ lang.uprofile['site'] }}:</label>
 		<input type="text" name="editsite" value="{{ user.site }}" class="input"/>
-	</div>
-	<div class="label label-table">
-		<label>{{ lang.uprofile['icq'] }}:</label>
-		<input type="text" name="editicq" value="{{ user.icq }}" class="input"/>
 	</div>
 	<div class="label label-table">
 		<label>{{ lang.uprofile['from'] }}:</label>

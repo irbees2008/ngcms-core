@@ -9,13 +9,7 @@
 		<div class="label label-table captcha pull-left">
 			<label>{{ lang['captcha'] }}:</label>
 			<input type="text" name="vcode" class="input" />
-
-			<img
-				id="img_captcha"
-				onclick="reload_captcha();"
-				src="{{ captcha_source_url }}"
-				alt="{{ lang['captcha'] }}"
-				style="cursor: pointer;" />
+<img id="img_captcha" onclick="reload_captcha();" src="{{ captcha_source_url }}?force=1" alt="{{ lang['captcha'] }}" style="cursor: pointer;"/>
 
 			<div class="label-desc">{{ lang['captcha_desc'] }}</div>
 		</div>
@@ -29,9 +23,10 @@
 </form>
 
 <script type="text/javascript">
-	function reload_captcha() {
-		var captcha = document.getElementById('img_captcha');
-
-		captcha && (captcha.src = "{{ captcha_source_url }}?rand=" + Math.random());
-	}
+function reload_captcha() {
+    var captcha = document.getElementById('img_captcha');
+    if (captcha) {
+        captcha.src = "{{ captcha_source_url }}?force=1&t=" + Date.now();
+    }
+}
 </script>

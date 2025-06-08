@@ -38,36 +38,36 @@ return true;
 	<input type="hidden" name="token" value="{{ token }}"/>
 	<input type="hidden" name="mod" value="news"/>
 	<input type="hidden" name="approve" id="approve" value="0"/>
-	<div class="block-title">{{ lang['addnews_title'] }}</div>
+	<div class="block-title">{{ lang.nsm['addnews_title'] }}</div>
 	<table class="table table-striped table-bordered">
 		<tr>
 			<th colspan="2">
-				<a role="button" href="{{ listURL }}">{{ lang['news.list'] }}</a>
+				<a role="button" href="{{ listURL }}">{{ lang.nsm['news.list'] }}</a>
 			</th>
 		</tr>
 		<tr>
-			<td>{{ lang['newstitle'] }}:</td>
+			<td>{{ lang.nsm['newstitle'] }}:</td>
 			<td><input type="text" name="title" class="input" value=""/></td>
 		</tr>
 		<tr>
-			<td>{{ lang['alt_name'] }}:</td>
+			<td>{{ lang.nsm['alt_name'] }}:</td>
 			<td><input type="text" name="alt_name" class="input" value=""/></td>
 		</tr>
 		<tr>
-			<td>{{ lang['category'] }}:</td>
+			<td>{{ lang.nsm['category'] }}:</td>
 			<td>{{ mastercat }}</td>
 		</tr>
 		{% if flags['multicat.show'] %}
 			<tr>
-				<td>{{ lang['dop.categories'] }}:</td>
+				<td>{{ lang.nsm['dop.categories'] }}:</td>
 				<td>{{ extcat }}</td>
 			</tr>
 		{% endif %}
 		{% if (flags.edit_split) %}
 			<tr>
 				<td colspan="2">
-					<b>{{ lang['news.anons'] }}:</b>
-					{{ lang['desk.news.anons'] }}
+					<b>{{ lang.nsm['news.anons'] }}:</b>
+					{{ lang.nsm['desk.news.anons'] }}
 					<div>
 						<div>{{ quicktags }}<br/>
 							{{ smilies }}<br/><br/></div>
@@ -77,14 +77,14 @@ return true;
 			</tr>
 			{% if (flags.extended_more) %}
 				<tr>
-					<td>{{ lang['news.more'] }}:</td>
+					<td>{{ lang.nsm['news.more'] }}:</td>
 					<td><input tabindex="2" type="text" name="content_delimiter" class="input" value=""/></td>
 				</tr>
 			{% endif %}
 			<tr>
 				<td colspan="2">
-					<b>{{ lang['full.news'] }}:</b>
-					{{ lang['desk.news.full'] }}
+					<b>{{ lang.nsm['full.news'] }}:</b>
+					{{ lang.nsm['desk.news.full'] }}
 					<div>
 						<div>{{ quicktags }}<br/>
 							{{ smilies }}<br/><br/></div>
@@ -108,30 +108,30 @@ return true;
 				<div>
 					{% if not flags['mainpage.disabled'] %}
 						<label><input type="checkbox" name="mainpage" value="1" id="mainpage" {% if (flags.mainpage) %} checked="checked" {% endif %} {% if flags['mainpage.disabled'] %} disabled {% endif %}/>
-							{{ lang['mainpage'] }}
+							{{ lang.nsm['mainpage'] }}
 						</label><br/>
 					{% endif %}
 					{% if not flags['pinned.disabled'] %}
 						<label><input type="checkbox" name="pinned" value="1" id="pinned" {% if (flags.pinned) %} checked="checked" {% endif %} {% if flags['pinned.disabled'] %} disabled {% endif %}/>
-							{{ lang['add_pinned'] }}
+							{{ lang.nsm['add_pinned'] }}
 						</label><br/>
 					{% endif %}
 					{% if not flags['catpinned.disabled'] %}
 						<label><input type="checkbox" name="catpinned" value="1" id="catpinned" {% if (flags.catpinned) %} checked="checked" {% endif %} {% if flags['catpinned.disabled'] %} disabled {% endif %}/>
-							{{ lang['add_catpinned'] }}
+							{{ lang.nsm['add_catpinned'] }}
 						</label><br/>
 					{% endif %}
 					{% if not flags['favorite.disabled'] %}
 						<label><input type="checkbox" name="favorite" value="1" id="favorite" {% if (flags.favorite) %} checked="checked" {% endif %} {% if flags['favorite.disabled'] %} disabled {% endif %}/>
-							{{ lang['add_favorite'] }}
+							{{ lang.nsm['add_favorite'] }}
 						</label><br/>
 					{% endif %}
 					{% if not flags['html.disabled'] %}
 						<label><input name="flag_HTML" type="checkbox" id="flag_HTML" value="1" {% if (flags['html.disabled']) %} disabled {% endif %} {% if flags['html'] %} checked="checked" {% endif %}/>
-							{{ lang['flag_html'] }}
+							{{ lang.nsm['flag_html'] }}
 						</label><br/>
 						<label><input type="checkbox" name="flag_RAW" value="1" id="flag_RAW" {% if (flags['html.disabled']) %} disabled {% endif %} {% if flags['html'] %} checked="checked" {% endif %}/>
-							{{ lang['flag_raw'] }}
+							{{ lang.nsm['flag_raw'] }}
 						</label><br/>
 					{% endif %}
 				</div>
@@ -142,13 +142,13 @@ return true;
 	<div class="label pull-right">
 		<label class="default">&nbsp;</label>
 		{% if flags['can_publish'] %}
-			<input class="button" type="submit" onclick="return approveMode(1);" value="{{ lang['add'] }}"/>
+			<input class="button" type="submit" onclick="return approveMode(1);" value="{{ lang.nsm['add'] }}"/>
 		{% else %}
 			&nbsp;
 		{% endif %}
-		<input class="button" type="submit" onclick="return approveMode(0);" value="{{ lang['moder.news'] }}"/>
-		<input class="button" type="submit" onclick="return approveMode(-1);" value="{{ lang['save.draft'] }}"/>
-		<input class="button" type="button" onclick="return preview();" value="{{ lang['preview'] }}"/>
+		<input class="button" type="submit" onclick="return approveMode(0);" value="{{ lang.nsm['moder.news'] }}"/>
+		<input class="button" type="submit" onclick="return approveMode(-1);" value="{{ lang.nsm['save.draft'] }}"/>
+		<input class="button" type="button" onclick="return preview();" value="{{ lang.nsm['preview'] }}"/>
 	</div>
 </form>
 

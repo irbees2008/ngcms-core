@@ -227,7 +227,6 @@ CREATE TABLE `XPREFIX_users` (
   `last` int(10) NOT NULL default '0',
   `reg` int(10) NOT NULL default '0',
   `site` varchar(100) default NULL,
-  `icq` varchar(10) NOT NULL default '',
   `where_from` varchar(255) default NULL,
   `info` text,
   `avatar` varchar(100) NOT NULL default '',

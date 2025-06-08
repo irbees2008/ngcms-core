@@ -15,7 +15,6 @@
 	</div><!-- /.row -->
   </div><!-- /.container-fluid -->
 
-
 <form action="{{ php_self }}?mod=users" method="post">
 	<input type="hidden" name="token" value="{{ token }}" />
 	<input type="hidden" name="action" value="edit" />
@@ -56,13 +55,6 @@
 						<label class="col-lg-3 col-form-label">{{ lang['site'] }}</label>
 						<div class="col-lg-9">
 							<input type="text" name="site" value="{{ site }}" class="form-control" />
-						</div>
-					</div>
-
-					<div class="form-row mb-3">
-						<label class="col-lg-3 col-form-label">{{ lang['icq'] }}</label>
-						<div class="col-lg-9">
-							<input type="text" name="icq" value="{{ icq }}" class="form-control" maxlength="10" />
 						</div>
 					</div>
 

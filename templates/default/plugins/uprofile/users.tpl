@@ -53,10 +53,7 @@
 </div>
 <div class="block-title-mini">{{ lang.uprofile['contact_data'] }}</div>
 <p>
-	{{ lang.uprofile['icq'] }}:
-	{{ user.icq }}<br>
-	{{ lang.uprofile['site'] }}:
-	{{ user.site }}
+		{{ lang.uprofile['site'] }}:	{{ user.site }}
 </p>
 <div class="block-title-mini">{{ lang.uprofile['activity_data'] }}</div>
 <p>

@@ -1,25 +1,25 @@
-<div class="block-title">{{ lang['list.news'] }}</div>
+<div class="block-title">{{ lang.nsm['list.news'] }}</div>
 <table class="table table-striped table-bordered">
 	<tr>
 		<th colspan="4">
-			<a href="{{ addURL }}">{{ lang['add.news'] }}</a>
+			<a href="{{ addURL }}">{{ lang.nsm['add.news'] }}</a>
 		</th>
 	</tr>
 	<tr align="center">
-		<td width="40">{{ lang['status.news'] }}</td>
-		<td width="60">{{ lang['data.news.published'] }}</td>
+		<td width="40">{{ lang.nsm['status.news'] }}</td>
+		<td width="60">{{ lang.nsm['data.news.published'] }}</td>
 		<td>&nbsp;</td>
-		<td>{{ lang['add.news.title'] }}</td>
+		<td>{{ lang.nsm['add.news.title'] }}</td>
 	</tr>
 	{% for entry in entries %}
 		<tr>
 			<td width="25" align="center">
 				{% if (entry.state == 1) %}
-					<img src="{{ skins_url }}/images/yes.png" alt="{{ lang['state.published'] }}"/>
+					<img src="{{ skins_url }}/images/yes.png" alt="{{ lang.nsm['state.published'] }}"/>
 				{% elseif (entry.state == 0) %}
-					<img src="{{ skins_url }}/images/no.png" alt="{{ lang['state.unpiblished'] }}"/>
+					<img src="{{ skins_url }}/images/no.png" alt="{{ lang.nsm['state.unpiblished'] }}"/>
 				{% else %}
-					<img src="{{ skins_url }}/images/no_plug.png" alt="{{ lang['state.draft'] }}"/>
+					<img src="{{ skins_url }}/images/no_plug.png" alt="{{ lang.nsm['state.draft'] }}"/>
 				{% endif %}
 			</td>
 			<td width="60">
@@ -33,13 +33,13 @@
 			</td>
 			<td width="48" cellspacing="0" cellpadding="0" align="center">
 				{% if entry.flags.mainpage %}
-					<img src="{{ skins_url }}/images/mainpage.png" border="0" width="16" height="16" title="{{ lang['entry.main'] }}"/>
+					<img src="{{ skins_url }}/images/mainpage.png" border="0" width="16" height="16" title="{{ lang.nsm['entry.main'] }}"/>
 				{% endif %}
 				{% if (entry.attach_count > 0) %}
-					<img src="{{ skins_url }}/images/attach.png" border="0" width="16" height="16" title="{{ lang['entry.files'] }}: {{ entry.attach_count }}"/>
+					<img src="{{ skins_url }}/images/attach.png" border="0" width="16" height="16" title="{{ lang.nsm['entry.files'] }}: {{ entry.attach_count }}"/>
 				{% endif %}
 				{% if (entry.images_count > 0) %}
-					<img src="{{ skins_url }}/images/img_group.png" border="0" width="16" height="16" title="{{ lang['entry.img'] }}: {{ entry.images_count }}"/>
+					<img src="{{ skins_url }}/images/img_group.png" border="0" width="16" height="16" title="{{ lang.nsm['entry.img'] }}: {{ entry.images_count }}"/>
 				{% endif %}
 			</td>
 			<td>
@@ -54,7 +54,7 @@
 		</tr>
 	{% else %}
 		<tr>
-			<td colspan="4">{{ lang['err.news_not'] }}</td>
+			<td colspan="4">{{ lang.nsm['err.news_not'] }}</td>
 		</tr>
 	{% endfor %}
 </table>
