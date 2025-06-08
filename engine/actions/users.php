@@ -65,7 +65,6 @@ function userEditForm()
         'news'       => $row['news'],
         'status'     => $status,
         'mail'       => secure_html($row['mail']),
-        'site'       => secure_html($row['site']),
         'where_from' => secure_html($row['where_from']),
         'info'       => secure_html($row['info']),
         'id'         => $id,
@@ -126,7 +125,7 @@ function userEdit()
 
     // Prepare a list of changed params
     $cList = [];
-    foreach (['level', 'site', 'where_from', 'info', 'mail'] as $k) {
+    foreach (['level', 'where_from', 'info', 'mail'] as $k) {
         if ($row[$k] != $_REQUEST[$k]) {
             $cList[$k] = [$row[$k], $_REQUEST[$k]];
         }
@@ -137,7 +136,7 @@ function userEdit()
 
     ngSYSLOG(['plugin' => '#admin', 'item' => 'users', 'ds_id' => $id], ['action' => 'editForm', 'list' => $cList], null, [1]);
 
-    $mysql->query('update '.uprefix.'_users set `status`='.db_squote($_REQUEST['status']).', `site`='.db_squote($_REQUEST['site']).',  `where_from`='.db_squote($_REQUEST['where_from']).', `info`='.db_squote($_REQUEST['info']).', `mail`='.db_squote($_REQUEST['mail']).($pass ? ', `pass`='.db_squote($pass) : '').' where id='.db_squote($row['id']));
+    $mysql->query('update '.uprefix.'_users set `status`='.db_squote($_REQUEST['status']).', `where_from`='.db_squote($_REQUEST['where_from']).', `info`='.db_squote($_REQUEST['info']).', `mail`='.db_squote($_REQUEST['mail']).($pass ? ', `pass`='.db_squote($pass) : '').' where id='.db_squote($row['id']));
     msg(['text' => $lang['msgo_edituser']]);
 }
 
