@@ -144,24 +144,16 @@ if (!defined('site_root')) {
 }
 
 // Define domain name for cookies
-$host = preg_match('#^www\.(.+)$#', $_SERVER['HTTP_HOST'], $mHost) ? $mHost[1] : $_SERVER['HTTP_HOST'];
-// Удалить порт и сделать куки-домен универсальным
-if (preg_match("#^(.+?)\:\d+$#", $host, $m)) {
-    $host = $m[1];
+// Определяем cookie-домен в формате `.ngcms.org`
+$host = strtolower($_SERVER['HTTP_HOST']);
+if (preg_match("#^(.+?):\d+$#", $host, $m)) {
+    $host = $m[1]; // убираем порт
 }
-$ngCookieDomain = '.' . preg_replace('#^([^\.]+\.)?#', '', $host); // .example.com
-// Установка параметров для PHP-сессии
-session_set_cookie_params([
-    'lifetime' => 86400,        // 1 день
-    'path' => '/',
-    'domain' => $ngCookieDomain,
-    'secure' => true,           // включи HTTPS на сайте
-    'httponly' => true,
-    'samesite' => 'None',       // нужно для кросс-доменных куки
-]);
-// Remove non-standard port from domain
-if (preg_match("#^(.+?)\:\d+$#", $ngCookieDomain, $m)) {
-    $ngCookieDomain = $m[1];
+$hostParts = explode('.', $host);
+if (count($hostParts) >= 2) {
+    $ngCookieDomain = '.' . $hostParts[count($hostParts) - 2] . '.' . $hostParts[count($hostParts) - 1];
+} else {
+    $ngCookieDomain = '.' . $host; // fallback
 }
 // Manage trackID cookie - can be used for plugins that don't require authentication,
 // but need to track the user according to their ID
@@ -256,7 +248,14 @@ multi_multidomains();
 
 // Initiate session - take care about right domain name for sites with/without www. prefix
 //print "<pre>".var_export($_SERVER, true).var_export($_COOKIE, true)."</pre>";
-session_set_cookie_params(86400, '/', $ngCookieDomain);
+session_set_cookie_params([
+    'lifetime' => 86400,
+    'path' => '/',
+    'domain' => $ngCookieDomain,
+    'secure' => true,        // только если HTTPS!
+    'httponly' => true,
+    'samesite' => 'None',    // обязательно для работы на поддоменах
+]);
 session_start();
 
 // Load system libraries
