@@ -58,6 +58,8 @@
 		</tr>
 	{% endfor %}
 </table>
-<div class="pagination-block">
-	{{ pagination }}
+<div class="pagination">
+	<ul>
+		{{ pagination }}
+	</ul>
 </div>
