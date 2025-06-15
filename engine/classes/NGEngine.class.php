@@ -138,7 +138,7 @@ final class NGEngine implements ContainerInterface
      *
      * @return mixed
      */
-    public function getConfigParam(string $param = null, $defaultValue = null)
+    public function getConfigParam(?string $param = null, mixed $defaultValue = null)
     {
         if (!$this->has('config') || !is_array($config = $this->get('config'))) {
             throw new Exception('NGEngine: getConfigParam(): Configuration is not loaded.');

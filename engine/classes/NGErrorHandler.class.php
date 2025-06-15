@@ -6,7 +6,7 @@ class NGErrorHandler
     {
     }
 
-    public function throwError($area, $params = [], Exception $e = null)
+    public function throwError(mixed $area, array $params = [], ?Exception $e = null)
     {
         // SQL error handler
         if ($area == 'SQL') {
