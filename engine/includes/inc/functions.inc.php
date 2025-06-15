@@ -3127,7 +3127,13 @@ function ngExceptionHandler($exception)
                 // User is logged in
                 $tVars['profile_link'] = generateLink('uprofile', 'edit');
                 // Добавляем ссылку на просмотр профиля
-                $tVars['user_link'] = generateLink('uprofile', 'show', array('id' => $userROW['id']));
+                // Формируем ссылку на профиль
+                if (isset($userROW['name']) ) {
+                    $tVars['user_link'] = generateLink('uprofile', 'show', array('name' => $userROW['name']));
+                } else {
+                    // Иначе используем ID
+                    $tVars['user_link'] = generateLink('uprofile', 'show', array('id' => $userROW['id']));
+                }
                 $tVars['addnews_link'] = $config['admin_url'] . '/admin.php?mod=news&amp;action=add';
                 $tVars['logout_link'] = generateLink('core', 'logout');
                 $tVars['name'] = $userROW['name'];
