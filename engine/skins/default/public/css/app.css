@@ -15426,7 +15426,7 @@ body.modal-open {
     /* Ширина блока с иконкой */
     height: 80px;
     /* Высота блока с иконкой */
-    border: 1px solid #ddd;
+    border: 1px solid #1390ed;
     /* Граница вокруг иконки */
     border-radius: 5px;
     /* Скругление углов */
@@ -15438,6 +15438,7 @@ body.modal-open {
     /* Вертикальное центрирование */
     justify-content: center;
     /* Горизонтальное центрирование */
+    color: #1390ed ;
 }
 
 .icon-image {
