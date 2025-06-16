@@ -1104,6 +1104,19 @@ function showPreview()
 {
     global $userROW, $EXTRA_CSS, $EXTRA_HTML_VARS, $PFILTERS, $tpl, $parse, $mysql, $config, $catmap;
 
+    // Инициализация плагинов
+    pluginsLoadConfig();
+
+    // Загрузка плагина archive
+    if (!function_exists('plugin_archive_showTwig')) {
+        include_once root . 'plugins/archive/archive.php';
+    }
+
+    // Загрузка плагина top_active_users
+    if (!function_exists('plugin_top_active_users_showTwig')) {
+        include_once root . 'plugins/top_active_users/top_active_users.php';
+    }
+
     // Load permissions
     $perm = checkPermission(['plugin' => '#admin', 'item' => 'news'], null, [
         'personal.html',
@@ -1181,8 +1194,17 @@ function showPreview()
     }
 
     $tvx = [];
-    $tvx['vars']['short'] = news_showone(-1, '', ['emulate' => $SQL, 'style' => 'short']);
-    $tvx['vars']['full'] = news_showone(-1, '', ['emulate' => $SQL, 'style' => 'full']);
+
+    // Добавляем поясняющие заголовки с оформлением
+    $tvx['vars']['short'] = '<div style="margin: 15px 0 5px; padding: 8px 12px; background: #f5f5f5; border-left: 4px solid #3498db; font-weight: bold; color: #333;">
+                               Короткая новость:
+                            </div>' .
+        news_showone(-1, '', ['emulate' => $SQL, 'style' => 'short']);
+
+    $tvx['vars']['full'] = '<div style="margin: 20px 0 5px; padding: 8px 12px; background: #f5f5f5; border-left: 4px solid #2ecc71; font-weight: bold; color: #333;">
+                              Полная новость:
+                            </div>' .
+        news_showone(-1, '', ['emulate' => $SQL, 'style' => 'full']);
 
     // Fill extra CSS links
     foreach ($EXTRA_CSS as $css => $null) {
