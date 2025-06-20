@@ -16,8 +16,7 @@
 		<!-- Additional fonts for this theme -->
 
 		<link href="https://fonts.googleapis.com/css?family=Roboto:300" rel="stylesheet">
-		<link
-		href="{{ tpl_url }}/css/fontawesome-4.7.0/fontawesome.css" rel="stylesheet">
+		<link	href="{{ tpl_url }}/css/fontawesome-4.7.0/fontawesome.css" rel="stylesheet">
 
 		<!-- Custom styles for this theme -->
 		<link href="{{ tpl_url }}/css/style.css" rel="stylesheet">
@@ -132,7 +131,7 @@
 							</ul>
 							<p class="copyright text-muted">Copyright &copy;
 								<a title="{{ home_title }}" href="{{ home }}">{{ home_title }}</a>. Powered by
-								<a title="Next Generation CMS" target="_blank" href="http://ngcms.ru/">NG CMS</a>
+								<a title="Next Generation CMS" target="_blank" href="http://ngcms.org/">NG CMS</a>
 
 								2006-{{ now|date("Y") }}.
 								<br/>{{ lang.sql_queries }}:
