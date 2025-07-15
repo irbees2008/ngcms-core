@@ -1,19 +1,15 @@
 <?php
-
 //
 // Copyright (C) 2006-2011 Next Generation CMS (http://ngcms.ru/)
 // Name: multimaster.php
 // Description: multidomain mastering
 // Author: Vitaly A Ponomarev, vp7@mail.ru
 //
-
 function multi_multisites()
 {
     global $config, $siteDomainName, $multiDomainName, $multiconfig, $multimaster;
-
     $siteDomainName = '';
     $multiDomainName = '';
-
     // Анализируем мультидоменную конфигурацию
     if (!is_file(root.'conf/multiconfig.php')) {
         return;
@@ -22,7 +18,6 @@ function multi_multisites()
     if (!is_array($multiconfig)) {
         return;
     }
-
     // Если не выбран МультиМастер - не обрабатываем мультиконфиг
     if (!$multimaster || (!is_array($multiconfig[$multimaster])) ||
         (!$multiconfig[$multimaster]['active']) || (!is_array($multiconfig[$multimaster]['domains']))
@@ -40,7 +35,6 @@ function multi_multisites()
                 break;
             }
         }
-
         // Проверка остальных учётных записей
         foreach ($multiconfig as $mname => $mrec) {
             if (!is_array($mrec['domains'])) {
@@ -59,26 +53,20 @@ function multi_multisites()
             }
         }
     } while (0);
-
     // Если нет ни одного совпадения, то выбираем первый домен у мастера
     if (!$siteDomainName) {
         $siteDomainName = $multiconfig[$multimaster]['domains'][0];
     }
-
     // Если мультидомен выбран - меняем пути
     if ($multiDomainName && ($multiDomainName != $multimaster)) {
     }
-
     $siteDomainName = trim($siteDomainName);
 }
-
 function multi_multidomains()
 {
     global $config, $siteDomainName, $multiDomainName, $multimaster, $multiconfig, $multimaster, $SYSTEM_FLAGS;
-
     $newdomain = '';
     $SYSTEM_FLAGS['mydomains'] = [];
-
     // Анализируем параметр конфига mydomains
     $domlist = null;
     if (isset($config['mydomains'])) {
@@ -96,7 +84,6 @@ function multi_multidomains()
             }
         }
     }
-
     // Если не найдено ни одного совпадения, то прописываем самый первый хост
     if (!$newdomain) {
         // Если заданы хосты в mydomains, то выбираем первый. Иначе - выбираем хост выбранный в мультисайте
@@ -113,14 +100,13 @@ function multi_multidomains()
             }
         }
     }
-
     //
     // Отрабатываем замену масок {domain}, {domainID} в конфиг-файле
     //
     $newdomain = trim($newdomain);
     $newdomainid = trim($multiDomainName);
     if ($newdomain) {
-        foreach (['home_url', 'admin_url', 'avatars_url', 'photos_url', 'images_url', 'files_url', 'avatars_dir', 'photos_dir', 'images_dir', 'files_dir', 'attach_url', 'attach_dir'] as $vn) {
+        foreach (['home_url', 'admin_url', 'avatars_url',  'images_url', 'files_url', 'avatars_dir',  'images_dir', 'files_dir', 'attach_url', 'attach_dir'] as $vn) {
             $config[$vn] = str_replace('{domain}', $newdomain, $config[$vn]);
             $config[$vn] = str_replace('{domainid}', $newdomainid, $config[$vn]);
         }

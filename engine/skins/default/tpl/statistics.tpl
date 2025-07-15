@@ -19,13 +19,11 @@
 	<!-- /.row -->
 </div>
 <!-- /.container-fluid -->
-
 <!-- Configuration errors -->
 {% if (flags.confError) %}
 	<div class="alert alert-danger" role="alert">
 		<h4 class="alert-heading mb-0">{{ lang['pconfig.error'] }}</h4>
 	</div>
-
 	<table class="table table-danger table-bordered">
 		<thead>
 			<tr>
@@ -57,9 +55,7 @@
 			</tr>
 		</tbody>
 	</table>
-
 	<button type="button" class="btn btn-outline-danger" data-toggle="modal" data-target="#perror_resolve">{{ lang['perror.howto'] }}</button>
-
 	<div id="perror_resolve" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="perrorModalLabel" aria-hidden="true">
 		<div class="modal-dialog">
 			<div class="modal-content">
@@ -69,9 +65,7 @@
 						<span aria-hidden="true">&times;</span>
 					</button>
 				</div>
-
 				<div class="modal-body">{{ lang['perror.descr'] }}</div>
-
 				<div class="modal-footer">
 					<button type="button" class="btn btn-outline-dark" data-dismiss="modal">Close</button>
 				</div>
@@ -180,7 +174,6 @@
 			</table>
 		</div>
 	</div>
-
 	<div class="col-md-6 mb-3">
 		<div class="card">
 			<h5 class="card-header font-weight-light">Next Generation CMS</h5>
@@ -207,7 +200,6 @@
 		</div>
 	</div>
 </div>
-
 <div class="row">
 	<div class="col-md-6 mb-3">
 		<div class="card">
@@ -233,12 +225,6 @@
 						<td>{{ file_amount }}</td>
 						<td>{{ file_size }}</td>
 						<td>{{ file_perm }}</td>
-					</tr>
-					<tr>
-						<td>{{ lang['group_photos'] }}</td>
-						<td>{{ photo_amount }}</td>
-						<td>{{ photo_size }}</td>
-						<td>{{ photo_perm }}</td>
 					</tr>
 					<tr>
 						<td>{{ lang['group_avatars'] }}</td>
@@ -275,7 +261,6 @@
 			</table>
 		</div>
 	</div>
-
 	<div class="col-md-6 mb-3">
 		<div class="card">
 			<h5 class="card-header font-weight-light">{{ lang['system'] }}</h5>
@@ -320,21 +305,16 @@
 		</div>
 	</div>
 </div>
-
 <div class="card">
 	<h5 class="card-header font-weight-light">{{ lang['note'] }}</h5>
-
 	<div class="card-body">
 		<form method="post" action="{{ php_self }}?mod=statistics">
 			<input type="hidden" name="action" value="save"/>
-
 			<textarea name="note" rows="6" cols="70" class="form-control mb-3" style="background-color: lightyellow;" placeholder="{{ lang['no_notes'] }}">{{ admin_note }}</textarea>
-
 			<button type="submit" class="btn btn-outline-success">{{ lang['save_note'] }}</button>
 		</form>
 	</div>
 </div>
-
 <!-- Не понятно, что это и откуда. -->
 <style>
 	#modalmsgDialog {
@@ -345,7 +325,6 @@
 		height: 100%;
 		display: none;
 	}
-
 	#modalmsgWindow {
 		margin: 5px;
 		padding: 5px;
@@ -356,29 +335,24 @@
 		left: 40%;
 		top: 40%;
 	}
-
 	#modalmsgWindowText {
 		background-color: #FFFFFF;
 	}
-
 	#modalmsgWindowButton {
 		background-color: #FFFFFF;
 		text-align: center;
 		padding: 5px;
 	}
 </style>
-
 <script type="text/javascript">
 	function showModal(text) {
 document.getElementById('modalmsgDialog').style.display = 'block';
 document.getElementById('modalmsgWindowText').innerHTML = text;
 }
-
 function _modal_close() {
 document.getElementById('modalmsgDialog').style.display = 'none';
 }
 </script>
-
 <div id="modalmsgDialog" onclick="_modal_close();">
 	<span id="modalmsgWindow">
 		<div id="modalmsgWindowText"></div>
@@ -387,7 +361,6 @@ document.getElementById('modalmsgDialog').style.display = 'none';
 		</div>
 	</span>
 </div>
-
 <script type="text/javascript">
 	function getCacheSize() {
 $("#cacheFileCount").html('-');
@@ -402,7 +375,6 @@ $("#cacheSize").html(response.size);
 });
 return false;
 }
-
 function clearCache() {
 $("#cacheFileCount").html('-');
 $("#cacheSize").html('-');
@@ -413,7 +385,6 @@ getCacheSize();
 });
 return false;
 }
-
 function coreVersionSync() {
 post('admin.statistics.coreVersionSync', {
 'token':'{{ token }}'
@@ -439,7 +410,6 @@ $('#needUpdate').html('Обновите CMS');
 $('#syncLastVersion').html('<a href="' + json.zipball_url + '">' + json.tag_name + '</a> [ ' + json.published_at.slice(0, 10) + ' ]');
 }
 });
-
 var reqCommit = "https://api.github.com/repos/irbees2008/ngcms-core/commits";
 requestJSON(reqCommit, function (json) {
 if (json.message == "Not Found") {
@@ -450,9 +420,7 @@ $('#syncSVNVersion').html('<a href="' + json[0].html_url + '" target="_blank">' 
 /*$('#syncSVNVersion').html('<a href="#" id="compare">Обновить до Git</a> [ '+json[0].commit.author.date.slice(0, 10) + ' ]');*/
 }
 });
-
 coreVersionSync();
-
 function requestJSON(url, callback) {
 $.ajax({
 url: url,
@@ -470,11 +438,10 @@ message: '<i><b>Bad reply from server</b></i>'
 }, {type: 'danger'});
 }
 }).catch(function (jqXHR) {
-if (0 === jqXHR.status || jqXHR.status >= 400) 
+if (0 === jqXHR.status || jqXHR.status >= 400)
 $.notify({
 message: '<i><b>Bad reply from server</b></i>'
 }, {type: 'danger'});
-
 });
 }
 });
