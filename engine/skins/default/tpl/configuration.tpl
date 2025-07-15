@@ -11,14 +11,12 @@
 	  </div><!-- /.col -->
 	</div><!-- /.row -->
   </div><!-- /.container-fluid -->
-
 <form action="{{ php_self }}" method="post">
 	<input type="hidden" name="token" value="{{ token }}" />
 	<input type="hidden" name="mod" value="configuration" />
 	<input type="hidden" name="subaction" value="save" />
 	<input type="hidden" name="save" value="" />
 	<input id="selectedOption" type="hidden" name="selectedOption" />
-
 	<ul class="nav nav-tabs nav-fill mb-3 d-md-flex d-block" role="tablist">
 		<li class="nav-item"><a href="#userTabs-db" class="nav-link active" data-toggle="tab">{{ lang['db'] }}</a></li>
 		<li class="nav-item"><a href="#userTabs-security" class="nav-link" data-toggle="tab">{{ lang['security'] }}</a></li>
@@ -29,7 +27,6 @@
 		<li class="nav-item"><a href="#userTabs-cache" class="nav-link" data-toggle="tab">{{ lang['cache'] }}</a></li>
 		<li class="nav-item"><a href="#userTabs-multi" class="nav-link" data-toggle="tab">{{ lang['multi'] }}</a></li>
 	</ul>
-
 	<div id="userTabs" class="tab-content">
 		<!-- ########################## DB TAB ########################## -->
 		<div id="userTabs-db" class="tab-pane show active">
@@ -82,7 +79,6 @@
 				</tr>
 			</table>
 			<!-- END: TABLE DB//Connection -->
-
 			<!-- TABLE DB//Backup -->
 			<table class="table table-sm">
 				<tr>
@@ -103,7 +99,6 @@
 			</table>
 			<!-- END: TABLE DB//Backup -->
 		</div>
-
 		<!-- ########################## SECURITY TAB ########################## -->
 		<div id="userTabs-security" class="tab-pane">
 			<table class="table table-sm">
@@ -204,7 +199,6 @@
 				</tr>
 			</table>
 		</div>
-
 		<!-- ########################## SYSTEM TAB ########################## -->
 		<div id="userTabs-system" class="tab-pane">
 			<table class="table table-sm">
@@ -396,7 +390,6 @@
 				</tr>
 			</table>
 		</div>
-
 		<!-- ########################## NEWS TAB ########################## -->
 		<div id="userTabs-news" class="tab-pane">
 			<table class="table table-sm">
@@ -521,7 +514,6 @@
 				</tr>
 			</table>
 		</div>
-
 		<!-- ########################## USERS TAB ########################## -->
 		<div id="userTabs-users" class="tab-pane">
 			<!-- TABLE AUTH -->
@@ -549,7 +541,6 @@
 				</tr>
 			</table>
 			<!-- END: TABLE AUTH -->
-
 			<table class="table table-sm">
 				<tr>
 					<td colspan="2" class="h3 font-weight-light">{{ lang['users'] }}</td>
@@ -611,48 +602,8 @@
 						<input type="text" name='save_con[avatar_max_size]' value='{{ config['avatar_max_size'] }}' class="form-control" />
 					</td>
 				</tr>
-				<tr>
-					<td colspan="2" class="h3 font-weight-light">{{ lang['users.photos'] }}</td>
-				</tr>
-				<tr>
-					<td width="50%">{{ lang['use_photos'] }} <small class="form-text text-muted">{{ lang['use_photos_desc'] }}</small></td>
-					<td width="50%">
-						{{ mkSelectYN({'name' : 'save_con[use_photos]', 'value' : config['use_photos'] }) }}
-					</td>
-				</tr>
-				<tr>
-					<td width="50%">{{ lang['photos_url'] }} <small class="form-text text-muted">{{ lang['example'] }} http://server.com/uploads/photos</small></td>
-					<td width="50%">
-						<input type="text" name='save_con[photos_url]' value='{{ config['photos_url'] }}' class="form-control" />
-					</td>
-				</tr>
-				<tr>
-					<td width="50%">{{ lang['photos_dir'] }} <small class="form-text text-muted">{{ lang['example'] }} /home/servercom/public_html/uploads/photos/</small></td>
-					<td width="50%">
-						<input type="text" name='save_con[photos_dir]' value='{{ config['photos_dir'] }}' class="form-control" />
-					</td>
-				</tr>
-				<tr>
-					<td width="50%">{{ lang['photos_max_size'] }} <small class="form-text text-muted">{{ lang['photos_max_size_desc'] }}</small></td>
-					<td width="50%">
-						<input type="text" name='save_con[photos_max_size]' value='{{ config['photos_max_size'] }}' class="form-control" />
-					</td>
-				</tr>
-				<tr>
-					<td width="50%">{{ lang['photos_thumb_size'] }} <small class="form-text text-muted">{{ lang['photos_thumb_size_desc'] }}</small></td>
-					<td width="50%">
-						<div class="input-group mb-3">
-							<input type="text" name='save_con[photos_thumb_size_x]' value='{{ config['photos_thumb_size_x'] }}' class="form-control" />
-							<div class="input-group-prepend input-group-append">
-								<label class="input-group-text">x</label>
-							</div>
-							<input type="text" name='save_con[photos_thumb_size_y]' value='{{ config['photos_thumb_size_y'] }}' class="form-control" />
-						</div>
-					</td>
-				</tr>
 			</table>
 		</div>
-
 		<!-- ########################## IMAGES TAB ########################## -->
 		<div id="userTabs-imgfiles" class="tab-pane">
 			<table class="table table-sm">
@@ -742,7 +693,6 @@
 						</div>
 					</td>
 				</tr>
-
 				<!-- IMAGE transform control -->
 				<tr>
 					<td colspan="2" class="h3 font-weight-light">{{ lang['img.thumb'] }}</td>
@@ -750,7 +700,7 @@
 				<tr>
 					<td width="50%">{{ lang['thumb_mode'] }} <small class="form-text text-muted">{{ lang['thumb_mode_desc'] }}</small></td>
 					<td width="50%">
-						{{ mkSelect({'name' : 'save_con[thumb_mode]', 'value' : config['thumb_mode'], 'values' : { 0 : lang['mode_demand'], 1 : lang['mode_forbid'], 2 : lang['mode_always'] } }) }}
+{{ mkSelect({'name' : 'save_con[thumb_mode]', 'value' : config['thumb_mode'], 'values' : { 2 : lang['mode_always'], 1 : lang['mode_forbid'], 0 : lang['mode_demand'] } }) }}
 					</td>
 				</tr>
 				<tr>
@@ -769,21 +719,6 @@
 					<td width="50%">{{ lang['thumb_quality'] }} <small class="form-text text-muted">{{ lang['thumb_quality_desc'] }}</small></td>
 					<td width="50%">
 						<input type="text" name='save_con[thumb_quality]' value='{{ config['thumb_quality'] }}' class="form-control" />
-					</td>
-				</tr>
-				<tr>
-					<td colspan="2" class="h3 font-weight-light">{{ lang['img.shadow'] }}</td>
-				</tr>
-				<tr>
-					<td width="50%">{{ lang['shadow_mode'] }} <small class="form-text text-muted">{{ lang['shadow_mode_desc'] }}</small></td>
-					<td width="50%">
-						{{ mkSelect({'name' : 'save_con[shadow_mode]', 'value' : config['shadow_mode'], 'values' : { 0 : lang['mode_demand'], 1 : lang['mode_forbid'], 2 : lang['mode_always'] } }) }}
-					</td>
-				</tr>
-				<tr>
-					<td width="50%">{{ lang['shadow_place'] }} <small class="form-text text-muted">{{ lang['shadow_place_desc'] }}</small></td>
-					<td width="50%">
-						{{ mkSelect({'name' : 'save_con[shadow_place]', 'value' : config['shadow_place'], 'values' : { 0 : lang['mode_orig'], 1 : lang['mode_copy'], 2 : lang['mode_origcopy'] } }) }}
 					</td>
 				</tr>
 				<tr>
@@ -816,7 +751,6 @@
 				<!-- END: IMAGE transform control -->
 			</table>
 		</div>
-
 		<!-- ########################## MULTI TAB ########################## -->
 		<div id="userTabs-multi" class="tab-pane">
 			<table class="table table-sm">
@@ -866,7 +800,6 @@
 				</tr>
 			</table>
 		</div>
-
 		<!-- ########################## CACHE TAB ########################## -->
 		<div id="userTabs-cache" class="tab-pane">
 			<table class="table table-sm">
@@ -906,20 +839,16 @@
 			</table>
 		</div>
 	</div>
-
 	<div class="form-group my-3 text-center">
 		<button type="submit" class="btn btn-outline-success">{{ lang['save'] }}</button>
 	</div>
 </form>
-
 <script type="text/javascript">
 	$("#mail_mode").on('change', toggleSmtp)
 		.trigger('change');
-
 	function toggleSmtp(event) {
 		$(".useSMTP").toggle("smtp" === $("#mail_mode option:selected").val());
 	}
-
 	// Check DB connection
 	function ngCheckDB() {
 		post('admin.configuration.dbCheck', {
@@ -931,7 +860,6 @@
 			'dbpasswd': $("#db_dbpasswd").val(),
 		});
 	}
-
 	// Check MEMCached connection
 	function ngCheckMemcached() {
 		post('admin.configuration.memcachedCheck', {
@@ -941,7 +869,6 @@
 			'prefix': $("#memcached_prefix").val(),
 		});
 	}
-
 	// Send test e-mail message
 	function ngCheckEmail() {
 		post('admin.configuration.emailCheck', {
