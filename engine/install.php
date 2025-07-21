@@ -819,10 +819,11 @@ function doInstall()
         }
         // Check if different character set are supported [ version >= 4.1.1 ]
         $charsetEngine = 0;
-        if (($msq = $mysql->query("show variables like 'character_set_client'")) && ($mysql->num_rows($msq))) {
+        // Проверяем, поддерживает ли сервер utf8mb4
+        if (($msq = $mysql->query("SHOW CHARACTER SET LIKE 'utf8mb4'")) && ($mysql->num_rows($msq))) {
             $charsetEngine = 1;
         }
-        $charset = $charsetEngine ? ' default charset=utf8' : '';
+        $charset = $charsetEngine ? ' DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci' : '';
         array_push($LOG, 'Ваша версия сервера БД mySQL '.((!$charsetEngine) ? 'не' : '').'поддерживает множественные кодировки.');
         // Создаём таблицы в mySQL
         // 1. Проверяем наличие пересекающихся таблиц
@@ -873,7 +874,8 @@ function doInstall()
         for ($i = 0; $i < count($dbsql); $i++) {
             $dbCreateString = str_replace('XPREFIX_', $_POST['reg_dbprefix'].'_', $dbsql[$i]).$charset;
             if ($SUPRESS_CHARSET) {
-                $dbCreateString = str_replace('default charset=utf8', '', $dbCreateString);
+                // Вместо удаления кодировки заменяем на utf8mb4 (если сервер поддерживает)
+                $dbCreateString = str_replace('default charset=utf8', 'DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci', $dbCreateString);
             }
             if ($SUPRESS_ENGINE) {
                 $dbCreateString = str_replace('ENGINE=InnoDB', '', $dbCreateString);
@@ -912,8 +914,8 @@ function doInstall()
             array_push($LOG, 'Активация пользователя-администратора ... OK');
         }
         // 1.6 Сохраняем конфигурационные переменные database.engine.version, database.engine.revision
-        @$mysql->query('insert into `'.$_POST['reg_dbprefix']. "_config` (name, value) values ('database.engine.version', '0.9.7 GIT 3740369')");
-        @$mysql->query('insert into `'.$_POST['reg_dbprefix']."_config` (name, value) values ('database.engine.revision', '3')");
+        @$mysql->query('insert into `'.$_POST['reg_dbprefix']. "_config` (name, value) values ('database.engine.version', '0.9.7 rc-2 ')");
+        @$mysql->query('insert into `'.$_POST['reg_dbprefix']."_config` (name, value) values ('database.engine.revision', '5')");
         // Вычищаем лишний перевод строки из 'home_url'
         if (substr($_POST['home_url'], -1, 1) == '/') {
             $_POST['home_url'] = substr($_POST['home_url'], 0, -1);

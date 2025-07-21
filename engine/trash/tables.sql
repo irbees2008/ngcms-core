@@ -1,23 +1,18 @@
 -- -------------------------------------------------------- --
 -- DEFAULT mySQL tables structure for NGCMS
 -- -------------------------------------------------------- --
-
--- 
+--
 -- Table `PREFIX_config`
--- 
-
+--
 CREATE TABLE `XPREFIX_config` (
   `name` char(60),
   `value` char(100),
   PRIMARY KEY  (`name`)
-) ENGINE=InnoDB;
-
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 -- --------------------------------------------------------
-
--- 
+--
 -- Table `PREFIX_category`
--- 
-
+--
 CREATE TABLE `XPREFIX_category` (
   `id` int(10) NOT NULL auto_increment,
   `position` int(10) default NULL,
@@ -30,7 +25,7 @@ CREATE TABLE `XPREFIX_category` (
   `description` text,
   `keywords` text,
   `info` text,
-  `icon` varchar(255) NOT NULL,
+  `icon` varchar(191) NOT NULL,
   `image_id` int default '0',
   `alt_url` text,
   `orderby` varchar(30) default 'id desc',
@@ -39,14 +34,11 @@ CREATE TABLE `XPREFIX_category` (
   `poslevel` int default 0,
   `cat_show` tinyint(1) default '0',
   PRIMARY KEY  (`id`)
-) ENGINE=InnoDB;
-
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 -- --------------------------------------------------------
-
--- 
+--
 -- Tabel 'PREFIX_FILES'
--- 
-
+--
 CREATE TABLE `XPREFIX_files` (
   `id` int(10) NOT NULL auto_increment,
   `name` varchar(100) NOT NULL default '',
@@ -64,26 +56,20 @@ CREATE TABLE `XPREFIX_files` (
   `storage` int(1) default 0,
   PRIMARY KEY  (`id`),
   KEY `link` (`linked_ds`, `linked_id`)
-) ENGINE=InnoDB;
-
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 -- --------------------------------------------------------
-
--- 
+--
 -- Table 'PREFIX_FLOOD'
--- 
-
+--
 CREATE TABLE `XPREFIX_flood` (
   `ip` varchar(15) NOT NULL default '',
   `id` int(10) default NULL,
   PRIMARY KEY  (`ip`)
-) ENGINE=InnoDB;
-
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 -- --------------------------------------------------------
-
--- 
+--
 -- Table 'PREFIX_IMAGES'
--- 
-
+--
 CREATE TABLE `XPREFIX_images` (
   `id` int(10) NOT NULL auto_increment,
   `name` varchar(100) NOT NULL default '',
@@ -107,14 +93,11 @@ CREATE TABLE `XPREFIX_images` (
   `storage` int(1) default 0,
   PRIMARY KEY  (`id`),
   KEY `link` (`linked_ds`, `linked_id`)
-) ENGINE=InnoDB;
-
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 -- --------------------------------------------------------
-
--- 
+--
 -- Table 'PREFIX_ipban`
--- 
-
+--
 CREATE TABLE `XPREFIX_ipban` (
   `id` int not null auto_increment,
   `addr` char(32),
@@ -128,22 +111,19 @@ CREATE TABLE `XPREFIX_ipban` (
   `hitcount` int default 0,
   PRIMARY KEY  (`id`),
   KEY `ban_start` (`addr_start`)
-) ENGINE=InnoDB;
-
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 -- --------------------------------------------------------
-
--- 
+--
 -- Table `PREFIX_news`
--- 
-
+--
 CREATE TABLE `XPREFIX_news` (
   `id` int(11) NOT NULL auto_increment,
   `postdate` int(10) NOT NULL default '0',
   `author` varchar(100) NOT NULL default '',
   `author_id` int(11) NOT NULL default '0',
-  `title` varchar(255) NOT NULL default '',
+  `title` varchar(191) NOT NULL default '',
   `content` text NOT NULL,
-  `alt_name` varchar(255) default NULL,
+  `alt_name` varchar(191) default NULL,
   `mainpage` tinyint(1) default '1',
   `approve` tinyint(1) default '0',
   `views` int(10) default '0',
@@ -154,7 +134,7 @@ CREATE TABLE `XPREFIX_news` (
   `num_files` int(10) default '0',
   `num_images` int(10) default '0',
   `editdate` int(10) NOT NULL default '0',
-  `catid` varchar(255) NOT NULL default '0',
+  `catid` varchar(191) NOT NULL default '0',
   `description` text NOT NULL,
   `keywords` text NOT NULL,
   `rating` int(10) NOT NULL default '0',
@@ -172,34 +152,28 @@ CREATE TABLE `XPREFIX_news` (
   KEY `news_altname` (`alt_name`),
   KEY `news_mainpage` (`approve`,`pinned`,`id`),
   KEY `news_mcount` (`mainpage`,`approve`)
-) ENGINE=InnoDB;
-
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 -- --------------------------------------------------------
-
--- 
+--
 -- Table `PREFIX_news_map`
--- 
-
+--
 CREATE TABLE `XPREFIX_news_map` (
   `newsID` int(11) default NULL,
   `categoryID` int(11) default NULL,
   `dt` datetime default NULL,
   KEY `newsID` (`newsID`),
   KEY `categoryID` (`categoryID`)
-) ENGINE=InnoDB;
-
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 -- --------------------------------------------------------
-
--- 
+--
 -- Table `PREFIX_static`
--- 
-
+--
 CREATE TABLE `XPREFIX_static` (
   `id` int(11) NOT NULL auto_increment,
   `postdate` int(10) NOT NULL default '0',
-  `title` varchar(255) default NULL,
+  `title` varchar(191) default NULL,
   `content` text,
-  `alt_name` varchar(255) default '',
+  `alt_name` varchar(191) default '',
   `template` varchar(100) default '',
   `description` text,
   `keywords` text,
@@ -208,14 +182,11 @@ CREATE TABLE `XPREFIX_static` (
   PRIMARY KEY  (`id`),
   KEY `static_title` (`title`),
   KEY `static_altname` (`alt_name`)
-) ENGINE=InnoDB;
-
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 -- --------------------------------------------------------
-
--- 
+--
 -- Table `PREFIX_users`
--- 
-
+--
 CREATE TABLE `XPREFIX_users` (
   `id` int(10) NOT NULL auto_increment,
   `name` varchar(100) NOT NULL default '',
@@ -226,7 +197,7 @@ CREATE TABLE `XPREFIX_users` (
   `status` tinyint(1) default '4',
   `last` int(10) NOT NULL default '0',
   `reg` int(10) NOT NULL default '0',
-  `where_from` varchar(255) default NULL,
+  `where_from` varchar(191) default NULL,
   `info` text,
   `avatar` varchar(100) NOT NULL default '',
   `activation` varchar(25) NOT NULL default '',
@@ -236,32 +207,26 @@ CREATE TABLE `XPREFIX_users` (
   PRIMARY KEY  (`id`),
   KEY `users_name` (`name`),
   KEY `users_auth` (`authcookie`)
-) ENGINE=InnoDB;
-
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 -- --------------------------------------------------------
-
--- 
+--
 -- Table `PREFIX_users_pm`
--- 
-
+--
 CREATE TABLE `XPREFIX_users_pm` (
   `pmid` int(10) NOT NULL auto_increment,
   `from_id` int(10) default '0',
   `to_id` int(10) default '0',
   `pmdate` int(10) NOT NULL,
-  `title` varchar(255) default NULL,
+  `title` varchar(191) default NULL,
   `content` text NOT NULL,
   `viewed` tinyint(1) default '0',
   PRIMARY KEY  (`pmid`),
   KEY `from_id` (`from_id`,`to_id`,`viewed`)
-) ENGINE=InnoDB;
-
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 -- --------------------------------------------------------
-
--- 
+--
 -- Table `PREFIX_load`
--- 
-
+--
 CREATE TABLE `XPREFIX_load` (
   `dt` datetime not null,
   `hit_core` int(11),
@@ -272,14 +237,11 @@ CREATE TABLE `XPREFIX_load` (
   `exec_plugin` float,
   `exec_ppage` float,
   PRIMARY KEY (`dt`)
-) ENGINE=InnoDB;
-
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 -- --------------------------------------------------------
-
--- 
+--
 -- Table `PREFIX_syslog`
--- 
-
+--
 CREATE TABLE `XPREFIX_syslog` (
   `id` INT(11) NOT NULL AUTO_INCREMENT,
   `dt` DATETIME,
@@ -295,14 +257,11 @@ CREATE TABLE `XPREFIX_syslog` (
   `status` INT(11),
   `stext` CHAR(90),
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB;
-
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 -- --------------------------------------------------------
-
--- 
+--
 -- Table `PREFIX_profiler`
--- 
-
+--
 CREATE TABLE `XPREFIX_profiler` (
   `id` INT(11) NOT NULL AUTO_INCREMENT,
   `dt` DATETIME NULL DEFAULT NULL,
@@ -313,16 +272,13 @@ CREATE TABLE `XPREFIX_profiler` (
   `tracedata` TEXT NULL,
   PRIMARY KEY (`id`),
   INDEX `ondt` (`dt`)
-) ENGINE=InnoDB;
-
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 -- --------------------------------------------------------
-
--- 
+--
 -- Table `XPREFIX_news_view`
--- 
-
+--
 CREATE TABLE `XPREFIX_news_view` (
 	`id` INT(11) NOT NULL,
 	`cnt` INT(11) DEFAULT '0',
 	PRIMARY KEY (`id`)
-) ENGINE=InnoDB;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
