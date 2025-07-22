@@ -1688,7 +1688,7 @@ function ngSitePagination(
         $currentPage,
         1,
         $totalPages,
-        $config['newsNavigationsCount'] > 2 ? $config['newsNavigationsCount'] : 10,
+        $config['newsNavigationsCount'] > 2 ? $config['newsNavigationsCount'] : 8,
         $paginationParams,
         $navigations
     );
