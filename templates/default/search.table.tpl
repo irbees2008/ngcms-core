@@ -40,12 +40,13 @@
 	</table>
 </form>
 <div class="articles full">
-{% for entry in entries %}
-	{{ entry }}
-{% else %}
-	<div class="alert alert-info">
-		<strong>{{ lang.notifyWindowInfo }}</strong>
-		{{ lang['msgi_no_news'] }}
-	</div>
-{% endfor %}
+	{% for entry in entries %}
+		{{ entry }}
+	{% else %}
+		<div class="alert alert-info">
+			<strong>{{ lang.notifyWindowInfo }}</strong>
+			{{ lang['msgi_no_news'] }}
+		</div>
+	{% endfor %}
+	{{ pagination }}
 </div>
