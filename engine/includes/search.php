@@ -69,7 +69,17 @@ function search_news()
     loadActionHandlers('news');
     loadActionHandlers('news:search');
     // Configure pagination
-    $paginationParams = ['pluginName' => 'search', 'xparams' => ['search' => $_REQUEST['search'], 'author' => $_REQUEST['author'], 'catid' => $_REQUEST['catid'], 'postdate' => $_REQUEST['postdate']], 'paginator' => ['page', 1, false]];
+    // Заменяем старый блок пагинации на:
+    $paginationParams = [
+        'pluginName' => 'search',
+        'xparams' => [
+            'search' => $_REQUEST['search'],
+            'author' => $_REQUEST['author'],
+            'catid' => $_REQUEST['catid'],
+            'postdate' => $_REQUEST['postdate']
+        ],
+        'paginator' => ['page', 1, false]
+    ];
     // Configure display params
     // Configure display params
     $callingParams = [
@@ -78,7 +88,8 @@ function search_news()
         'extendedReturn' => true,      // Важно: возвращает массив, а не HTML
         'customCategoryTemplate' => true,
         'extendedReturnData' => true,  // Возвращает данные в виде массива
-    ];
+        'entendedReturnPagination' => true, // Добавляем этот параметр
+            ];
     if ($_REQUEST['page']) {
         $callingParams['page'] = (int) $_REQUEST['page'];
     }
@@ -98,20 +109,21 @@ function search_news()
         $founded = news_showlist($filter, $paginationParams, $callingParams);
     }
     // Now let's show SEARCH basic template
-    $tvars = [];
-    $tvars['author'] = secure_html($_REQUEST['author']);
-    $tvars['search'] = secure_html($_REQUEST['search']);
-    $tvars['count'] = $founded['count'];
-    $tvars['form_url'] = generateLink('search', '', []);
-    $tvars['flags'] = [
-        'found' => isset($_REQUEST['search']) && count($search_words) && $founded['count'],
-        'notfound' => isset($_REQUEST['search']) && count($search_words) && !$founded['count'],
-        'error' => isset($_REQUEST['search']) && !count($search_words),
+    // Подготавливаем данные для шаблона
+    $tvars = [
+        'author' => secure_html($_REQUEST['author']),
+        'search' => secure_html($_REQUEST['search']),
+        'count' => $founded['count'],
+        'form_url' => generateLink('search', '', []),
+        'flags' => [
+            'found' => isset($_REQUEST['search']) && count($search_words) && $founded['count'],
+            'notfound' => isset($_REQUEST['search']) && count($search_words) && !$founded['count'],
+            'error' => isset($_REQUEST['search']) && !count($search_words),
+        ],
+        'catlist' => makeCategoryList(['name' => 'catid', 'selected' => $_REQUEST['catid'], 'doempty' => 1]),
+        'entries' => $founded['data'],
+        'pagination' => $founded['pagination'] ?? '', // Добавляем пагинацию
     ];
-    // Make category list
-    $tvars['catlist'] = makeCategoryList(['name' => 'catid', 'selected' => $_REQUEST['catid'], 'doempty' => 1]);
-    // Results of search Теперь $founded['data'] — это массив, а не HTML
-    $tvars['entries'] = $founded['data'];
     // Make month list
     $monthsList = explode(',', $lang['months']);
     $rows = $mysql->select(
