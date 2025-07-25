@@ -21,5 +21,4 @@
 			<td>{preview}</td>
 		</tr>
 	</table>
-
 </div>
