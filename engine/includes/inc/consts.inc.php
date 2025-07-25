@@ -11,9 +11,9 @@
     unset($tempVariable);
 @define('NGCMS', true);
 @define('engineName', 'NGCMS');
-@define('engineVersion', '0.9.7 RC2');
+@define('engineVersion', '0.9.7 RC3');
 @define('engineVersionType', 'GIT');
-@define('engineVersionBuild', '3740369');
+@define('engineVersionBuild', 'e9b75bb');
 @define('minDBVersion', 5);
 @define('prefix', $config['prefix']);
 @define('uprefix', $config['uprefix']);
