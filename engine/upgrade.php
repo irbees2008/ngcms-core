@@ -1,14 +1,11 @@
 <?php
-
 /**
  * Инструмент обновления базы данных NGCMS
- * 
- * @copyright Copyright (C) 2006-2014 Next Generation CMS (http://ngcms.ru/)
+ *
+ * @copyright Copyright (C) 2008-2025 Next Generation CMS (http://ngcms.ru/)
  * @license MIT
  */
-
 @include_once 'core.php';
-
 // Матрица обновлений
 $upgradeMatrix = [
     1 => [
@@ -32,10 +29,8 @@ $upgradeMatrix = [
         "UPDATE " . prefix . "_config SET value = 5 WHERE name = 'database.engine.revision'",
     ],
 ];
-
 // Получаем текущую версию БД
 $currentVersion = getCurrentDBVersion();
-
 // Проверяем необходимость обновления
 if ($currentVersion < minDBVersion) {
     echo renderUpgradeHeader($currentVersion, minDBVersion);
@@ -43,7 +38,6 @@ if ($currentVersion < minDBVersion) {
 } else {
     echo renderNoUpgradeNeeded();
 }
-
 /**
  * Получает текущую версию БД
  */
@@ -53,10 +47,8 @@ function getCurrentDBVersion(): int
     $versionRecord = $db->record(
         "SELECT * FROM " . prefix . "_config WHERE name = 'database.engine.revision'"
     );
-
     return is_array($versionRecord) ? (int)$versionRecord['value'] : 0;
 }
-
 /**
  * Выполняет обновление БД
  */
@@ -64,15 +56,12 @@ function doUpgrade(int $fromVersion, int $toVersion): void
 {
     global $upgradeMatrix;
     $db = NGEngine::getInstance()->getDB();
-
     // Временное разрешение проблемных дат
     $db->exec("SET SQL_MODE='ALLOW_INVALID_DATES'");
-
     for ($version = $fromVersion; $version <= $toVersion; $version++) {
         echo "<div class='upgrade-step'>";
         echo "<h3><i class='icon-version'></i> Обновление до версии {$version}</h3>";
         echo "<div class='step-actions'>";
-
         if ($version == 5) {
             // Выполняем конвертацию кодировки
             echo "<h4>Конвертация базы данных в UTF-8 (utf8mb4)</h4>";
@@ -83,27 +72,21 @@ function doUpgrade(int $fromVersion, int $toVersion): void
                 executeSqlWithReporting($db, $sql);
             }
         }
-
         echo "</div></div>";
     }
-
     // Восстановление стандартного режима SQL
     $db->exec("SET SQL_MODE=''");
-
     echo renderSuccessMessage();
     renderFooter();
 }
-
 /**
  * Конвертирует кодировку базы данных в utf8mb4
  */
 function convertDatabaseEncodingToUtf8mb4($db): void
 {
     echo "<div class='action'><div class='status'>Начало конвертации в utf8mb4...</div></div>";
-
     // 1. Отключаем строгий режим MySQL
     executeSqlWithReporting($db, "SET SESSION sql_mode = 'NO_ENGINE_SUBSTITUTION'");
-
     try {
         // 2. Получаем имя базы данных
         $dbName = '';
@@ -114,20 +97,15 @@ function convertDatabaseEncodingToUtf8mb4($db): void
             $row = $result->fetch(PDO::FETCH_ASSOC);
             $dbName = $row['dbname'] ?? '';
         }
-
         if (empty($dbName)) {
             throw new Exception("Не удалось определить имя базы данных");
         }
-
         echo "<div class='action'><div class='status'>Обнаружена база: {$dbName}</div></div>";
-
         // 3. Изменяем кодировку всей базы
         executeSqlWithReporting($db, "ALTER DATABASE `{$dbName}` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
-
         // 4. Получаем список всех таблиц
         $tables = [];
         $result = $db->query("SHOW TABLES");
-
         if (is_array($result)) {
             foreach ($result as $row) {
                 $tables[] = reset($row);
@@ -137,65 +115,52 @@ function convertDatabaseEncodingToUtf8mb4($db): void
                 $tables[] = $row[0];
             }
         }
-
         foreach ($tables as $tableName) {
             echo "<div class='action'>";
             echo "<h4>Обработка таблицы: {$tableName}</h4>";
-
             // 5. Проверяем текущую кодировку таблицы
             $createResult = $db->query("SHOW CREATE TABLE `{$tableName}`");
             $createTable = '';
-
             if (is_array($createResult)) {
                 $createTable = $createResult[0]['Create Table'] ?? $createResult[0][1] ?? '';
             } else {
                 $createRow = $createResult->fetch(PDO::FETCH_NUM);
                 $createTable = $createRow[1] ?? '';
             }
-
             if (strpos($createTable, 'CHARSET=utf8mb4') !== false) {
                 echo "<div class='skipped'>Таблица уже в utf8mb4, пропускаем</div>";
                 echo "</div>";
                 continue;
             }
-
             // 6. Конвертируем таблицу
             executeSqlWithReporting($db, "ALTER TABLE `{$tableName}` CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
-
             // 7. Обрабатываем проблемные столбцы
             $columns = $db->query("SHOW FULL COLUMNS FROM `{$tableName}`");
             $columnsData = [];
-
             if (is_array($columns)) {
                 $columnsData = $columns;
             } else {
                 $columnsData = $columns->fetchAll(PDO::FETCH_ASSOC);
             }
-
             foreach ($columnsData as $col) {
                 $field = $col['Field'] ?? $col[0];
-
                 // Пропускаем проблемные поля
                 if (in_array($field, ['nsched_activate', 'nsched_deactivate'])) {
                     echo "<div class='skipped'>Пропускаем поле: {$field}</div>";
                     continue;
                 }
-
                 $type = $col['Type'] ?? $col[1];
-
                 // Уменьшаем длину индексированных VARCHAR столбцов
                 if (preg_match('/varchar\((\d+)\)/i', $type, $matches)) {
                     $length = (int)$matches[1];
                     if ($length > 191) {
                         $indexes = $db->query("SHOW INDEX FROM `{$tableName}` WHERE Column_name = '{$field}'");
                         $hasIndex = false;
-
                         if (is_array($indexes)) {
                             $hasIndex = !empty($indexes);
                         } else {
                             $hasIndex = $indexes->rowCount() > 0;
                         }
-
                         if ($hasIndex) {
                             $newType = str_replace("varchar({$length})", "varchar(191)", $type);
                             executeSqlWithReporting(
@@ -206,22 +171,18 @@ function convertDatabaseEncodingToUtf8mb4($db): void
                     }
                 }
             }
-
             echo "<div class='success'>Таблица успешно конвертирована</div>";
             echo "</div>";
         }
-
         // 8. Обновляем версию базы данных до 5
         executeSqlWithReporting($db, "UPDATE " . prefix . "_config SET value = '5' WHERE name = 'database.engine.revision'");
         executeSqlWithReporting($db, "UPDATE " . prefix . "_config SET value = '" . engineVersion . "' WHERE name = 'database.engine.version'");
-
         echo "<div class='action'><div class='status success'>Конвертация базы {$dbName} успешно завершена! Версия базы обновлена до 5.</div></div>";
     } catch (Exception $e) {
         echo "<div class='action'><div class='status error'>Ошибка: " . htmlspecialchars($e->getMessage()) . "</div></div>";
         throw $e;
     }
 }
-
 /**
  * Выполняет SQL запрос с подробным отчетом
  */
@@ -230,7 +191,6 @@ function executeSqlWithReporting($db, $sql): void
     echo "<div class='action'>";
     echo "<div class='sql-query'><code>" . htmlspecialchars($sql) . "</code></div>";
     echo "<div class='status'>";
-
     try {
         $result = $db->exec($sql);
         if ($result === null) {
@@ -242,25 +202,21 @@ function executeSqlWithReporting($db, $sql): void
         echo "</div></div>";
         throw $e;
     }
-
     echo "</div></div>";
 }
-
 /**
  * Проверяет существование столбца
  */
 function columnExists($db, $table, $column): bool
 {
     $result = $db->record(
-        "SELECT COUNT(*) AS cnt FROM information_schema.columns 
-        WHERE table_schema = DATABASE() 
-        AND table_name = '{$table}' 
+        "SELECT COUNT(*) AS cnt FROM information_schema.columns
+        WHERE table_schema = DATABASE()
+        AND table_name = '{$table}'
         AND column_name = '{$column}'"
     );
-
     return $result && $result['cnt'] > 0;
 }
-
 /**
  * Шапка страницы обновления
  */
@@ -373,7 +329,6 @@ function renderUpgradeHeader(int $current, int $target): string
         </div>
     HTML;
 }
-
 /**
  * Сообщение об успешном завершении
  */
@@ -386,7 +341,6 @@ function renderSuccessMessage(): string
     </div>
     HTML;
 }
-
 /**
  * Сообщение, что обновление не требуется
  */
@@ -445,7 +399,6 @@ function renderNoUpgradeNeeded(): string
     </html>
     HTML;
 }
-
 /**
  * Подвал страницы с кнопкой
  */

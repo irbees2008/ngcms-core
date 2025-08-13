@@ -955,7 +955,7 @@ function doInstall()
             'captcha_font'        => 'verdana',
             'use_cookies'         => '0',
             'use_sessions'        => '1',
-            'number'              => '5',
+            'number'              => '8',
             'category_link'       => '1',
             'add_onsite'          => '1',
             'add_onsite_guests'   => '0',
