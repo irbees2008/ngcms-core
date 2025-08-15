@@ -5,9 +5,8 @@
 // Description: System installer
 // Author: Vitaly Ponomarev
 //
-@header('content-type: text/html; charset=utf-8');
+header('content-type: text/html; charset=utf-8');
 if (version_compare(PHP_VERSION, '8.1.0') < 0) {
-    @header('Content-Type: text/html; charset=utf-8');
     $current_version = PHP_VERSION;
     echo <<<HTML
 <!DOCTYPE html>
@@ -132,18 +131,18 @@ if (version_compare(PHP_VERSION, '8.1.0') < 0) {
 HTML;
     exit;
 }
-@error_reporting(E_ALL ^ E_NOTICE);
+error_reporting(E_ALL ^ E_NOTICE);
 define('NGCMS', 1);
 // Basic variables
-@define('root', __DIR__.'/');
-@include_once root.'includes/inc/multimaster.php';
+define('root', __DIR__.'/');
+include_once root.'includes/inc/multimaster.php';
 // ============================================================================
 // Define global directory constants
 // ============================================================================
 define('NGCoreDir', __DIR__.'/');               // Location of Core directory
 define('NGRootDir', dirname(__DIR__).'/');      // Location of SiteRoot
 define('NGClassDir', NGCoreDir.'classes/');                     // Location of AutoLoaded classes
-@define('NGVendorDir', NGRootDir.'vendor/');      // Location of Vendor classes
+define('NGVendorDir', NGRootDir.'vendor/');      // Location of Vendor classes
 $loader = include_once NGVendorDir.'autoload.php';
 // Autoloader for NEW STYLE Classes
 spl_autoload_register(function ($className) {
@@ -174,9 +173,14 @@ NGInstall(function () {
     $sx->set('config', ['sql_error_show' => 2]);
 });
 multi_multisites();
-@define('confroot', root.'conf/'.($multiDomainName && $multimaster && ($multiDomainName != $multimaster) ? 'multi/'.$multiDomainName.'/' : ''));
+define('confroot', root.'conf/'.($multiDomainName && $multimaster && ($multiDomainName != $multimaster) ? 'multi/'.$multiDomainName.'/' : ''));
 // Check if config file already exists
-if ((@fopen(confroot.'config.php', 'r')) && (filesize(confroot.'config.php'))) {
+// Проверяем, существует ли папка для конфигов, если нет — создаём
+if (!is_dir(confroot)) {
+    mkdir(confroot, 0777, true);
+}
+// Check if config file already exists
+if (file_exists(confroot . 'config.php') && filesize(confroot . 'config.php')) {
     //printHeader();
     echo "<div style='color: red; font-weight: bold;'>Error: configuration file already exists!</div><br />Delete it and continue.<br />\n";
     return;
@@ -192,7 +196,7 @@ if ($currentLanguage !== 'russian') {
 // Load language variables
 global $lang;
 $lang = parse_ini_file(root.'lang/'.$currentLanguage.'/install.ini', true);
-@include_once 'includes/classes/templates.class.php';
+include_once 'includes/classes/templates.class.php';
 $tpl = new tpl();
 // Determine current admin working directory
 list($adminDirName) = array_slice($ADN = preg_split('/(\\\|\/)/', root, -1, PREG_SPLIT_NO_EMPTY), -1, 1);
@@ -313,7 +317,7 @@ function doWelcome()
     $lang_select = mkLanguageSelect(['values' => $langs, 'value' => $currentLanguage, 'id' => 'language', 'name' => 'language']);
     $tvars['vars']['lang_select'] = $lang_select;
     // Load license
-    $license = @file_get_contents(root.'../license.html');
+    $license = file_get_contents(root.'../license.html');
     if (!$license) {
         $license = $lang['msg.nolicense'];
         $tvars['vars']['ad'] = 'disabled="disabled" ';
@@ -460,7 +464,7 @@ function doConfig_perm()
         $adminDirName.'/cache/', $adminDirName.'/conf/',
     ];
     foreach ($permList as $dir) {
-        $perms = (($x = @fileperms($installDir.'/'.$dir)) === false) ? 'n/a' : (decoct($x) % 1000);
+        $perms = (($x = fileperms($installDir.'/'.$dir)) === false) ? 'n/a' : (decoct($x) % 1000);
         $chmod .= '<tr><td>./'.$dir.'</td><td>'.$perms.'</td><td>'.(is_writable($installDir.'/'.$dir) ? $lang['perm.access.on'] : '<span style="color: red; font-weight: bold;">'.$lang['perm.access.off'].'</span>').'</td></tr>';
         if (!is_writable($installDir.'/'.$dir)) {
             $error++;
@@ -558,7 +562,7 @@ function doConfig_plugins()
             if (($dName == '.') || ($dName == '..')) {
                 continue;
             }
-            if (is_dir($pluginsDir.'/'.$dName) && file_exists($vfn = $pluginsDir.'/'.$dName.'/version') && (filesize($vfn)) && ($vf = @fopen($vfn, 'r'))) {
+            if (is_dir($pluginsDir.'/'.$dName) && file_exists($vfn = $pluginsDir.'/'.$dName.'/version') && (filesize($vfn)) && ($vf = fopen($vfn, 'r'))) {
                 $pluginRec = [];
                 while (!feof($vf)) {
                     $line = fgets($vf);
@@ -628,7 +632,7 @@ function doConfig_templates()
             if (($dName == '.') || ($dName == '..')) {
                 continue;
             }
-            if (is_dir($tDir.'/'.$dName) && file_exists($vfn = $tDir.'/'.$dName.'/version') && (filesize($vfn)) && ($vf = @fopen($vfn, 'r'))) {
+            if (is_dir($tDir.'/'.$dName) && file_exists($vfn = $tDir.'/'.$dName.'/version') && (filesize($vfn)) && ($vf = fopen($vfn, 'r'))) {
                 $tRec = ['name' => $dName];
                 while (!feof($vf)) {
                     $line = fgets($vf);
@@ -773,13 +777,13 @@ function doInstall()
                     array_push($LOG, 'БД "'.$_POST['reg_dbname'].'" уже существует ... OK');
                 }
                 // FIX: Starting with mysql 8 we cannot create a user with `grant privileges` command
-                if (!$mysql->query("create user '".$_POST['reg_dbuser']."'@'%' identified by '".$_POST['reg_dbpass']."'")) {
+                if (!$mysql->query("create user '".$_POST['reg_dbuser']."''%' identified by '".$_POST['reg_dbpass']."'")) {
                     array_push($ERROR, 'Невозможно создать пользователя  "'.$_POST['reg_dbuser'].'" в БД используя административные права');
                     $error = 1;
                     break;
                 }
                 // 2. Предоставление доступа к БД
-                if (!$mysql->query('grant all privileges on '.$_POST['reg_dbname'].".* to '".$_POST['reg_dbuser']."'@'%'")) {
+                if (!$mysql->query('grant all privileges on '.$_POST['reg_dbname'].".* to '".$_POST['reg_dbuser']."''%'")) {
                     array_push($ERROR, 'Невозможно обеспечить доступ пользователя "'.$_POST['reg_dbuser'].'" к БД "'.$_POST['reg_dbname'].'" используя административные права.');
                     $error = 1;
                     break;
@@ -908,14 +912,14 @@ function doInstall()
         array_push($LOG, '');
         // 1.5 Создание пользователя-администратора
         $query = 'insert into `'.$_POST['reg_dbprefix']."_users` (`name`, `pass`, `mail`, `status`, `reg`) VALUES ('".$mysql->db_quote($_POST['admin_login'])."', '".$mysql->db_quote(md5(md5($_POST['admin_password'])))."', '".$mysql->db_quote($_POST['admin_email'])."', '1', unix_timestamp(now()))";
-        if (!@$mysql->query($query)) {
+        if (!$mysql->query($query)) {
             array_push($LOG, 'Активация пользователя-администратора ... <span style="color: red;">FAIL</span>');
         } else {
             array_push($LOG, 'Активация пользователя-администратора ... OK');
         }
         // 1.6 Сохраняем конфигурационные переменные database.engine.version, database.engine.revision
-        @$mysql->query('insert into `'.$_POST['reg_dbprefix']. "_config` (name, value) values ('database.engine.version', '0.9.7 RC-3')");
-        @$mysql->query('insert into `'.$_POST['reg_dbprefix']."_config` (name, value) values ('database.engine.revision', '5')");
+        $mysql->query('insert into `'.$_POST['reg_dbprefix']. "_config` (name, value) values ('database.engine.version', '0.9.7 RC-3')");
+        $mysql->query('insert into `'.$_POST['reg_dbprefix']."_config` (name, value) values ('database.engine.revision', '5')");
         // Вычищаем лишний перевод строки из 'home_url'
         if (substr($_POST['home_url'], -1, 1) == '/') {
             $_POST['home_url'] = substr($_POST['home_url'], 0, -1);
