@@ -65,7 +65,7 @@ function initGZipHandler()
 {
     global $config;
     if ($config['use_gzip'] == '1' && extension_loaded('zlib') && function_exists('ob_gzhandler')) {
-        @ob_start('ob_gzhandler');
+        ob_start('ob_gzhandler');
     }
 }
 // Generate BACKUP of DB
@@ -76,7 +76,7 @@ function AutoBackup($delayed = false, $force = false)
     $backupFlagFile = root . 'cache/last_backup.tmp';
     $backupMarkerFile = root . 'cache/last_backup_marker.tmp';
     // Load `Last Backup Date` from $backupFlagFile
-    $last_backup = intval(@file_get_contents($backupFlagFile));
+    $last_backup = intval(file_get_contents($backupFlagFile));
     $time_now = time();
     // Force backup if requested
     if ($force) {
@@ -95,7 +95,7 @@ function AutoBackup($delayed = false, $force = false)
             $flagDoProcess = true;
         } else {
             // Marker already exists, check creation time
-            $markerTime = intval(@file_get_contents($backupMarkerFile));
+            $markerTime = intval(file_get_contents($backupMarkerFile));
             // TTL for marker is 5 min
             if ($time_now > ($markerTime + 180)) {
                 // Delete OLD marker, create ours
@@ -112,8 +112,8 @@ function AutoBackup($delayed = false, $force = false)
             return;
         }
         // Try to open temp file for writing
-        $fx = is_file($backupFlagFile) ? @fopen($backupFlagFile, 'r+') : @fopen($backupFlagFile, 'w+');
-        if ($fx) {
+        $fx = is_file($backupFlagFile) ? fopen($backupFlagFile, 'r+') : fopen($backupFlagFile, 'w+');
+        if ($fx === false) {
             $filename = root . 'backups/backup_' . date('Y_m_d_H_i', $time_now) . '.gz';
             // Load library
             require_once root . '/includes/inc/lib_admin.php';
@@ -124,7 +124,7 @@ function AutoBackup($delayed = false, $force = false)
             ftruncate($fx, ftell($fx));
         }
         // Delete marker
-        @unlink($backupMarkerFile);
+        unlink($backupMarkerFile);
     }
 }
 function LangDate($format, $timestamp)
@@ -150,12 +150,12 @@ function LangDate($format, $timestamp)
     foreach ($short_months as $name => $value) {
         $short_months[$name] = preg_replace('/./', '\\\\\\0', $value);
     }
-    $format = @preg_replace('/(?<!\\\\)D/', $short_weekdays[date('w', $timestamp)], $format);
-    $format = @preg_replace('/(?<!\\\\)F/', $months[date('n', $timestamp) - 1], $format);
-    $format = @preg_replace('/(?<!\\\\)Q/', $months_s[date('n', $timestamp) - 1], $format);
-    $format = @preg_replace('/(?<!\\\\)l/', $weekdays[date('w', $timestamp)], $format);
-    $format = @preg_replace('/(?<!\\\\)M/', $short_months[date('n', $timestamp) - 1], $format);
-    return @date($format, $timestamp);
+    $format = preg_replace('/(?<!\\\\)D/', $short_weekdays[date('w', $timestamp)], $format);
+    $format = preg_replace('/(?<!\\\\)F/', $months[date('n', $timestamp) - 1], $format);
+    $format = preg_replace('/(?<!\\\\)Q/', $months_s[date('n', $timestamp) - 1], $format);
+    $format = preg_replace('/(?<!\\\\)l/', $weekdays[date('w', $timestamp)], $format);
+    $format = preg_replace('/(?<!\\\\)M/', $short_months[date('n', $timestamp) - 1], $format);
+    return date($format, $timestamp);
 }
 //
 // Generate a list of smilies to show
@@ -323,7 +323,7 @@ function sendEmailMessage($to, $subject, $message, $filename = false, $mail_from
     } elseif ($config['mailfrom']) {
         $mail->From = $config['mailfrom'];
     } else {
-        $mail->From = 'mailbot@' . str_replace('www.', '', $_SERVER['SERVER_NAME']);
+        $mail->From = 'mailbot' . str_replace('www.', '', $_SERVER['SERVER_NAME']);
     }
     $mail->Subject = $subject;
     $mail->Body = $message;
@@ -764,7 +764,7 @@ function ListDirs($folder, $category = false, $alllink = true, $elementID = '')
             return false;
     }
     $select = '<select ' . ($elementID ? 'id="' . $elementID . '" ' : '') . 'name="category">' . ($alllink ? '<option value="">- ' . $lang['all'] . ' -</option>' : '');
-    if (($dir = @opendir($wdir)) === false) {
+    if (($dir = opendir($wdir)) === false) {
         msg(
             [
                 'type' => 'error',
@@ -1519,8 +1519,8 @@ function newsFillVariables($row, $fullMode, $page = 0, $disablePagination = 0, $
         $tvars['regx']["#\[link\](.*?)\[/link\]#si"] = '$1';
     }
     $tvars['vars']['pinned'] = ($row['pinned']) ? 'news_pinned' : '';
-    $tvars['vars']['category'] = @GetCategories($row['catid']);
-    $tvars['vars']['masterCategory'] = @GetCategories($row['catid'], false, true);
+    $tvars['vars']['category'] = GetCategories($row['catid']);
+    $tvars['vars']['masterCategory'] = GetCategories($row['catid'], false, true);
     // [TWIG] news.categories.*
     $tCList = makeCategoryInfo($row['catid']);
     $tvars['vars']['news']['categories']['count'] = count($tCList);
@@ -1788,7 +1788,7 @@ function parseParams($paramLine)
                 } elseif (($x == ' ') || ($x == chr(9))) {
                     $state = 2;
                 } else {
-                    $erorFlag = 1;
+                    $errorFlag = 1;
                 }
                 break;
             case 2:
@@ -1851,18 +1851,18 @@ function printHTTPheaders()
 {
     global $SYSTEM_FLAGS;
     foreach ($SYSTEM_FLAGS['http.headers'] as $hkey => $hvalue) {
-        @header($hkey . ': ' . $hvalue);
+        header($hkey . ': ' . $hvalue);
     }
 }
 /**
  * Generate error "PAGE NOT FOUND".
  *
- * @return void
+ * return void
  */
 function error404(): void
 {
     global $config, $twig, $template, $SYSTEM_FLAGS, $lang;
-    @header($_SERVER['SERVER_PROTOCOL'] . ' 404 Not Found');
+    header($_SERVER['SERVER_PROTOCOL'] . ' 404 Not Found');
     switch ($config['404_mode']) {
         // HTTP error 404.
         case 2:
@@ -2096,7 +2096,7 @@ function saveUserPermissions()
     global $confPermUser;
     $line = '<?php' . "\n// NGCMS User defined permissions ()\n";
     $line .= '$confPermUser = ' . var_export($confPermUser, true) . "\n;\n?>";
-    $fcHandler = @fopen(confroot . 'perm.php', 'w');
+    $fcHandler = fopen(confroot . 'perm.php', 'w');
     if ($fcHandler) {
         fwrite($fcHandler, $line);
         fclose($fcHandler);
@@ -2568,7 +2568,7 @@ function ngExceptionHandler($exception)
         // Generate user redirect call and terminate execution of CMS
         function coreRedirectAndTerminate($location)
         {
-            @header('Location: ' . $location);
+            header('Location: ' . $location);
             coreNormalTerminate();
             exit;
         }
@@ -2846,9 +2846,9 @@ function ngExceptionHandler($exception)
         /**
          * debug.
          *
-         * @param mixed $obj
+         * param mixed $obj
          *
-         * @return string
+         * return string
          */
         function dd($obj)
         {
