@@ -54,12 +54,7 @@ function Formatsize($file_size)
 }
 function checkIP()
 {
-    if (getenv('REMOTE_ADDR')) {
-        return getenv('REMOTE_ADDR');
-    } elseif ($_SERVER['REMOTE_ADDR']) {
-        return $_SERVER['REMOTE_ADDR'];
-    }
-    return 'unknown';
+    return $_SERVER['REMOTE_ADDR'] ?? 'unknown';
 }
 function initGZipHandler()
 {
@@ -75,32 +70,27 @@ function AutoBackup($delayed = false, $force = false)
     global $config;
     $backupFlagFile = root . 'cache/last_backup.tmp';
     $backupMarkerFile = root . 'cache/last_backup_marker.tmp';
-    // Load `Last Backup Date` from $backupFlagFile
-    $last_backup = intval(file_get_contents($backupFlagFile));
+    $last_backup = is_file($backupFlagFile) ? intval(file_get_contents($backupFlagFile)) : 0;
     $time_now = time();
-    // Force backup if requested
     if ($force) {
         $last_backup = 0;
     }
-    // Check if last backup was too much time ago
     if ($time_now > ($last_backup + $config['auto_backup_time'] * 3600 + ($delayed ? 30 * 60 : 0))) {
-        // Yep, we need a backup.
-        // ** Manage marker file
         $flagDoProcess = false;
         // -> Try to create marker
-        if (($fm = fopen($backupMarkerFile, 'x')) !== false) {
-            // Created, write CALL time
+        $fm = fopen($backupMarkerFile, 'x');
+        if ($fm !== false) {
+            // Файл-маркер успешно создан, пишем время и продолжаем
             fwrite($fm, $time_now);
             fclose($fm);
             $flagDoProcess = true;
         } else {
-            // Marker already exists, check creation time
+            // Маркер уже существует, проверяем его время
             $markerTime = intval(file_get_contents($backupMarkerFile));
             // TTL for marker is 5 min
             if ($time_now > ($markerTime + 180)) {
-                // Delete OLD marker, create ours
+                // Delete OLD marker, create наш
                 if (unlink($backupMarkerFile) && (($fm = fopen($backupMarkerFile, 'x')) !== false)) {
-                    // Created, write CALL time
                     fwrite($fm, $time_now);
                     fclose($fm);
                     $flagDoProcess = true;
@@ -115,13 +105,14 @@ function AutoBackup($delayed = false, $force = false)
         $fx = is_file($backupFlagFile) ? fopen($backupFlagFile, 'r+') : fopen($backupFlagFile, 'w+');
         if ($fx === false) {
             $filename = root . 'backups/backup_' . date('Y_m_d_H_i', $time_now) . '.gz';
-            // Load library
             require_once root . '/includes/inc/lib_admin.php';
-            // We need to create file with backup
             dbBackup($filename, 1);
+            // Здесь была ошибка: нельзя работать с $fx, если он false
+        } else {
             rewind($fx);
             fwrite($fx, $time_now);
             ftruncate($fx, ftell($fx));
+            fclose($fx);
         }
         // Delete marker
         unlink($backupMarkerFile);
@@ -221,27 +212,22 @@ function BBCodes(string $area = '')
 }
 function Padeg($n, $s)
 {
-    $n = abs($n);
+    $n = abs((int)$n);
     $a = explode(',', $s);
-    $l1 = $n - ((int) ($n / 10)) * 10;
-    $l2 = $n - ((int) ($n / 100)) * 100;
-    if ('11' <= $l2 && $l2 <= '14') {
+    $l1 = $n % 10;
+    $l2 = $n % 100;
+    if (11 <= $l2 && $l2 <= 14) {
         $e = $a[2];
     } else {
-        if ($l1 == '1') {
+        if ($l1 == 1) {
             $e = $a[0];
-        }
-        if ('2' <= $l1 && $l1 <= '4') {
+        } elseif (2 <= $l1 && $l1 <= 4) {
             $e = $a[1];
-        }
-        if (('5' <= $l1 && $l1 <= '9') || $l1 == '0') {
+        } else {
             $e = $a[2];
         }
     }
-    if ($e == '') {
-        $e = $a[0];
-    }
-    return $e;
+    return $e ?: $a[0];
 }
 //
 // Perform BAN check
@@ -508,7 +494,7 @@ function DirSize($directory)
             if (is_file($directory . '/' . $dirfile)) {
                 $size += filesize($directory . '/' . $dirfile);
             } elseif (is_dir($directory . '/' . $dirfile)) {
-                $dirSize = dirsize($directory . '/' . $dirfile);
+                $dirSize = DirSize($directory . '/' . $dirfile);
                 if ($dirSize >= 0) {
                     $size += $dirSize;
                 } else {
@@ -1740,7 +1726,7 @@ function GetCategoryById($id)
     return [];
 }
 // Parse params
-function parseParams($paramLine)
+function parseParams(string $paramLine): array|int
 {
     // Start scanning
     // State:
@@ -1768,7 +1754,7 @@ function parseParams($paramLine)
                     $quotes = 1;
                     $state = 1;
                     $keyName = '';
-                } elseif ($x == "'") {
+                } elseif ($x == '"') { // ← исправлено
                     $quotes = 2;
                     $state = 1;
                     $keyName = '';
@@ -1850,6 +1836,9 @@ function parseParams($paramLine)
 function printHTTPheaders()
 {
     global $SYSTEM_FLAGS;
+    if (!isset($SYSTEM_FLAGS['http.headers']) || !is_array($SYSTEM_FLAGS['http.headers'])) {
+        return;
+    }
     foreach ($SYSTEM_FLAGS['http.headers'] as $hkey => $hvalue) {
         header($hkey . ': ' . $hvalue);
     }
@@ -2096,13 +2085,16 @@ function saveUserPermissions()
     global $confPermUser;
     $line = '<?php' . "\n// NGCMS User defined permissions ()\n";
     $line .= '$confPermUser = ' . var_export($confPermUser, true) . "\n;\n?>";
-    $fcHandler = fopen(confroot . 'perm.php', 'w');
-    if ($fcHandler) {
-        fwrite($fcHandler, $line);
-        fclose($fcHandler);
-        return true;
+    $filePath = confroot . 'perm.php';
+    $fcHandler = fopen($filePath, 'w');
+    if ($fcHandler === false) {
+        // Обработка ошибки: не удалось открыть файл для записи
+        error_log("Не удалось открыть файл для записи: $filePath");
+        return false;
     }
-    return false;
+    fwrite($fcHandler, $line);
+    fclose($fcHandler);
+    return true;
 }
 // Generate record in System LOG for security audit and logging of changes
 // $identity - array of params for identification if object
