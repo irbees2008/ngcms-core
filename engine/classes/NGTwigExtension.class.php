@@ -1,35 +1,29 @@
 <?php
-
 // namespace NG\Twig;
-
 use Twig\Compiler;
 use Twig\Extension\AbstractExtension;
 use Twig\Extension\GlobalsInterface;
 use Twig\Node\Expression\FunctionExpression;
 use Twig\TwigFilter;
 use Twig\TwigFunction;
-
 class NGTwigLocalPathFunctionExpression extends FunctionExpression
 {
     protected function compileArguments(Compiler $compiler, $isArray = false): void
     {
         $compiler->raw($isArray ? '[' : '(');
-
         $compiler->string($this->getTemplateName());
-
         $compiler->raw($isArray ? ']' : ')');
     }
 }
-
 class NGTwigExtension extends AbstractExtension implements GlobalsInterface
 {
     public function getFilters()
     {
         return [
             new TwigFilter('truncateHTML', 'twigTruncateHTML'),
-        ];
+            new TwigFilter('LangDate', 'LangDate'),
+                ];
     }
-
     public function getFunctions()
     {
         return [
@@ -49,11 +43,9 @@ class NGTwigExtension extends AbstractExtension implements GlobalsInterface
             new TwigFunction('engineMSG', 'twigEngineMSG'),
         ];
     }
-
     public function getGlobals(): array
     {
         global $lang, $CurrentHandler, $twigGlobal, $SYSTEM_FLAGS, $systemAccessURL;
-
         return [
             'lang'         => &$lang,
             'handler'      => &$CurrentHandler,
