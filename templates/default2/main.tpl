@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <!--[TWIG] {% apply spaceless %}-->
-
 <html lang="{{ lang['langcode'] }}">
 	<head>
 		<title>{{ titles }}</title>
@@ -10,14 +9,10 @@
 		<meta name="document-state" content="dynamic"/>
 		{{ htmlvars }}
 		<!-- Bootstrap Core CSS -->
-		<link
-		href="{{ tpl_url }}/css/bootstrap.css" rel="stylesheet">
-
+		<link	href="{{ tpl_url }}/css/bootstrap.css" rel="stylesheet">
 		<!-- Additional fonts for this theme -->
-
 		<link href="https://fonts.googleapis.com/css?family=Roboto:300" rel="stylesheet">
 		<link	href="{{ tpl_url }}/css/fontawesome-4.7.0/fontawesome.css" rel="stylesheet">
-
 		<!-- Custom styles for this theme -->
 		<link href="{{ tpl_url }}/css/style.css" rel="stylesheet">
 		<!--[if lt IE 9]>
@@ -30,19 +25,15 @@
 		<script src="{{ tpl_url }}/js/popper-1.11.0.js"></script>
 		<script src="{{ tpl_url }}/js/bootstrap.js"></script>
 		<script src="{{ tpl_url }}/js/notify-3.1.5.js"></script>
-
 		<!-- Theme JavaScript -->
 		<script type="text/javascript" src="{{ scriptLibrary }}/functions.js"></script>
 		<script type="text/javascript" src="{{ scriptLibrary }}/ajax.js"></script>
-
 		<script src="{{ tpl_url }}/js/script.js"></script>
 		{% if pluginIsActive('rss_export') %}<link href="{{ home }}/rss.xml" rel="alternate" type="application/rss+xml" title="RSS"/>
 		{% endif %}
 	</head>
-
 	<body>
 		{% block body %}
-
 			<!-- Navigation navbar navbar-expand-md navbar-dark bg-dark-->
 			<nav class="navbar fixed-top navbar-expand-md navbar-light" id="mainNav">
 				<div class="container">
@@ -93,11 +84,8 @@
 					</div>
 				</div>
 			</nav>
-
 			{{ mainblock }}
-
 			<hr>
-
 			<!-- Footer -->
 			<footer>
 				<div class="container">
@@ -132,7 +120,6 @@
 							<p class="copyright text-muted">Copyright &copy;
 								<a title="{{ home_title }}" href="{{ home }}">{{ home_title }}</a>. Powered by
 								<a title="Next Generation CMS" target="_blank" href="http://ngcms.org/">NG CMS</a>
-
 								2006-{{ now|date("Y") }}.
 								<br/>{{ lang.sql_queries }}:
 								<b>{{ queries }}</b>
@@ -147,14 +134,12 @@
 					</div>
 				</div>
 			</footer>
-
 			{% if not (global.flags.isLogged) %}
 				{{ personal_menu }}
 			{% endif %}
 			<div id="loading-layer" class="col-md-3">
 				<i class="fa fa-spinner fa-pulse"></i>
 				{{ lang.loading }}</div>
-
 			[debug]{debug_queries}{debug_profiler}[/debug]
 		{% endblock %}
 	</body>
