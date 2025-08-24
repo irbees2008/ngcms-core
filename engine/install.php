@@ -762,10 +762,11 @@ function doInstall()
                 // Успешно подключились
                 array_push($LOG, 'Подключение к серверу БД "'.$_POST['reg_dbhost'].'" используя административный логин "'.$_POST['reg_dbadminuser'].'" ... OK');
                 // 1. Создание БД
-                if (count($mysql->select("show databases like '".$_POST['reg_dbname']."'")) < 1) {
+                if (count($mysql->select("show databases like '" . $mysql->db_quote($_POST['reg_dbname']) . "'")) < 1) {
                     // if ($mysql->select_db($_POST['reg_dbname']) === null) {
                     // БД нет. Пытаемся создать
-                    if (!$mysql->query('CREATE DATABASE '.$_POST['reg_dbname'])) {
+                    $dbName = $_POST['reg_dbname'];
+                    if ($mysql->select_db('`' . $dbName . '`') === null) {
                         // Не удалось создать. Фатально.
                         array_push($ERROR, 'Не удалось создать БД "'.$_POST['reg_dbname'].'" используя административную учётную запись. Скорее всего у данной учётной записи нет прав на создание баз данных.');
                         $error = 1;
@@ -777,13 +778,13 @@ function doInstall()
                     array_push($LOG, 'БД "'.$_POST['reg_dbname'].'" уже существует ... OK');
                 }
                 // FIX: Starting with mysql 8 we cannot create a user with `grant privileges` command
-                if (!$mysql->query("create user '".$_POST['reg_dbuser']."''%' identified by '".$_POST['reg_dbpass']."'")) {
+                if (!$mysql->query('grant all privileges on `' . $_POST['reg_dbname'] . "`.* to `" . $_POST['reg_dbuser'] . "`@`%`")) {
                     array_push($ERROR, 'Невозможно создать пользователя  "'.$_POST['reg_dbuser'].'" в БД используя административные права');
                     $error = 1;
                     break;
                 }
                 // 2. Предоставление доступа к БД
-                if (!$mysql->query('grant all privileges on '.$_POST['reg_dbname'].".* to '".$_POST['reg_dbuser']."''%'")) {
+                if (!$mysql->query('grant all privileges on `' . $_POST['reg_dbname'] . "`.* to '".$_POST['reg_dbuser']."''%'")) {
                     array_push($ERROR, 'Невозможно обеспечить доступ пользователя "'.$_POST['reg_dbuser'].'" к БД "'.$_POST['reg_dbname'].'" используя административные права.');
                     $error = 1;
                     break;
@@ -811,7 +812,7 @@ function doInstall()
             $sx->getLegacyDB()->connect('', '', '');
             $mysql = $sx->getLegacyDB();
             array_push($LOG, 'Подключение к серверу БД "'.$_POST['reg_dbhost'].'" используя логин "'.$_POST['reg_dbuser'].'" ... OK');
-            if ($mysql->select_db($_POST['reg_dbname']) === null) {
+            if ($mysql->select_db('`' . $_POST['reg_dbname'] . '`') === null) {
                 array_push($ERROR, 'Невозможно открыть БД "'.$_POST['reg_dbname'].'"<br/>Вам необходимо создать эту БД самостоятельно.');
                 $error = 1;
                 break;
