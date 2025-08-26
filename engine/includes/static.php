@@ -70,7 +70,7 @@ function showStaticPage($params)
     $tvars = [
         'title'    => $row['title'],
         'content'  => $content,
-        'postdate' => ($row['postdate'] > 0) ? strftime('%d.%m.%Y %H:%M', $row['postdate']) : '',
+        'postdate' => ($row['postdate'] > 0) ? date('d.m.Y H:i', $row['postdate']) : '',
     ];
 
     // Check perms and show modify buttons
