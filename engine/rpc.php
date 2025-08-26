@@ -11,7 +11,7 @@
 
 // Protect against hack attempts
 if (!defined('NGCMS')) {
-    exit('HAL');
+    throw new Exception('HAL');
 }
 
 // Load additional handlers [ common ]
@@ -58,7 +58,14 @@ function processJSON()
     header('Content-Type: application/json; charset=UTF-8');
 
     // Decode passed params
-    $params = json_decode($_POST['params'], true);
+    $params = null;
+    if (isset($_POST['params'])) {
+        $params = json_decode($_POST['params'], true);
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            echo json_encode(['status' => 0, 'errorCode' => 999, 'errorText' => 'Invalid JSON']);
+            return;
+        }
+    }
 
     $methodName = (isset($_POST['methodName'])) ? $_POST['methodName'] : (isset($_GET['methodName']) ? $_GET['methodName'] : '');
     switch ($methodName) {
