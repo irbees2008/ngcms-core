@@ -7,11 +7,16 @@
 // Author: Vitaly Ponomarev
 //
 
-include_once '../core.php';
+// Validate include path to prevent directory traversal
+$corePath = realpath('../core.php');
+if ($corePath === false || !str_starts_with($corePath, realpath('../'))) {
+    exit('Invalid path');
+}
+include_once $corePath;
 
 // Protect against hack attempts
 if (!defined('NGCMS')) {
-    exit('HAL');
+    throw new Exception('HAL');
 }
 
 header('Content-Type: text/html; charset=utf-8');
@@ -24,16 +29,20 @@ if ($_REQUEST['mode'] == 'plugin') {
     }
 
     if ($_REQUEST['item'] == 'readme') {
-        if (file_exists(root.'plugins/'.$plugin.'/readme')) {
+        $filePath = realpath(root.'plugins/'.$plugin.'/readme');
+        $basePath = realpath(root.'plugins/');
+        if ($filePath && $basePath && str_starts_with($filePath, $basePath) && file_exists($filePath)) {
             echo '<pre>';
-            echo file_get_contents(root.'plugins/'.$plugin.'/readme');
+            echo htmlspecialchars(file_get_contents($filePath), ENT_QUOTES, 'UTF-8');
             echo '</pre>';
         }
     }
     if ($_REQUEST['item'] == 'history') {
-        if (file_exists(root.'plugins/'.$plugin.'/history')) {
+        $filePath = realpath(root.'plugins/'.$plugin.'/history');
+        $basePath = realpath(root.'plugins/');
+        if ($filePath && $basePath && str_starts_with($filePath, $basePath) && file_exists($filePath)) {
             echo '<pre>';
-            echo file_get_contents(root.'plugins/'.$plugin.'/history');
+            echo htmlspecialchars(file_get_contents($filePath), ENT_QUOTES, 'UTF-8');
             echo '</pre>';
         }
     }
