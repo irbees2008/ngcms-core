@@ -125,7 +125,19 @@ class tpl
             }
         }
 
-        // [TWIG]..[/TWIG]
+        // Process Twig syntax directly (without [TWIG] tags)
+        if (preg_match('/\{\{|\{\%/', $data)) {
+            $cacheFileName = md5($data).'.txt';
+            $cacheFile = cacheRetrieveFile($cacheFileName, 3600, '_templates');
+            if ($cacheFile === false) {
+                cacheStoreFile($cacheFileName, $data, '_templates');
+            }
+            $tx = $twig->loadTemplate(get_plugcache_dir('_templates').$cacheFileName);
+            $result = $tx->render($vars['vars']);
+            $data = $result;
+        }
+        
+        // [TWIG]..[/TWIG] - legacy support
         if (preg_match_all('/\[TWIG\](.+?)\[\/TWIG\]/isu', $data, $parr)) {
             foreach ($parr[0] as $k => $v) {
                 $scode = $parr[1][$k];

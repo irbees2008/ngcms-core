@@ -366,6 +366,14 @@
 					</td>
 				</tr>
 				<tr>
+					<td width="50%">{{ lang['admin_skin'] }}
+						<small class="form-text text-muted">{{ lang['admin_skin_desc'] }}</small>
+					</td>
+					<td width="50%">
+						{{ mkSelect({'name' : 'save_con[admin_skin]', 'value' : config['admin_skin']|default('default'), 'values' : list['admin_skin'] }) }}
+					</td>
+				</tr>
+				<tr>
 					<td width="50%">{{ lang['lang'] }}
 						<small class="form-text text-muted">{{ lang['lang_desc'] }}</small>
 					</td>

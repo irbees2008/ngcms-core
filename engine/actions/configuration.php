@@ -177,6 +177,7 @@ function systemConfigEditForm()
         'list'                  => [
             'captcha_font' => ListFiles('trash', 'ttf'),
             'theme'        => ListFiles('../templates', ''),
+            'admin_skin'   => ListFiles('skins', ''),
             'default_lang' => ListFiles('lang', ''),
             'wm_image'     => ListFiles('trash', ['gif', 'png'], 2),
             'auth_module'  => $auth_modules,
