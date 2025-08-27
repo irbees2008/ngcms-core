@@ -1,4 +1,4 @@
-[TWIG]<!DOCTYPE html>
+<!DOCTYPE html>
 <html>
 <head>
     <title>{{ lang['print_version'] }} &raquo; {{ title }}</title>
@@ -26,4 +26,3 @@
     </table>
 </body>
 </html>
-[/TWIG]

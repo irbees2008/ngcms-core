@@ -1,4 +1,4 @@
-[TWIG]
+
 <!-- Page Header -->
 <header class="intro-header" style="background-image: url('{{ (p.xfields.poster.entries[0].purl ?? null)?: (news.embed.images[0] ?? null)?: tpl_url ~ '/img/home-bg.jpg' }}		')">
 	<div class="container">
@@ -66,4 +66,4 @@
 		</div>
 	</div>
 </div>
-[/TWIG]
+

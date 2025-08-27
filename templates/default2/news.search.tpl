@@ -1,4 +1,4 @@
-[TWIG]
+
 <div class="media">
 	<div class="media-left">
 		<a href="{{ news.url.full }}">
@@ -17,4 +17,4 @@
 		<p>{{ news.short|truncateHTML(150,'...')|striptags }}</p>
 	</div>
 </div>
-[/TWIG]
+

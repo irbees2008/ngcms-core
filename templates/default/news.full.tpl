@@ -1,4 +1,3 @@
-[TWIG]
 <article class="full-post">
 	<h1 class="title">{{ news.title }}</h1>
 	<span class="meta">{{ news.date }} | {% if pluginIsActive('uprofile') %}
@@ -25,6 +24,5 @@
 {% if pluginIsActive('comments') %}
 <div class="title">{{ lang.comments }}:	({{ comments_num }}	опубликовано {% if comments_pending > 0 %},	{{ comments_pending }}на модерации	{% endif %})
 </div>
-	{{ plugin_comments }}
+	{{ comments }}
 {% endif %}
-[/TWIG]

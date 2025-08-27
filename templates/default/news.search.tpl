@@ -1,4 +1,4 @@
-[TWIG]
+
 <article class="article">
 	<div class="article-img">
 		{% if (news.embed.imgCount > 0) %}
@@ -16,4 +16,3 @@
 		<p>{{ news.short|truncateHTML(150,'...')|striptags }}</p>
 	</div>
 </article>
-[/TWIG]

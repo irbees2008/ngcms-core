@@ -1,4 +1,4 @@
-[TWIG]
+
 <html>
 <head>
     <title>{{ news.title }}</title>
@@ -55,4 +55,4 @@
 </body>
 
 </html>
-[/TWIG]
+

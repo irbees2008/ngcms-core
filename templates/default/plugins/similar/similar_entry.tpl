@@ -1,4 +1,4 @@
-[TWIG]
+
 <li class="article">
 	<span class="article-img">
 		{% if (news.embed.imgCount > 0) %}
@@ -14,4 +14,3 @@
 		<p>{text}</p>
 	</span-->
 </li>
-[/TWIG]
