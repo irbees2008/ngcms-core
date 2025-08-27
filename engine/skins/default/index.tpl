@@ -85,6 +85,7 @@
 								{% endif %}
 								<li><a href="{{ php_self }}?mod=images">{{ lang['images'] }}</a></li>
 								<li><a href="{{ php_self }}?mod=files">{{ lang['files'] }}</a></li>
+								{% if comments_moderation_enabled and pluginIsActive('comments') %}<li><a href="{{ php_self }}?plugin=comments&handler=moderation">Модерация комментариев</a></li>{% endif %}
 							</ul>
 
 							{%

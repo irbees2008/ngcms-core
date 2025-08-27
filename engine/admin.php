@@ -176,6 +176,7 @@ $permissionItems = [
     'rewrite',
     'static',
     'editcomments',
+    'comments_moderation',
     'ipban',
     'categories',
     'news',
@@ -193,19 +194,41 @@ exec_acts('admin_header');
 if (!$mod) {
     $mod = $permissions['statistics'] ? 'statistics' : 'news';
 }
-// Check requested module exists
-if (isset($permissions[$mod]) && $permissions[$mod]) {
-    // Load plugins, that need to make any changes in this mod
-    load_extras('admin:mod:' . $mod);
-    $modFile = realpath('./actions/' . $mod . '.php');
-    $allowedPath = realpath('./actions/');
-    if ($modFile && $allowedPath && str_starts_with($modFile, $allowedPath) && file_exists($modFile)) {
-        require $modFile;
+// Check if it's a plugin call
+if ($_GET['plugin'] && $_GET['handler']) {
+    $plugin = preg_replace('/[^a-zA-Z0-9_-]/', '', $_GET['plugin']);
+    $handler = preg_replace('/[^a-zA-Z0-9_-]/', '', $_GET['handler']);
+    
+    // Load plugin file
+    $pluginFile = root . '/plugins/' . $plugin . '/' . $plugin . '.php';
+    if (file_exists($pluginFile)) {
+        include_once $pluginFile;
+        
+        // Call plugin function
+        $function_name = 'plugin_' . $plugin . '_' . $handler;
+        if (function_exists($function_name)) {
+            $function_name();
+        } else {
+            $notify = msg(['type' => 'error', 'text' => 'Plugin handler not found: ' . $function_name]);
+        }
+    } else {
+        $notify = msg(['type' => 'error', 'text' => 'Plugin file not found']);
+    }
+} elseif ($mod) {
+    // Check requested module exists
+    if (isset($permissions[$mod]) && $permissions[$mod]) {
+        // Load plugins, that need to make any changes in this mod
+        load_extras('admin:mod:' . $mod);
+        $modFile = realpath('./actions/' . $mod . '.php');
+        $allowedPath = realpath('./actions/');
+        if ($modFile && $allowedPath && str_starts_with($modFile, $allowedPath) && file_exists($modFile)) {
+            require $modFile;
+        } else {
+            $notify = msg(['type' => 'error', 'text' => $lang['msge_mod']]);
+        }
     } else {
         $notify = msg(['type' => 'error', 'text' => $lang['msge_mod']]);
     }
-} else {
-    $notify = msg(['type' => 'error', 'text' => $lang['msge_mod']]);
 }
 $lang = LoadLang('index', 'admin');
 $skins_url = skins_url;
@@ -278,6 +301,7 @@ $tVars = [
         ),
     ),
     'newpmText' => $newpmText,
+    'comments_moderation_enabled' => pluginGetVariable('comments', 'moderation'),
     'perm'                => [
         'static'        => checkPermission(['plugin' => '#admin', 'item' => 'static'], null, 'view'),
         'categories'    => checkPermission(['plugin' => '#admin', 'item' => 'categories'], null, 'view'),
