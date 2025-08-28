@@ -108,7 +108,7 @@ function cronShowForm()
         'entries' => $entries,
     ];
 
-    $xt = $twig->loadTemplate('skins/'.\['admin_skin'].'/tpl/cron.tpl');
+    $xt = $twig->loadTemplate('skins/' . $config['admin_skin'] . '/tpl/cron.tpl');
 
     return $xt->render($tVars);
 }
@@ -120,7 +120,7 @@ if (isset($_REQUEST['action']) && $_REQUEST['action'] == 'commit') {
     $res = cronCommit();
     if ($res !== true) {
         // ERROR
-        msg(['type' => 'error', 'text' => $lang['cron']['result_err'].var_export($res, true)], 1, 1);
+        msg(['type' => 'error', 'text' => $lang['cron']['result_err'] . var_export($res, true)], 1, 1);
     } else {
         msg(['text' => $lang['cron']['result_ok']]);
     }

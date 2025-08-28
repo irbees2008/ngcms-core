@@ -315,52 +315,6 @@
 		</form>
 	</div>
 </div>
-<!-- Не понятно, что это и откуда. -->
-<style>
-	#modalmsgDialog {
-		position: absolute;
-		left: 0;
-		top: 0;
-		width: 100%;
-		height: 100%;
-		display: none;
-	}
-	#modalmsgWindow {
-		margin: 5px;
-		padding: 5px;
-		border: 1px solid #CCCCCC;
-		background-color: #F0F0F0;
-		width: 400px;
-		position: absolute;
-		left: 40%;
-		top: 40%;
-	}
-	#modalmsgWindowText {
-		background-color: #FFFFFF;
-	}
-	#modalmsgWindowButton {
-		background-color: #FFFFFF;
-		text-align: center;
-		padding: 5px;
-	}
-</style>
-<script type="text/javascript">
-	function showModal(text) {
-document.getElementById('modalmsgDialog').style.display = 'block';
-document.getElementById('modalmsgWindowText').innerHTML = text;
-}
-function _modal_close() {
-document.getElementById('modalmsgDialog').style.display = 'none';
-}
-</script>
-<div id="modalmsgDialog" onclick="_modal_close();">
-	<span id="modalmsgWindow">
-		<div id="modalmsgWindowText"></div>
-		<div id="modalmsgWindowButton">
-			<input type="button" value="OK"/>
-		</div>
-	</span>
-</div>
 <script type="text/javascript">
 	function getCacheSize() {
 $("#cacheFileCount").html('-');

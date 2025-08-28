@@ -41,7 +41,7 @@ function ipban_add()
     $ip = trim($_REQUEST['ip']);
     //$atype = intval($_REQUEST['atype']);
     $reason = $_REQUEST['lock:rsn'];
-    $flags = intval(getIsSet($_REQUEST['lock:open'])).intval($_REQUEST['lock:reg']).intval($_REQUEST['lock:login']).intval($_REQUEST['lock:comm']);
+    $flags = intval(getIsSet($_REQUEST['lock:open'])) . intval($_REQUEST['lock:reg']) . intval($_REQUEST['lock:login']) . intval($_REQUEST['lock:comm']);
 
     $addr_start = 0;
     $addr_stop = 0;
@@ -50,17 +50,18 @@ function ipban_add()
     if (preg_match('#^(\d+)\.(\d+)\.(\d+)\.(\d+)$#', $ip, $m) && ($m[1] < 256) && ($m[2] < 256) && ($m[3] < 256) && ($m[4] < 256)) {
         $result = true;
         $atype = 0;
-        $addr_start = ip2long($m[1].'.'.$m[2].'.'.$m[3].'.'.$m[4]);
-        $addr_stop = ip2long($m[1].'.'.$m[2].'.'.$m[3].'.'.$m[4]);
+        $addr_start = ip2long($m[1] . '.' . $m[2] . '.' . $m[3] . '.' . $m[4]);
+        $addr_stop = ip2long($m[1] . '.' . $m[2] . '.' . $m[3] . '.' . $m[4]);
         $letlen = 0;
-    } elseif (preg_match('#^(\d+)\.(\d+)\.(\d+)\.(\d+)\/(\d+)\.(\d+)\.(\d+)\.(\d+)$#', $ip, $m) &&
+    } elseif (
+        preg_match('#^(\d+)\.(\d+)\.(\d+)\.(\d+)\/(\d+)\.(\d+)\.(\d+)\.(\d+)$#', $ip, $m) &&
         ($m[1] < 256) && ($m[2] < 256) && ($m[3] < 256) && ($m[4] < 256) &&
         ($m[5] < 256) && ($m[6] < 256) && ($m[7] < 256) && ($m[8] < 256)
     ) {
         $result = true;
         $atype = 1;
-        $laddr = ip2long($m[1].'.'.$m[2].'.'.$m[3].'.'.$m[4]);
-        $lmask = ip2long($m[5].'.'.$m[6].'.'.$m[7].'.'.$m[8]);
+        $laddr = ip2long($m[1] . '.' . $m[2] . '.' . $m[3] . '.' . $m[4]);
+        $lmask = ip2long($m[5] . '.' . $m[6] . '.' . $m[7] . '.' . $m[8]);
 
         // Check mask
         $lbmask = decbin($lmask);
@@ -84,13 +85,13 @@ function ipban_add()
 
     if ($result) {
         // OK. Check if record already exists
-        if (is_array($mysql->record('select addr from '.prefix.'_ipban where addr_start='.db_squote(sprintf('%u', $addr_start)).' and addr_stop='.db_squote(sprintf('%u', $addr_stop))))) {
+        if (is_array($mysql->record('select addr from ' . prefix . '_ipban where addr_start=' . db_squote(sprintf('%u', $addr_start)) . ' and addr_stop=' . db_squote(sprintf('%u', $addr_stop))))) {
             // Duplicated
             msg(['type' => 'error', 'text' => $lang['ipban']['msge.exist']]);
 
             return;
         }
-        $mysql->query('insert into '.prefix.'_ipban (addr, atype, addr_start, addr_stop, netlen, flags, createDate, reason, hitcount) values ('.db_squote($ip).', '.db_squote($atype).', '.db_squote(sprintf('%u', $addr_start)).', '.db_squote(sprintf('%u', $addr_stop)).', '.db_squote(sprintf('%u', $net_len)).', '.db_squote($flags).', now(), '.db_squote($reason).', 0)');
+        $mysql->query('insert into ' . prefix . '_ipban (addr, atype, addr_start, addr_stop, netlen, flags, createDate, reason, hitcount) values (' . db_squote($ip) . ', ' . db_squote($atype) . ', ' . db_squote(sprintf('%u', $addr_start)) . ', ' . db_squote(sprintf('%u', $addr_stop)) . ', ' . db_squote(sprintf('%u', $net_len)) . ', ' . db_squote($flags) . ', now(), ' . db_squote($reason) . ', 0)');
         msg(['text' => str_replace('{ip}', $ip, $lang['ipban']['msg.blocked'])]);
     } else {
         msg(['type' => 'error', 'text' => $lang['ipban']['msge.fields'], 'info' => $lang['ipban']['msgi.fields']]);
@@ -123,9 +124,9 @@ function ipban_delete()
     $id = intval($_REQUEST['id']);
 
     // Fetch record
-    if (is_array($row = $mysql->record('select * from '.prefix.'_ipban where id = '.$id))) {
+    if (is_array($row = $mysql->record('select * from ' . prefix . '_ipban where id = ' . $id))) {
         // Record found. Delete it
-        $mysql->query('delete from '.prefix.'_ipban where id = '.$id);
+        $mysql->query('delete from ' . prefix . '_ipban where id = ' . $id);
         msg(['text' => str_replace('{ip}', $row['addr'], $lang['ipban']['msg.unblocked'])]);
     } else {
         msg(['type' => 'error', 'text' => $lang['ipban']['msg.notfound']]);
@@ -151,19 +152,19 @@ function ipban_list()
 
     $xEntries = [];
 
-    foreach ($mysql->select('select * from '.prefix.'_ipban order by addr') as $row) {
+    foreach ($mysql->select('select * from ' . prefix . '_ipban order by addr') as $row) {
         $accessLine = '';
         for ($i = 0; $i < 4; $i++) {
             $flag = intval(substr($row['flags'], $i, 1));
             switch ($flag) {
                 case 1:
-                    $accessLine .= '<font color="blue"><b>'.$accessMAP[$i].'</b></font>';
+                    $accessLine .= '<font color="blue"><b>' . $accessMAP[$i] . '</b></font>';
                     break;
                 case 2:
-                    $accessLine .= '<font color="red"><b>'.$accessMAP[$i].'</b></font>';
+                    $accessLine .= '<font color="red"><b>' . $accessMAP[$i] . '</b></font>';
                     break;
                 default:
-                    $accessLine .= '<font color="#CCCCCC"><b>'.$accessMAP[$i].'</b></font>';
+                    $accessLine .= '<font color="#CCCCCC"><b>' . $accessMAP[$i] . '</b></font>';
                     break;
             }
         }
@@ -193,7 +194,7 @@ function ipban_list()
         ],
     ];
 
-    $xt = $twig->loadTemplate('skins/'.\['admin_skin'].'/tpl/ipban.tpl');
+    $xt = $twig->loadTemplate('skins/' . $config['admin_skin'] . '/tpl/ipban.tpl');
 
     return $xt->render($tVars);
 }

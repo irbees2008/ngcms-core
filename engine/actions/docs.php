@@ -77,7 +77,7 @@ function getMarkdownParser()
     $parser->url_filter_func = function ($url) {
         global $config;
 
-        $docUrl = $config['admin_url'].'/admin.php?mod=docs';
+        $docUrl = $config['admin_url'] . '/admin.php?mod=docs';
 
         if ($url === '') {
             return $docUrl;
@@ -88,9 +88,9 @@ function getMarkdownParser()
         }
 
         if (endsWith($url, ['.md'])) {
-            return $docUrl.'&file='.$url;
+            return $docUrl . '&file=' . $url;
         } else {
-            return $config['home_url'].'/docs/'.$url;
+            return $config['home_url'] . '/docs/' . $url;
         }
     };
 
@@ -113,12 +113,12 @@ function renderMarkdown($file)
     if (mb_strlen($file) > 0 && !startsWith($file, '/') && endsWith($file, '.md')) {
         $paths = [
             root,
-            site_root.'docs/',
+            site_root . 'docs/',
         ];
 
         foreach ($paths as $path) {
-            if (file_exists($path.$file)) {
-                $content = file_get_contents($path.$file);
+            if (file_exists($path . $file)) {
+                $content = file_get_contents($path . $file);
             }
         }
 
@@ -146,7 +146,7 @@ function renderDocs()
         'docs' => $docs,
     ];
 
-    $xt = $twig->loadTemplate('skins/'.\['admin_skin'].'/tpl/docs.tpl');
+    $xt = $twig->loadTemplate('skins/' . $config['admin_skin'] . '/tpl/docs.tpl');
 
     $main_admin = $xt->render($tVars);
 }

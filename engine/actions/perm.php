@@ -1,43 +1,32 @@
 <?php
-
 //
 // Copyright (C) 2006-2014 Next Generation CMS (http://ngcms.ru/)
 // Name: perm.php
 // Description: Permission manager
 // Author: Vitaly Ponomarev
 //
-
 // Protect against hack attempts
 if (!defined('NGCMS')) {
     exit('HAL');
 }
-
 $lang = LoadLang('perm', 'admin');
-
 @include_once root.'includes/inc/extrainst.inc.php';
-
 $pManager = new permissionRuleManager();
 $pManager->load();
-
 // Preconfigure list of groups from global group list
 $grp = [];
-
 foreach ($UGROUP as $id => $v) {
     $grp[$id] = ['id' => $id, 'title' => $v['name']];
 }
-
 // Show list of current permissions
 function showList($grp)
 {
-    global $PERM, $pManager, $twig, $userROW, $lang, $catz;
-
+    global $PERM, $pManager, $twig, $userROW, $lang, $catz, $config;
     // ACCESS ONLY FOR ADMIN
     if (!checkPermission(['plugin' => '#admin', 'item' => 'perm'], null, 'details')) {
         msg(['type' => 'error', 'text' => $lang['perm.denied']]);
-
         return;
     }
-
     $data = [];
     $dvalue = [];
     $nl1 = 0;
@@ -49,7 +38,6 @@ function showList($grp)
             'description' => (isset($vb['description']) && $vb['description']) ? $vb['description'] : '',
             'items'       => [],
         ];
-
         if (is_array($vb['items'])) {
             $nl2 = 0;
             foreach ($vb['items'] as $ka => $va) {
@@ -60,18 +48,15 @@ function showList($grp)
                     'description' => (isset($va['description']) && $va['description']) ? $va['description'] : '',
                     'items'       => [],
                 ];
-
                 if (is_array($va['items'])) {
                     $nl3 = 0;
                     foreach ($va['items'] as $ke => $ve) {
                         $nl3++;
-
                         // Check for type = categories
                         $isCategories = false;
                         if (isset($ve['type']) && (preg_match('#^listCategoriesSelector#', $ve['type'], $match))) {
                             // [[ CATEGORIES ]]
                             $isCategories = true;
-
                             $dEntry = [
                                 'id'               => $ke,
                                 'title'            => (isset($ve['title']) && $ve['title']) ? $ve['title'] : '',
@@ -94,10 +79,8 @@ function showList($grp)
                                 'type'        => '',
                             ];
                         }
-
                         // Avoid PHP bug/feature - it replaces "." into "_". Let's use ':' instead
                         $dEntry['name'] = str_replace('.', ':', $dEntry['name']);
-
                         if (is_array($grp)) {
                             foreach ($grp as $kg) {
                                 if (isset($PERM[$kg['id']][$kb][$ka][$ke]) && $PERM[$kg['id']][$kb][$ka][$ke]) {
@@ -105,7 +88,6 @@ function showList($grp)
                                 } else {
                                     $x = '';
                                 }
-
                                 if ($isCategories) {
                                     $catArray = [];
                                     foreach (explode(',', $x) as $cx) {
@@ -119,7 +101,6 @@ function showList($grp)
                                 }
                             }
                         }
-
                         $dArea['items'][] = $dEntry;
                     }
                 }
@@ -128,11 +109,9 @@ function showList($grp)
         }
         $data[] = $dBlock;
     }
-
     //print "<pre><select size='10' multiple='multiple'>".makeCategoryList(array('skipDisabled' => true, 'noHeader' => true))."</select></pre>";
     // Print template
-    $xt = $twig->loadTemplate('skins/'.\['admin_skin'].'/tpl/perm/list.tpl');
-
+    $xt = $twig->loadTemplate('skins/'. $config['admin_skin'] .'/tpl/perm/list.tpl');
     return $xt->render([
         'CONFIG'       => $data,
         'PERM'         => $PERM,
@@ -142,15 +121,12 @@ function showList($grp)
         'token'        => genUToken('admin.perm'),
     ]);
 }
-
 function displayPermValue($value, $type)
 {
     global $lang;
-
     if ($type == 'listCategoriesSelector') {
         return $value;
     }
-
     if ($value == -1) {
         return '--';
     }
@@ -161,39 +137,31 @@ function displayPermValue($value, $type)
         return $lang['yesa'];
     }
 }
-
 function updateConfig()
 {
-    global $userROW, $lang, $PERM, $confPerm, $confPermUser, $pManager, $twig, $grp;
+    global $userROW, $lang, $PERM, $confPerm, $confPermUser, $pManager, $twig, $grp, $config;
     //print "Incoming POST: <pre>".var_export($_POST, true)."</pre>";
     // ACCESS ONLY FOR ADMIN
     if (!checkPermission(['plugin' => '#admin', 'item' => 'perm'], null, 'modify')) {
         msg(['type' => 'error', 'text' => $lang['perm.denied']]);
-
         return;
     }
-
     // Check for security token
     if ((!isset($_REQUEST['token'])) || ($_REQUEST['token'] != genUToken('admin.perm'))) {
         msg(['type' => 'error', 'text' => $lang['error.security.token'], 'info' => $lang['error.security.token#desc']]);
-
         return;
     }
-
     $pList = $pManager->getList();
     $updateList = [];
-
     //print "<pre>".var_export($_POST, true)."</pre>";
     //print "Scan update..<br/>";
     //print "EX:<pre>".var_export($PERM[2]['#admin']['news'], true)."</pre>";
     foreach ($_POST as $k => $v) {
         // Avoid PHP bug/feature - it replaces '.' into '_'. Let's use ':' instead
         $k = str_replace(':', '.', $k);
-
         if (!preg_match("#^(.+?)\|(.*?)\|(.+?)\|(\d+)$#", $k, $m)) {
             continue;
         }
-
         //print "Rec [$k]<pre>".var_export($m, true)."</pre><br/>";
         if (isset($pList[$m[1]]['items'][$m[2]]['items'][$m[3]])) {
             $itemType = $pList[$m[1]]['items'][$m[2]]['items'][$m[3]]['type'];
@@ -214,7 +182,6 @@ function updateConfig()
                     }
                 }
             }
-
             $markValue = 99;
             if (!isset($PERM[$m[4]][$m[1]][$m[2]][$m[3]]) || ($PERM[$m[4]][$m[1]][$m[2]][$m[3]] === null)) {
                 $markValue = -1;
@@ -237,9 +204,7 @@ function updateConfig()
                     'displayNew' => displayPermValue($v, $itemType),
                     'displayOld' => displayPermValue($markValue, $itemType),
                 ];
-
                 //print "> $k: ".$markValue.' => '.$v."<br/>";
-
                 // Found changed record
                 // - check if new value is equal to default value
                 if ((($v == -1) && !isset($confPerm[$m[4]][$m[1]][$m[2]][$m[3]])) ||
@@ -258,23 +223,18 @@ function updateConfig()
                     }
                     //print "SAVE NEW $k -> $v<br/>\n";
                 }
-
                 //print "(".isset($PERM[$m[4]][$m[1]][$m[2]][$m[3]]).",".($PERM[$m[4]][$m[1]][$m[2]][$m[3]] === NULL).") "; print var_export($PERM[$m[4]][$m[1]][$m[2]][$m[3]]);
             }
         }
     }
-
     $execResult = saveUserPermissions();
-
-    $xt = $twig->loadTemplate('skins/'.\['admin_skin'].'/tpl/perm/result.tpl');
-
+    $xt = $twig->loadTemplate('skins/' . $config['admin_skin'] . '/tpl/perm/result.tpl');
     return $xt->render([
         'updateList' => $updateList,
         'GRP'        => $grp,
         'execResult' => $execResult,
     ]);
 }
-
 //
 //
 if (($_SERVER['REQUEST_METHOD'] == 'POST') && isset($_POST['save']) && ($_POST['save'] == 1)) {

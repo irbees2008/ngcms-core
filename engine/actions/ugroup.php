@@ -30,7 +30,7 @@ function ugroupList()
     // Calculate number of users in each group
     $uCount = [];
 
-    $query = 'select status, count(*) as cnt from '.uprefix.'_users group by status';
+    $query = 'select status, count(*) as cnt from ' . uprefix . '_users group by status';
     foreach ($mysql->select($query) as $row) {
         $uCount[$row['status']] = $row['cnt'];
     }
@@ -59,7 +59,7 @@ function ugroupList()
         ],
     ];
 
-    $xt = $twig->loadTemplate('skins/'.\['admin_skin'].'/tpl/ugroup/list.tpl');
+    $xt = $twig->loadTemplate('skins/' . $config['admin_skin'] . '/tpl/ugroup/list.tpl');
 
     return $xt->render($tVars);
 }
@@ -122,7 +122,7 @@ function ugroupForm()
         'canModify' => $permModify,
     ];
 
-    $xt = $twig->loadTemplate('skins/'.\['admin_skin'].'/tpl/ugroup/addEdit.tpl');
+    $xt = $twig->loadTemplate('skins/' . $config['admin_skin'] . '/tpl/ugroup/addEdit.tpl');
 
     return $xt->render($tVars);
 }
@@ -162,8 +162,8 @@ function ugroupCommit()
 
     // Load configuration
     // ** If file exists - load it
-    if (is_file(confroot.'ugroup.php')) {
-        include confroot.'ugroup.php';
+    if (is_file(confroot . 'ugroup.php')) {
+        include confroot . 'ugroup.php';
         $edGroup = $confUserGroup;
     } else {
         // ** ELSE - get system defaults
@@ -229,7 +229,7 @@ function ugroupCommit()
         // Calculate number of users in each group
         $uCount = [];
 
-        $query = 'select count(*) as cnt from '.uprefix.'_users where status = '.intval($id);
+        $query = 'select count(*) as cnt from ' . uprefix . '_users where status = ' . intval($id);
         if (is_array($uCount = $mysql->record($query)) && ($uCount['cnt'] > 0)) {
             // Don't allow to delete groups with users
             msg(['type' => 'error', 'text' => 'Cannot delete group with users']);
@@ -240,10 +240,10 @@ function ugroupCommit()
     }
 
     // Prepare resulting config content
-    $fcData = "<?php\n".'$confUserGroup = '.var_export($edGroup, true)."\n;";
+    $fcData = "<?php\n" . '$confUserGroup = ' . var_export($edGroup, true) . "\n;";
 
     // Try to save config
-    $fcHandler = @fopen(confroot.'ugroup.php', 'w');
+    $fcHandler = @fopen(confroot . 'ugroup.php', 'w');
     if ($fcHandler) {
         fwrite($fcHandler, $fcData);
         fclose($fcHandler);
