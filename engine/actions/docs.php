@@ -146,7 +146,7 @@ function renderDocs()
         'docs' => $docs,
     ];
 
-    $xt = $twig->loadTemplate('skins/default/tpl/docs.tpl');
+    $xt = $twig->loadTemplate('skins/'.\['admin_skin'].'/tpl/docs.tpl');
 
     $main_admin = $xt->render($tVars);
 }

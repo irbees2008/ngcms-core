@@ -66,5 +66,5 @@ foreach ($tlist as $tver) {
     $tVars['siteTemplates'][] = $tver;
 }
 
-$xt = $twig->loadTemplate('skins/default/tpl/templates.tpl');
+$xt = $twig->loadTemplate('skins/'.$config['admin_skin'].'/tpl/templates.tpl');
 $main_admin = $xt->render($tVars);

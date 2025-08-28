@@ -232,7 +232,7 @@ if (isset($_REQUEST['manageConfig']) && $_REQUEST['manageConfig']) {
         'config' => $confLine,
         'token'  => genUToken('admin.extras'),
     ];
-    $xt = $twig->loadTemplate('skins/default/tpl/extras/manage_config.tpl');
+    $xt = $twig->loadTemplate('skins/'.$config['admin_skin'].'/tpl/extras/manage_config.tpl');
 
     return $xt->render($tVars);
 

@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 
 //
 // Copyright (C) 2006-2017 Next Generation CMS (http://ngcms.ru/)
@@ -338,7 +338,7 @@ function systemDboForm()
         'token'    => genUToken('admin.dbo'),
     ];
 
-    $xt = $twig->loadTemplate('skins/default/tpl/dbo.tpl');
+    $xt = $twig->loadTemplate('skins/'.$config['admin_skin'].'/tpl/dbo.tpl');
 
     return $xt->render($tVars);
 }
@@ -348,3 +348,5 @@ if (isset($_REQUEST['subaction']) && ($_REQUEST['subaction'] == 'modify')) {
 }
 
 $main_admin = systemDboForm();
+
+

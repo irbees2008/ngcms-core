@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 //
 // Copyright (C) 2006-2013 Next Generation CMS (http://ngcms.ru/)
 // Name: news.php
@@ -198,7 +198,7 @@ function editNewsForm()
             $v->editNewsForm($id, $row, $tVars);
         }
     }
-    $xt = $twig->loadTemplate('skins/default/tpl/news/edit.tpl');
+    $xt = $twig->loadTemplate('skins/'.$config['admin_skin'].'/tpl/news/edit.tpl');
     return $xt->render($tVars);
 }
 //
@@ -539,8 +539,8 @@ function listNewsForm()
     }
     $tVars['catmenu'] = $tcRecs;
     $tVars['cat_active'] = ((isset($_REQUEST['category']) && (isset($catmap[intval($_REQUEST['category'])])))) ? intval($_REQUEST['category']) : 0;
-    //$xt = $twig->loadTemplate('skins/default/tpl/news/table_catalog.tpl');
-    $xt = $twig->loadTemplate('skins/default/tpl/news/table.tpl');
+    //$xt = $twig->loadTemplate('skins/'.\['admin_skin'].'/tpl/news/table_catalog.tpl');
+    $xt = $twig->loadTemplate('skins/'.$config['admin_skin'].'/tpl/news/table.tpl');
     return $xt->render($tVars);
 }
 // ======================================================================================================
@@ -619,7 +619,7 @@ function addNewsForm($retry = '')
             $v->addNewsForm($tVars);
         }
     }
-    $xt = $twig->loadTemplate('skins/default/tpl/news/add.tpl');
+    $xt = $twig->loadTemplate('skins/'.$config['admin_skin'].'/tpl/news/add.tpl');
     return $xt->render($tVars);
 }
 // #==============================================================================#
@@ -682,3 +682,4 @@ do {
     }
     $main_admin = listNewsForm();
 } while (false);
+

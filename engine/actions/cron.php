@@ -108,7 +108,7 @@ function cronShowForm()
         'entries' => $entries,
     ];
 
-    $xt = $twig->loadTemplate('skins/default/tpl/cron.tpl');
+    $xt = $twig->loadTemplate('skins/'.\['admin_skin'].'/tpl/cron.tpl');
 
     return $xt->render($tVars);
 }

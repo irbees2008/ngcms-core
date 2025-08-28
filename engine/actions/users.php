@@ -15,7 +15,7 @@ LoadPluginLibrary('uprofile', 'lib');
 // Form: Edit user
 function userEditForm()
 {
-    global $mysql, $lang, $twig, $mod, $PFILTERS, $UGROUP, $PHP_SELF;
+    global $mysql, $lang, $twig, $mod, $PFILTERS, $UGROUP, $PHP_SELF, $config;
     $id = (getIsSet($_REQUEST['id'])) ? intval($_REQUEST['id']) : 0;
     // Determine user's permissions
     $perm = checkPermission(['plugin' => '#admin', 'item' => 'users'], null, ['modify', 'details']);
@@ -67,7 +67,7 @@ function userEditForm()
         }
     }
     ngSYSLOG(['plugin' => '#admin', 'item' => 'users', 'ds_id' => $id], ['action' => 'editForm'], null, [1]);
-    $xt = $twig->loadTemplate('skins/default/tpl/users/edit.tpl');
+    $xt = $twig->loadTemplate('skins/'.$config['admin_skin'].'/tpl/users/edit.tpl');
     return $xt->render($tVars);
 }
 //
@@ -288,7 +288,7 @@ function userMassDeleteInactive()
 // Show list of users
 function userList()
 {
-    global $mysql, $lang, $mod, $userROW, $UGROUP, $twig, $PHP_SELF;
+    global $mysql, $lang, $mod, $userROW, $UGROUP, $twig, $PHP_SELF, $config;
     // Check for permissions
     if (!checkPermission(['plugin' => '#admin', 'item' => 'users'], null, 'view')) {
         msg(['type' => 'error', 'text' => $lang['perm.denied']], 1, 1);
@@ -418,7 +418,7 @@ function userList()
             'haveComments'  => getPluginStatusInstalled('comments') ? 1 : 0,
         ],
     ];
-    $xt = $twig->loadTemplate('skins/default/tpl/users/table.tpl');
+    $xt = $twig->loadTemplate('skins/'.$config['admin_skin'].'/tpl/users/table.tpl');
     return $xt->render($tVars);
 }
 // ==============================================

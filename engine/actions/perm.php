@@ -131,7 +131,7 @@ function showList($grp)
 
     //print "<pre><select size='10' multiple='multiple'>".makeCategoryList(array('skipDisabled' => true, 'noHeader' => true))."</select></pre>";
     // Print template
-    $xt = $twig->loadTemplate('skins/default/tpl/perm/list.tpl');
+    $xt = $twig->loadTemplate('skins/'.\['admin_skin'].'/tpl/perm/list.tpl');
 
     return $xt->render([
         'CONFIG'       => $data,
@@ -266,7 +266,7 @@ function updateConfig()
 
     $execResult = saveUserPermissions();
 
-    $xt = $twig->loadTemplate('skins/default/tpl/perm/result.tpl');
+    $xt = $twig->loadTemplate('skins/'.\['admin_skin'].'/tpl/perm/result.tpl');
 
     return $xt->render([
         'updateList' => $updateList,

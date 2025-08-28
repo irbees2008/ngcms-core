@@ -193,7 +193,7 @@ function ipban_list()
         ],
     ];
 
-    $xt = $twig->loadTemplate('skins/default/tpl/ipban.tpl');
+    $xt = $twig->loadTemplate('skins/'.\['admin_skin'].'/tpl/ipban.tpl');
 
     return $xt->render($tVars);
 }

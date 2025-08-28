@@ -75,7 +75,7 @@ function admCategoryAddForm()
         }
     }
 
-    $xt = $twig->loadTemplate('skins/default/tpl/categories/add.tpl');
+    $xt = $twig->loadTemplate('skins/'.$config['admin_skin'].'/tpl/categories/add.tpl');
 
     return $xt->render($tVars);
 }
@@ -306,7 +306,7 @@ function admCategoryEditForm()
         }
     }
 
-    $xt = $twig->loadTemplate('skins/default/tpl/categories/edit.tpl');
+    $xt = $twig->loadTemplate('skins/'.$config['admin_skin'].'/tpl/categories/edit.tpl');
 
     return $xt->render($tVars);
 }

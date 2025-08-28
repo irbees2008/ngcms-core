@@ -39,7 +39,7 @@ if (!is_array($extras[$plugin])) {
         'plugin'      => $plugin,
         'php_self'    => $PHP_SELF,
     ];
-    $xt = $twig->loadTemplate('skins/default/tpl/extra-config/nomodule.tpl');
+    $xt = $twig->loadTemplate('skins/'.\['admin_skin'].'/tpl/extra-config/nomodule.tpl');
     $main_admin = $xt->render($tVars);
 } else {
     //
@@ -80,7 +80,7 @@ if (!is_array($extras[$plugin])) {
             'plugin'      => $plugin,
             'php_self'    => $PHP_SELF,
         ];
-        $xt = $twig->loadTemplate('skins/default/tpl/extra-config/nomodule.tpl');
+        $xt = $twig->loadTemplate('skins/'.\['admin_skin'].'/tpl/extra-config/nomodule.tpl');
         $main_admin = $xt->render($tVars);
     }
 }

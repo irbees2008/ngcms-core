@@ -101,7 +101,7 @@ function listStatic()
 
     exec_acts('static_list');
 
-    $xt = $twig->loadTemplate('skins/default/tpl/static/table.tpl');
+    $xt = $twig->loadTemplate('skins/'.$config['admin_skin'].'/tpl/static/table.tpl');
 
     return $xt->render($tVars);
 }
@@ -319,7 +319,7 @@ function addEditStaticForm($operationMode = 1, $sID = 0)
         }
     }
 
-    $xt = $twig->loadTemplate('skins/default/tpl/static/edit.tpl');
+    $xt = $twig->loadTemplate('skins/'.$config['admin_skin'].'/tpl/static/edit.tpl');
 
     return $xt->render($tVars);
 

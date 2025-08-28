@@ -59,7 +59,7 @@ function pm_send()
 
 function pm_list()
 {
-    global $lang, $userROW, $twig;
+    global $lang, $userROW, $twig, $config;
 
     $tVars = [
         'entries'   => [],
@@ -92,14 +92,14 @@ function pm_list()
         ];
         $tVars['entries'][] = $tEntry;
     }
-    $xt = $twig->loadTemplate('skins/default/tpl/pm/table.tpl');
+    $xt = $twig->loadTemplate('skins/'.$config['admin_skin'].'/tpl/pm/table.tpl');
 
     return $xt->render($tVars);
 }
 
 function pm_read()
 {
-    global $lang, $userROW, $parse, $twig;
+    global $lang, $userROW, $parse, $twig, $config;
 
     if (!isset($_REQUEST['pmid'])) {
         msg(['type' => 'error', 'text' => $lang['msge_bad']]);
@@ -137,7 +137,7 @@ function pm_read()
                 msg(['type' => 'error', 'text' => $lang['error.security.token']]);
             }
         }
-        $xt = $twig->loadTemplate('skins/default/tpl/pm/read.tpl');
+        $xt = $twig->loadTemplate('skins/'.$config['admin_skin'].'/tpl/pm/read.tpl');
 
         return $xt->render($tVars);
     } else {
@@ -187,7 +187,7 @@ function pm_reply()
             $r = locateUserById($row['to_id']);
             $tVars['fromName'] = (isset($r['name'])) ? $r['name'] : $lang['udeleted'];
         }
-        $xt = $twig->loadTemplate('skins/default/tpl/pm/reply.tpl');
+        $xt = $twig->loadTemplate('skins/'.$config['admin_skin'].'/tpl/pm/reply.tpl');
 
         return $xt->render($tVars);
     } else {
@@ -204,7 +204,7 @@ function pm_write()
         'smilies'   => ($config['use_smilies'] == '1') ? InsertSmilies('content', 10) : '',
         'token'     => genUToken('pm.token'),
     ];
-    $xt = $twig->loadTemplate('skins/default/tpl/pm/write.tpl');
+    $xt = $twig->loadTemplate('skins/'.$config['admin_skin'].'/tpl/pm/write.tpl');
 
     return $xt->render($tVars);
 }

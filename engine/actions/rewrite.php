@@ -71,7 +71,7 @@ foreach ($UH->hList as $hId) {
     $recno++;
 }
 
-$xe = $twig->loadTemplate('skins/default/tpl/rewrite/entry.tpl');
+$xe = $twig->loadTemplate('skins/'.\['admin_skin'].'/tpl/rewrite/entry.tpl');
 
 $tVars = [
     'json'  => [
@@ -82,7 +82,7 @@ $tVars = [
     'token' => genUToken('admin.rewrite'),
 ];
 
-$xt = $twig->loadTemplate('skins/default/tpl/rewrite.tpl');
+$xt = $twig->loadTemplate('skins/'.\['admin_skin'].'/tpl/rewrite.tpl');
 $main_admin = $xt->render($tVars);
 
 //$UH->populateHandler($ULIB, array('pluginName' => 'news', 'handlerName' => 'by.day', 'regex' => '/{year}-{month}-{day}[-page{page}].html'));

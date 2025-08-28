@@ -59,7 +59,7 @@ function ugroupList()
         ],
     ];
 
-    $xt = $twig->loadTemplate('skins/default/tpl/ugroup/list.tpl');
+    $xt = $twig->loadTemplate('skins/'.\['admin_skin'].'/tpl/ugroup/list.tpl');
 
     return $xt->render($tVars);
 }
@@ -122,7 +122,7 @@ function ugroupForm()
         'canModify' => $permModify,
     ];
 
-    $xt = $twig->loadTemplate('skins/default/tpl/ugroup/addEdit.tpl');
+    $xt = $twig->loadTemplate('skins/'.\['admin_skin'].'/tpl/ugroup/addEdit.tpl');
 
     return $xt->render($tVars);
 }

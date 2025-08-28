@@ -95,15 +95,15 @@ function admCategoryList($retMode = 0)
 
     switch ($retMode) {
         case 1:
-            $xt = $twig->loadTemplate('skins/default/tpl/categories/table.tpl');
+            $xt = $twig->loadTemplate('skins/'.$config['admin_skin'].'/tpl/categories/table.tpl');
 
             return $xt->render($tVars);
         case 2:
-            $xt = $twig->loadTemplate('skins/default/tpl/categories/entries.tpl');
+            $xt = $twig->loadTemplate('skins/'.$config['admin_skin'].'/tpl/categories/entries.tpl');
 
             return $xt->render($tVars);
         default:
-            $xt = $twig->loadTemplate('skins/default/tpl/categories/table.tpl');
+            $xt = $twig->loadTemplate('skins/'.$config['admin_skin'].'/tpl/categories/table.tpl');
 
             return $xt->render($tVars);
     }
