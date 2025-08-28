@@ -296,8 +296,16 @@ function generate_restorepw_page(array $params, array $values = [], string $msg 
         } elseif ($param['type'] == 'manual') {
             $tvars['input'] = $param['manual'];
         }
-        $entryTemplate = $param['text'] ? 'lostpassword.entry-full.tpl' : 'lostpassword.entries.tpl';
-        $entries .= $twig->render($entryTemplate, $tvars);
+        if ($param['text']) {
+            // Для entry-full (сообщение)
+            $entries .= '<div class="alert alert-info">' . $param['text'] . '</div>';
+        } else {
+            // Для entries (поля формы)
+            $entries .= '<div class="label label-table label-success">';
+            $entries .= '<label>' . $tvars['title'] . ':</label>';
+            $entries .= '<span class="input2">' . $tvars['input'] . '</span>';
+            $entries .= '</div>';
+        }
     }
     $tvars = [
         'entries' => $entries,
