@@ -1,44 +1,33 @@
 <?php
-
 //
 // Copyright (C) 2006-2020 Next Generation CMS (http://ngcms.ru/)
 // Name: pm.php
 // Description: Personal messages
 // Author: NGCMS Development Team
 //
-
 // Protect against hack attempts
 if (!defined('NGCMS')) {
     exit('HAL');
 }
-
 $lang = LoadLang('pm', 'admin');
-
 function pm_send()
 {
     global $lang, $userROW;
-
     $sendto = trim($_REQUEST['sendto']);
     $title = secure_html($_REQUEST['title']);
     $content = $_REQUEST['content'];
-
     if (!$title || mb_strlen($title) > 50) {
         msg(['type' => 'error', 'text' => $lang['msge_title'], 'info' => $lang['msgi_title']]);
-
         return;
     }
     if (!$content || mb_strlen($content) > 3000) {
         msg(['type' => 'error', 'text' => $lang['msge_content'], 'info' => $lang['msgi_content']]);
-
         return;
     }
-
     if (!isset($_REQUEST['token']) || ($_REQUEST['token'] != genUToken('pm.token'))) {
         msg(['type' => 'error', 'text' => $lang['error.security.token']]);
-
         return;
     }
-
     $db = NGEngine::getInstance()->getDB();
     $query = 'select * from '.uprefix.'_users where name = :name';
     $params = ['name' => $sendto];
@@ -46,26 +35,21 @@ function pm_send()
         $query = 'select * from '.uprefix.'_users where id = :id';
         $params = ['id' => $sendto];
     }
-
     if ($sendto && ($torow = $db->record($query, $params))) {
         $content = secure_html(trim($content));
-
         $db->exec('insert into '.uprefix.'_users_pm (from_id, to_id, pmdate, title, content) values (:from_id, :to_id, unix_timestamp(now()), :title, :content)', ['from_id' => $userROW['id'], 'to_id' => $torow['id'], 'title' => $title, 'content' => $content]);
         msg(['text' => $lang['msgo_sent']]);
     } else {
         msg(['type' => 'error', 'text' => $lang['msge_nouser'], 'info' => $lang['msgi_nouser']]);
     }
 }
-
 function pm_list()
 {
     global $lang, $userROW, $twig, $config;
-
     $tVars = [
         'entries'   => [],
         'token'     => genUToken('pm.token'),
     ];
-
     $db = NGEngine::getInstance()->getDB();
     foreach ($db->query('select pm.*, u.id as uid, u.name as uname from '.uprefix.'_users_pm pm left join '.uprefix.'_users u on pm.from_id=u.id where pm.to_id = :id order by pmid desc limit 0, 30', ['id' => $userROW['id']]) as $row) {
         $senderProfileURL = '';
@@ -93,20 +77,15 @@ function pm_list()
         $tVars['entries'][] = $tEntry;
     }
     $xt = $twig->loadTemplate('skins/'.$config['admin_skin'].'/tpl/pm/table.tpl');
-
     return $xt->render($tVars);
 }
-
 function pm_read()
 {
     global $lang, $userROW, $parse, $twig, $config;
-
     if (!isset($_REQUEST['pmid'])) {
         msg(['type' => 'error', 'text' => $lang['msge_bad']]);
-
         return;
     }
-
     $db = NGEngine::getInstance()->getDB();
     if ($row = $db->record('select * from '.uprefix.'_users_pm where pmid = :pmid and (to_id = :to_id or from_id= :from_id)', ['pmid' => $_REQUEST['pmid'], 'to_id' => $userROW['id'], 'from_id' => $userROW['id']])) {
         $tVars = [
@@ -119,7 +98,6 @@ function pm_read()
             'toName'    => $lang['messaging'],
             'content'   => $parse->htmlformatter($parse->smilies($parse->bbcodes($row['content']))),
         ];
-
         if ($row['from_id'] > 0) {
             $r = locateUserById($row['from_id']);
             $tVars['fromName'] = (isset($r['name'])) ? $r['name'] : $lang['udeleted'];
@@ -128,7 +106,6 @@ function pm_read()
             $r = locateUserById($row['to_id']);
             $tVars['toName'] = (isset($r['name'])) ? $r['name'] : $lang['udeleted'];
         }
-
         if ((!$row['viewed']) && ($row['to_id'] == $userROW['id'])) {
             // Mark as read ONLY if token is correct
             if (isset($_REQUEST['token']) && ($_REQUEST['token'] == genUToken('pm.token'))) {
@@ -138,31 +115,24 @@ function pm_read()
             }
         }
         $xt = $twig->loadTemplate('skins/'.$config['admin_skin'].'/tpl/pm/read.tpl');
-
         return $xt->render($tVars);
     } else {
         msg(['type' => 'error', 'text' => $lang['msge_bad']]);
     }
 }
-
 function pm_reply()
 {
     global $config, $lang, $userROW, $twig;
-
     if (!isset($_REQUEST['pmid'])) {
         msg(['type' => 'error', 'text' => $lang['msge_reply']]);
-
         return;
     }
-
     $db = NGEngine::getInstance()->getDB();
     if ($row = $db->record('select * from '.uprefix.'_users_pm where pmid = :pmid and (to_id = :to_id or from_id= :from_id)', ['pmid' => $_REQUEST['pmid'], 'to_id' => $userROW['id'], 'from_id' => $userROW['id']])) {
         if (!is_array($row)) {
             msg(['type' => 'error', 'text' => $lang['msge_reply']]);
-
             return;
         }
-
         $reTitle = 'Re:'.$row['title'];
         if (mb_strlen($reTitle) > 50) {
             $reTitle = mb_substr($reTitle, 0, 50);
@@ -178,7 +148,6 @@ function pm_reply()
             'fromName'  => $lang['messaging'],
             'toName'    => $lang['messaging'],
         ];
-
         if ($row['from_id'] > 0) {
             $r = locateUserById($row['from_id']);
             $tVars['toName'] = (isset($r['name'])) ? $r['name'] : $lang['udeleted'];
@@ -188,51 +157,40 @@ function pm_reply()
             $tVars['fromName'] = (isset($r['name'])) ? $r['name'] : $lang['udeleted'];
         }
         $xt = $twig->loadTemplate('skins/'.$config['admin_skin'].'/tpl/pm/reply.tpl');
-
         return $xt->render($tVars);
     } else {
         msg(['type' => 'error', 'text' => $lang['msge_bad']]);
     }
 }
-
 function pm_write()
 {
     global $config, $twig;
-
     $tVars = [
         'quicktags' => QuickTags('', 'pmmes'),
         'smilies'   => ($config['use_smilies'] == '1') ? InsertSmilies('content', 10) : '',
         'token'     => genUToken('pm.token'),
     ];
     $xt = $twig->loadTemplate('skins/'.$config['admin_skin'].'/tpl/pm/write.tpl');
-
     return $xt->render($tVars);
 }
-
 function pm_delete()
 {
     global $lang, $userROW;
-
     if (!isset($_REQUEST['token']) || ($_REQUEST['token'] != genUToken('pm.token'))) {
         msg(['type' => 'error', 'text' => $lang['error.security.token']]);
-
         return;
     }
-
     $selected_pm = getIsSet($_REQUEST['selected_pm']);
     if (!$selected_pm || !is_array($selected_pm)) {
         msg(['type' => 'error', 'text' => $lang['msge_select']]);
-
         return;
     }
-
     $db = NGEngine::getInstance()->getDB();
     foreach ($selected_pm as $id) {
         $db->exec('delete from '.uprefix.'_users_pm where pmid = :pmid and (from_id= :from_id or to_id= :to_id)', ['pmid' => $id, 'from_id' => $userROW['id'], 'to_id' => $userROW['id']]);
     }
     msg(['text' => $lang['msgo_deleted']]);
 }
-
 switch ($action) {
     case 'read':
         $main_admin = pm_read();

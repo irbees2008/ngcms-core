@@ -25,7 +25,6 @@ $ULIB->registerCommand(
     ]
 );
 
-/*
 
 $ULIB->registerCommand('core', 'plugin',
         array ('vars' =>
@@ -200,7 +199,6 @@ $ULIB->registerCommand('search', '',
                 'descr'	=> array ('russian' => 'Страница поиска'),
         )
 );
-*/
 
 // ---------------------------------
 /*

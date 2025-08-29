@@ -1,18 +1,14 @@
 <?php
-
 //
 // Copyright (C) 2006-2020 Next Generation CMS (http://ngcms.ru/)
 // Name: docs.php
 // Description: Docs viewer
 //
-
 // Protect against hack attempts
 if (!defined('NGCMS')) {
     exit('HAL');
 }
-
 use Michelf\MarkdownExtra;
-
 /**
  * Determine if a given string ends with a given substring.
  *
@@ -30,10 +26,8 @@ function endsWith($haystack, $needles)
             return true;
         }
     }
-
     return false;
 }
-
 /**
  * Determine if a given string starts with a given substring.
  *
@@ -51,10 +45,8 @@ function startsWith($haystack, $needles)
             return true;
         }
     }
-
     return false;
 }
-
 /**
  * Get markdown parser.
  *
@@ -63,10 +55,8 @@ function startsWith($haystack, $needles)
 function getMarkdownParser()
 {
     $parser = new MarkdownExtra();
-
     // enable nl2br
     $parser->hard_wrap = true;
-
     /**
      * Url filter.
      *
@@ -76,27 +66,21 @@ function getMarkdownParser()
      */
     $parser->url_filter_func = function ($url) {
         global $config;
-
         $docUrl = $config['admin_url'] . '/admin.php?mod=docs';
-
         if ($url === '') {
             return $docUrl;
         }
-
         if (startsWith($url, ['http:', 'https:'])) {
             return $url;
         }
-
         if (endsWith($url, ['.md'])) {
             return $docUrl . '&file=' . $url;
         } else {
             return $config['home_url'] . '/docs/' . $url;
         }
     };
-
     return $parser;
 }
-
 /**
  * Render markdown.
  *
@@ -107,48 +91,35 @@ function getMarkdownParser()
 function renderMarkdown($file)
 {
     global $main_admin;
-
     $file = str_replace(['../', './'], '', $file);
-
     if (mb_strlen($file) > 0 && !startsWith($file, '/') && endsWith($file, '.md')) {
         $paths = [
             root,
             site_root . 'docs/',
         ];
-
         foreach ($paths as $path) {
             if (file_exists($path . $file)) {
                 $content = file_get_contents($path . $file);
             }
         }
-
         if (mb_strlen($content) > 0) {
             $parser = getMarkdownParser();
-
             return  $parser->transform($content);
         }
     }
-
     return false;
 }
-
 function renderDocs()
 {
-    global $main_admin, $twig;
-
+    global $main_admin, $twig, $config;
     $file = $_REQUEST['file'] ?? 'about.md';
-
     $menu = renderMarkdown('menu.md');
     $docs = renderMarkdown($file);
-
     $tVars = [
         'menu' => $menu,
         'docs' => $docs,
     ];
-
     $xt = $twig->loadTemplate('skins/' . $config['admin_skin'] . '/tpl/docs.tpl');
-
     $main_admin = $xt->render($tVars);
 }
-
 renderDocs();

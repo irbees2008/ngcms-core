@@ -1,19 +1,15 @@
 <?php
-
 //
 // Copyright (C) 2006-2012 Next Generation CMS (http://ngcms.ru/)
 // Name: templates.php
 // Description: Manage/Edit templates
 // Author: Vitaly Ponomarev, Alexey Zinchenko
 //
-
 // Protect against hack attempts
 if (!defined('NGCMS')) {
     exit('HAL');
 }
-
 LoadLang('templates', 'admin', 'templates');
-
 //
 // Preload templates version files
 //
@@ -44,27 +40,21 @@ function loadTemplateVersions()
         }
         closedir($dRec);
     }
-
     return $tlist;
 }
-
 //
 // ================================================================== //
 //                              CODE                                  //
 // ================================================================== //
 //
-
 $tVars = [
     'home_url' => home,
     'token'    => genUToken('admin.templates'),
 ];
-
 $tVars['siteTemplates'] = [];
-
 $tlist = loadTemplateVersions();
 foreach ($tlist as $tver) {
     $tVars['siteTemplates'][] = $tver;
 }
-
 $xt = $twig->loadTemplate('skins/'.$config['admin_skin'].'/tpl/templates.tpl');
 $main_admin = $xt->render($tVars);

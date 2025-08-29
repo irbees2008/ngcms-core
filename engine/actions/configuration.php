@@ -216,6 +216,25 @@ function systemConfigEditForm()
 // Check if SAVE is requested and SAVE was successfull
 if (isset($_REQUEST['subaction']) && ($_REQUEST['subaction'] == 'save') && ($_SERVER['REQUEST_METHOD'] == 'POST') && systemConfigSave()) {
     @include confroot.'config.php';
+    
+    // Clear cache
+    if (isset($_REQUEST['clear_cache']) && $_REQUEST['clear_cache'] == '1') {
+        $cacheDir = root . 'cache/';
+        if (is_dir($cacheDir)) {
+            $files = glob($cacheDir . '*');
+            foreach($files as $file) {
+                if(is_file($file)) {
+                    @unlink($file);
+                }
+            }
+        }
+    }
+    
+    // Redirect to refresh page with new skin
+    if (isset($_REQUEST['redirect']) && $_REQUEST['redirect']) {
+        header('Location: ' . $_REQUEST['redirect']);
+        exit;
+    }
 }
 
 // Show configuration form
