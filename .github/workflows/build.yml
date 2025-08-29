@@ -9,7 +9,7 @@ on:
 jobs:
   build:
     name: Build
-    runs-on: ubuntu-24.04  # Используем конкретную версию runner-образа для стабильности
+    runs-on: ubuntu-24.04
 
     steps:
       - name: Checkout repository
@@ -43,7 +43,7 @@ jobs:
           composer install --no-dev --prefer-dist
           echo ${{ github.sha }} > engine/cache/build
 
-      - name: Cleanup
+      - name: Cleanup and create archive
         if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.ref != 'refs/heads/master')
         run: |
           cd ~/build
@@ -51,11 +51,20 @@ jobs:
           rm -rf .github
           rm -rf engine/plugins/.git
           mkdir -p ~/package
-          tar -czf ~/package/ngcms-current-build.tgz .
+          
+          # Определяем имя архива с номером правки
+          if [ "${{ github.event_name }}" == "pull_request" ]; then
+            ARCHIVE_NAME="ngcms-current-build #${{ github.event.pull_request.number }}.zip"
+          else
+            ARCHIVE_NAME="ngcms-current-build.zip"
+          fi
+          
+          # Создаем zip архив
+          zip -rq ~/package/"$ARCHIVE_NAME" .
 
       - name: Upload artifact
         if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.ref != 'refs/heads/master')
         uses: actions/upload-artifact@v4
         with:
-          name: ngcms-current-build
-          path: ~/package
+          name: ngcms-build
+          path: ~/package/
