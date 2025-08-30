@@ -25,7 +25,7 @@ $.timepicker.setDefaults($.timepicker.regional['{{ lang['langcode'] }}']);
 </head>
 <body>
 <div id="loading-layer"><img src="{{ skins_url }}/images/loading.gif" alt="" /> {{ lang['loading'] }} ...</div>
-<table border="0" width="1740" align="center" cellspacing="0" cellpadding="0">
+<table border="0" width="1440" align="center" cellspacing="0" cellpadding="0">
 <tr>
 <td width="100%">
 <div id="topNavigator">
@@ -42,7 +42,7 @@ $.timepicker.setDefaults($.timepicker.regional['{{ lang['langcode'] }}']);
 	<span{% if global.mod == 'configuration' %} class="active"{% endif %}><a href="{{ php_self }}?mod=configuration" title="{{ lang['configuration_t'] }}">{{ lang['configuration'] }}</a></span>
 	<span{% if global.mod in ['dbo', 'rewrite', 'cron', 'statistics'] %} class="active"{% endif %}><a href="{{ php_self }}?mod=dbo" title="{{ lang['dbo_t'] }}">{{ lang['options_database'] }}</a></span>
 	<span><a href="{{ php_self }}?mod=statistics" title="{{ lang['statistics_t'] }}">{{ lang['statistics'] }}</a></span>
-	<span{% if global.mod == 'pm' %} class="active"{% endif %}><a href="{{ php_self }}?mod=pm" title="{{ lang['pm_t'] }}">{{ lang['pm'] }}</a> [ {{ newpmText }} ]</span>
+	<span{% if global.mod == 'pm' %} class="active"{% endif %}><a href="{{ php_self }}?mod=pm" title="{{ lang['pm_t'] }}">{{ lang['pm'] }}</a> </span>
 	<span><a href="{{ php_self }}?action=logout" title="{{ lang['logout_t'] }}">{{ lang['logout'] }}</a></span>
 </div>
 <div id="adminDataBlock" style="text-align : left;">
