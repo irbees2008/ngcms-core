@@ -52,11 +52,14 @@ jobs:
             ARCHIVE_NAME="ngcms-build-${GITHUB_SHA:0:7}.zip"
           fi
           
-          # Создаем архив с содержимым папки build (без вложенной папки)
+          # Создаем архив с содержимым папки build
           zip -rq ~/package/"$ARCHIVE_NAME" .
+          
+          # Сохраняем путь к архиву для следующего шага
+          echo "ARCHIVE_PATH=~/package/$ARCHIVE_NAME" >> $GITHUB_ENV
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ngcms-builds
-          path: ~/package/
+          name: ngcms-build
+          path: ${{ env.ARCHIVE_PATH }}
