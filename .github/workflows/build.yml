@@ -42,9 +42,7 @@ jobs:
       - name: Cleanup and create archive
         run: |
           cd ~/build
-          rm -rf .git
-          rm -rf .github
-          rm -rf engine/plugins/.git
+          rm -rf .git .github engine/plugins/.git
           mkdir -p ~/package
           
           # Определяем имя архива
@@ -54,12 +52,11 @@ jobs:
             ARCHIVE_NAME="ngcms-build-${GITHUB_SHA:0:7}.zip"
           fi
           
-          # Упаковываем извне, чтобы избежать двойного архивирования
-          cd ~
-          zip -rq package/"$ARCHIVE_NAME" build/
+          # Создаем архив с содержимым папки build (без вложенной папки)
+          zip -rq ~/package/"$ARCHIVE_NAME" .
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ngcms-package
+          name: ngcms-builds
           path: ~/package/
