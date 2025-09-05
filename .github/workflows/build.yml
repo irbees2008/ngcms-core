@@ -39,13 +39,27 @@ jobs:
           composer install --no-dev --prefer-dist
           echo ${{ github.sha }} > engine/cache/build
 
-      - name: Cleanup
+      - name: Cleanup and prepare
         run: |
           cd ~/build
           rm -rf .git .github engine/plugins/.git
+          
+          # Определяем имя для папки
+          if [ "${{ github.event_name }}" == "pull_request" ]; then
+            FOLDER_NAME="ngcms-build-pr-${{ github.event.number }}"
+          else
+            FOLDER_NAME="ngcms-build-${GITHUB_SHA:0:7}"
+          fi
+          
+          # Переименовываем папку build
+          cd ~
+          mv build "$FOLDER_NAME"
+          
+          # Сохраняем имя папки для следующего шага
+          echo "FOLDER_NAME=$FOLDER_NAME" >> $GITHUB_ENV
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ngcms-build
-          path: ~/build/
+          name: ${{ env.FOLDER_NAME }}
+          path: ~/${{ env.FOLDER_NAME }}/
