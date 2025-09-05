@@ -2,9 +2,9 @@ name: Build source code
 
 on:
   push:
-    branches: [master]
+    branches: [ master ]
   pull_request:
-    branches: [master]
+    branches: [ master ]
 
 jobs:
   build:
@@ -47,18 +47,19 @@ jobs:
           rm -rf engine/plugins/.git
           mkdir -p ~/package
           
-          # Определяем имя архива с номером правки
-          if [ "${{ github.event_name }}" = "pull_request" ]; then
+          # Определяем имя архива
+          if [ "${{ github.event_name }}" == "pull_request" ]; then
             ARCHIVE_NAME="ngcms-build-pr-${{ github.event.number }}.zip"
           else
             ARCHIVE_NAME="ngcms-build-${GITHUB_SHA:0:7}.zip"
           fi
           
-          # Создаем zip архив
-          zip -rq ~/package/"$ARCHIVE_NAME" .
+          # Упаковываем извне, чтобы избежать двойного архивирования
+          cd ~
+          zip -rq package/"$ARCHIVE_NAME" build/
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: build-package
+          name: ngcms-package
           path: ~/package/
