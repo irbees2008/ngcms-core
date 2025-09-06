@@ -36,6 +36,9 @@ $upgradeMatrix = [
         "UPDATE " . prefix . "_news SET xfields = '' WHERE xfields LIKE 'SER|a:%' AND xfields NOT LIKE '%}'",
         "UPDATE " . prefix . "_config SET value = 6 WHERE name = 'database.engine.revision'",
     ],
+    7 => [
+        "UPDATE " . prefix . "_config SET value = 7 WHERE name = 'database.engine.revision'",
+    ],
 ];
 // Получаем текущую версию БД
 $currentVersion = getCurrentDBVersion();
@@ -44,7 +47,58 @@ if ($currentVersion < minDBVersion) {
     echo renderUpgradeHeader($currentVersion, minDBVersion);
     doUpgrade($currentVersion + 1, minDBVersion);
 } else {
+    // Проверяем и восстанавливаем plugdata.php если нужно (одноразовая операция)
+    checkAndRepairPlugdataFile($currentVersion);
     echo renderNoUpgradeNeeded();
+}
+/**
+ * Проверяет и восстанавливает файл plugdata.php если нужно
+ */
+function checkAndRepairPlugdataFile($currentVersion): void
+{
+    // Выполняем восстановление только если версия БД >= 7 (после основных обновлений)
+    // и только один раз
+    if ($currentVersion >= 7) {
+        $repairDone = checkRepairStatus();
+        if (!$repairDone) {
+            echo "<div style='max-width:1000px; margin:20px auto; padding:20px; background:#f8f9fa; border-radius:5px;'>";
+            echo "<h3>Проверка файла настроек плагинов</h3>";
+            repairPlugdataFile();
+            markRepairAsDone();
+            echo "</div>";
+        }
+    }
+}
+/**
+ * Проверяет, было ли уже выполнено восстановление
+ */
+function checkRepairStatus(): bool
+{
+    $db = NGEngine::getInstance()->getDB();
+    try {
+        $result = $db->record(
+            "SELECT value FROM " . prefix . "_config WHERE name = 'plugdata.repair.done'"
+        );
+        return is_array($result) && $result['value'] == '1';
+    } catch (Exception $e) {
+        // Если таблицы нет или произошла ошибка, считаем что восстановление не делалось
+        return false;
+    }
+}
+/**
+ * Помечает восстановление как выполненное
+ */
+function markRepairAsDone(): void
+{
+    $db = NGEngine::getInstance()->getDB();
+    try {
+        $db->exec(
+            "INSERT INTO " . prefix . "_config (name, value) VALUES ('plugdata.repair.done', '1')
+             ON DUPLICATE KEY UPDATE value = '1'"
+        );
+    } catch (Exception $e) {
+        // Игнорируем ошибки при записи статуса
+    }
 }
 /**
  * Получает текущую версию БД
@@ -52,10 +106,14 @@ if ($currentVersion < minDBVersion) {
 function getCurrentDBVersion(): int
 {
     $db = NGEngine::getInstance()->getDB();
-    $versionRecord = $db->record(
-        "SELECT * FROM " . prefix . "_config WHERE name = 'database.engine.revision'"
-    );
-    return is_array($versionRecord) ? (int)$versionRecord['value'] : 0;
+    try {
+        $versionRecord = $db->record(
+            "SELECT * FROM " . prefix . "_config WHERE name = 'database.engine.revision'"
+        );
+        return is_array($versionRecord) ? (int)$versionRecord['value'] : 0;
+    } catch (Exception $e) {
+        return 0;
+    }
 }
 /**
  * Выполняет обновление БД
@@ -75,9 +133,48 @@ function doUpgrade(int $fromVersion, int $toVersion): void
             echo "<h4>Конвертация базы данных в UTF-8 (utf8mb4)</h4>";
             convertDatabaseEncodingToUtf8mb4($db);
         } else {
+            // Специальная логика для определенных версий
+            if ($version == 7) {
+                // Обновление плагина комментариев - ДОБАВЛЯЕМ ПОЛЕ moderated
+                echo "<h4>Обновление плагина комментариев</h4>";
+                $commentsTable = prefix . '_comments';
+                try {
+                    $tableExistsResult = $db->query("SHOW TABLES LIKE '{$commentsTable}'");
+                    $tableExists = false;
+                    if (is_array($tableExistsResult)) {
+                        $tableExists = count($tableExistsResult) > 0;
+                    } elseif ($tableExistsResult) {
+                        $tableExists = $tableExistsResult->rowCount() > 0;
+                    }
+                    if ($tableExists) {
+                        echo "<div class='action'><div class='status'>Таблица комментариев `{$commentsTable}` найдена.</div></div>";
+                        // Проверяем наличие поля 'moderated'
+                        if (!columnExists($db, $commentsTable, 'moderated')) {
+                            executeSqlWithReporting($db, "ALTER TABLE `{$commentsTable}` ADD `moderated` TINYINT(1) NOT NULL DEFAULT '1'");
+                            echo "<div class='action'><div class='success'>Поле 'moderated' успешно добавлено</div></div>";
+                        } else {
+                            echo "<div class='action'><div class='skipped'>Поле 'moderated' уже существует.</div></div>";
+                        }
+                    } else {
+                        echo "<div class='action'><div class='skipped'>Плагин комментариев не установлен (таблица `{$commentsTable}` не найдена). Обновление пропущено.</div></div>";
+                    }
+                } catch (Exception $e) {
+                    echo "<div class='action'><div class='status error'>Ошибка при обновлении плагина комментариев: " . htmlspecialchars($e->getMessage()) . "</div></div>";
+                }
+            }
             // Стандартная обработка для других версий
-            foreach ($upgradeMatrix[$version] as $sql) {
-                executeSqlWithReporting($db, $sql);
+            if (!empty($upgradeMatrix[$version])) {
+                foreach ($upgradeMatrix[$version] as $sql) {
+                    executeSqlWithReporting($db, $sql);
+                }
+            }
+            // В функции doUpgrade, внутри блока версии 7, после repairPlugdataFile():
+            if ($version == 7) {
+                echo "<h4>Восстановление файла настроек плагинов</h4>";
+                repairPlugdataFile();
+                // ДОБАВЛЯЕМ НОВЫЙ КОД ЗДЕСЬ:
+                echo "<h4>Обновление конфигурационного файла</h4>";
+                updateConfigFile();
             }
         }
         echo "</div></div>";
@@ -86,6 +183,137 @@ function doUpgrade(int $fromVersion, int $toVersion): void
     $db->exec("SET SQL_MODE=''");
     echo renderSuccessMessage();
     renderFooter();
+}
+/**
+ * Обновляет конфигурационный файл, добавляя параметр admin_skin если его нет
+ */
+function updateConfigFile(): void
+{
+    $configFile = confroot . 'config.php';
+    echo "<div class='action'>";
+    echo "<div class='status'>Проверка конфигурационного файла: " . htmlspecialchars($configFile) . "</div>";
+    if (!file_exists($configFile)) {
+        echo "<div class='skipped'>Файл конфигурации не существует</div>";
+        echo "</div>";
+        return;
+    }
+    // Читаем содержимое файла
+    $content = file_get_contents($configFile);
+    // Проверяем, существует ли уже параметр admin_skin
+    if (strpos($content, "'admin_skin'") !== false) {
+        echo "<div class='skipped'>Параметр 'admin_skin' уже существует</div>";
+        echo "</div>";
+        return;
+    }
+    // Ищем позицию строки 'theme'
+    $themePos = strpos($content, "'theme'");
+    if ($themePos === false) {
+        echo "<div class='error'>Параметр 'theme' не найден в конфигурационном файле</div>";
+        echo "</div>";
+        return;
+    }
+    // Находим конец строки с theme (ищем запятую)
+    $endPos = strpos($content, "',", $themePos);
+    if ($endPos === false) {
+        // Если нет запятой, ищем закрывающую кавычку
+        $endPos = strpos($content, "'", $themePos + 7);
+    }
+    if ($endPos === false) {
+        echo "<div class='error'>Не удалось определить конец строки 'theme'</div>";
+        echo "</div>";
+        return;
+    }
+    // Вставляем новую строку после theme
+    $newContent = substr_replace($content, ",\n  'admin_skin' => 'default'", $endPos + 1, 0);
+    // Создаем резервную копию
+    $backupFile = $configFile . '.backup_' . date('Ymd_His');
+    file_put_contents($backupFile, $content);
+    // Записываем обновленное содержимое
+    if (file_put_contents($configFile, $newContent)) {
+        echo "<div class='success'>Параметр 'admin_skin' => 'default' успешно добавлен после 'theme'</div>";
+        echo "<div class='status'>Резервная копия: " . basename($backupFile) . "</div>";
+    } else {
+        echo "<div class='error'>Ошибка записи в файл конфигурации</div>";
+    }
+    echo "</div>";
+}
+/**
+ * Восстанавливает файл plugdata.php
+ */
+function repairPlugdataFile(): void
+{
+    $plugdataFile = confroot . 'plugdata.php';
+    echo "<div class='action'>";
+    echo "<div class='status'>Проверка файла: " . htmlspecialchars($plugdataFile) . "</div>";
+    // Если файла нет - просто выходим, не создаем новый
+    if (!file_exists($plugdataFile)) {
+        echo "<div class='skipped'>Файл не существует. Плагины будут использовать настройки по умолчанию.</div>";
+        echo "</div>";
+        return;
+    }
+    $content = file_get_contents($plugdataFile);
+    $content = trim($content);
+    // Проверка на BOM
+    if (substr($content, 0, 3) === "\xEF\xBB\xBF") {
+        $content = substr($content, 3);
+        echo "<div class='status'>Обнаружен и удален BOM</div>";
+    }
+    // Пробуем десериализовать
+    $data = @unserialize($content);
+    if (is_array($data)) {
+        echo "<div class='success'>Файл корректный, восстановление не требуется</div>";
+    } else {
+        echo "<div class='error'>Файл поврежден, пытаемся восстановить...</div>";
+        // Пробуем восстановить
+        $repaired = repairSerializedData($content);
+        if ($repaired !== $content) {
+            // Проверяем восстановленные данные
+            $testData = @unserialize($repaired);
+            if (is_array($testData)) {
+                // Создаем резервную копию
+                $backupFile = $plugdataFile . '.backup_' . date('Ymd_His');
+                file_put_contents($backupFile, $content);
+                // Сохраняем исправленную версию
+                file_put_contents($plugdataFile, $repaired);
+                echo "<div class='success'>Файл успешно восстановлен! Резервная копия: " . basename($backupFile) . "</div>";
+            } else {
+                echo "<div class='error'>Автоматическое восстановление не удалось. Файл остался без изменений.</div>";
+            }
+        } else {
+            echo "<div class='error'>Не удалось восстановить автоматически. Файл остался без изменений.</div>";
+        }
+    }
+    echo "</div>";
+}
+/**
+ * Восстанавливает сериализованные данные
+ */
+function repairSerializedData($data)
+{
+    // 1. Убираем лишние символы в начале/конце
+    $data = trim($data);
+    // 2. Проверяем корректность структуры
+    if (substr($data, 0, 2) !== 'a:') {
+        // Пробуем найти начало массива
+        if (preg_match('/a:\d+:\{/', $data, $matches, PREG_OFFSET_CAPTURE)) {
+            $startPos = $matches[0][1];
+            $data = substr($data, $startPos);
+        } else {
+            return $data;
+        }
+    }
+    // 3. Исправляем некорректные длины строк
+    $data = preg_replace_callback('/s:(\d+):"([^"]*)";/', function ($matches) {
+        $correctLength = strlen($matches[2]);
+        return 's:' . $correctLength . ':"' . $matches[2] . '";';
+    }, $data);
+    // 4. Исправляем проблемы с кодировкой
+    if (function_exists('mb_convert_encoding')) {
+        $data = mb_convert_encoding($data, 'UTF-8', 'UTF-8');
+    }
+    // 5. Исправляем распространенные проблемы с сериализацией NGCMS
+    $data = str_replace('SER[a:', 'SER|a:', $data);
+    return $data;
 }
 /**
  * Получает тип столбца
@@ -227,7 +455,7 @@ function convertDatabaseEncodingToUtf8mb4($db): void
                 echo "<div class='status'>Обнаружено поле xfields - особая обработка</div>";
                 // Шаг 1: Определяем текущий тип поля
                 $currentType = getColumnType($db, $tableName, 'xfields');
-                // Шаг 2: Сохраняем данные во временную таблицу
+                // Шаг 2: Сохраняем данные во временную таблицию
                 $backupTable = "backup_{$tableName}_xfields";
                 executeSqlWithReporting($db, "CREATE TEMPORARY TABLE `{$backupTable}` AS SELECT id, xfields FROM `{$tableName}` WHERE xfields != ''");
                 // Шаг 3: Конвертируем таблицу
@@ -505,11 +733,12 @@ function renderSuccessMessage(): string
     <div class="success-message">
         <h2><i class="icon-success"></i> Обновление успешно завершено!</h2>
         <p>База данных была успешно обновлена до последней версии.</p>
+        <a href="/" class="btn">Перейти на сайт</a>
     </div>
     HTML;
 }
 /**
- * Сообщение, что обновление не требуется
+ * Сообщение о ненужности обновления
  */
 function renderNoUpgradeNeeded(): string
 {
@@ -518,66 +747,47 @@ function renderNoUpgradeNeeded(): string
     <html lang="ru">
     <head>
         <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Статус базы данных NGCMS</title>
+        <title>Обновление не требуется</title>
         <style>
             body {
                 font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-                line-height: 1.6;
-                color: #333;
-                background: #f5f7fa;
-                padding: 20px;
-                max-width: 1000px;
-                margin: 0 auto;
                 text-align: center;
+                padding: 50px;
+                background: #f5f7fa;
             }
             .message {
-                background: #27ae60;
-                color: white;
-                padding: 30px;
-                border-radius: 5px;
-                margin: 50px auto;
-                box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-                max-width: 600px;
+                background: white;
+                padding: 40px;
+                border-radius: 10px;
+                box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+                max-width: 500px;
+                margin: 0 auto;
             }
-            .btn {
-                display: inline-block;
-                background: #3498db;
-                color: white;
-                padding: 12px 25px;
-                text-decoration: none;
-                border-radius: 5px;
-                font-weight: 500;
-                margin-top: 20px;
-                transition: background 0.3s;
-            }
-            .btn:hover {
-                background: #2980b9;
+            .success {
+                color: #27ae60;
+                font-size: 24px;
+                margin-bottom: 20px;
             }
         </style>
     </head>
     <body>
         <div class="message">
-            <h2>База данных актуальна</h2>
-            <p>Ваша база данных уже имеет последнюю версию. Обновление не требуется.</p>
-            <a href="admin.php" class="btn">Перейти в панель управления</a>
+            <div class="success">✓</div>
+            <h2>Обновление не требуется</h2>
+            <p>Ваша база данных уже актуальна.</p>
+            <a href="/" style="display: inline-block; margin-top: 20px; padding: 10px 20px; background: #3498db; color: white; text-decoration: none; border-radius: 5px;">Перейти на сайт</a>
         </div>
     </body>
     </html>
     HTML;
 }
 /**
- * Подвал страницы с кнопкой
+ * Подвал страницы
  */
 function renderFooter(): void
 {
     echo <<<HTML
-        <div style="text-align: center; margin-top: 30px;">
-            <a href="admin.php" class="btn">
-                <i class="icon-admin"></i> Перейти в панель управления
-            </a>
-        </div>
-    </body>
+        </body>
     </html>
     HTML;
 }
