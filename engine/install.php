@@ -919,8 +919,8 @@ function doInstall()
             array_push($LOG, 'Активация пользователя-администратора ... OK');
         }
         // 1.6 Сохраняем конфигурационные переменные database.engine.version, database.engine.revision
-        $mysql->query('insert into `'.$_POST['reg_dbprefix']. "_config` (name, value) values ('database.engine.version', '0.9.7 RC-3')");
-        $mysql->query('insert into `'.$_POST['reg_dbprefix']."_config` (name, value) values ('database.engine.revision', '5')");
+        $mysql->query('insert into `'.$_POST['reg_dbprefix']. "_config` (name, value) values ('database.engine.version', '0.9.7 Release')");
+        $mysql->query('insert into `'.$_POST['reg_dbprefix']."_config` (name, value) values ('database.engine.revision', '7')");
         // Вычищаем лишний перевод строки из 'home_url'
         if (substr($_POST['home_url'], -1, 1) == '/') {
             $_POST['home_url'] = substr($_POST['home_url'], 0, -1);
