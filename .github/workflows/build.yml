@@ -16,7 +16,6 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Set up PHP
-        if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.ref != 'refs/heads/master')
         uses: shivammathur/setup-php@v2
         with:
           php-version: '8.3'
@@ -24,47 +23,43 @@ jobs:
           coverage: none
 
       - name: Install dependencies
-        if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.ref != 'refs/heads/master')
         run: |
           sudo apt-get update && sudo apt-get install -y git
           composer install --no-dev --prefer-dist
 
       - name: Download source code
-        if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.ref != 'refs/heads/master')
         run: |
           mkdir -p ~/build
           git clone --depth=1 https://github.com/irbees2008/ngcms-core ~/build/
           git clone --depth=1 https://github.com/irbees2008/ngcms-plugins ~/build/engine/plugins/
 
       - name: Install libraries via composer
-        if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.ref != 'refs/heads/master')
         run: |
           cd ~/build
           composer install --no-dev --prefer-dist
           echo ${{ github.sha }} > engine/cache/build
 
-      - name: Cleanup and create archive
-        if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.ref != 'refs/heads/master')
+      - name: Cleanup and prepare
         run: |
           cd ~/build
-          rm -rf .git
-          rm -rf .github
-          rm -rf engine/plugins/.git
-          mkdir -p ~/package
+          rm -rf .git .github engine/plugins/.git
           
-          # Определяем имя архива с номером правки
+          # Определяем имя для папки
           if [ "${{ github.event_name }}" == "pull_request" ]; then
-            ARCHIVE_NAME="ngcms-current-build #${{ github.event.pull_request.number }}.zip"
+            FOLDER_NAME="ngcms-build-pr-${{ github.event.number }}"
           else
-            ARCHIVE_NAME="ngcms-current-build.zip"
+            FOLDER_NAME="ngcms-build-${GITHUB_SHA:0:7}"
           fi
           
-          # Создаем zip архив
-          zip -rq ~/package/"$ARCHIVE_NAME" .
+          # Переименовываем папку build
+          cd ~
+          mv build "$FOLDER_NAME"
+          
+          # Сохраняем имя папки для следующего шага
+          echo "FOLDER_NAME=$FOLDER_NAME" >> $GITHUB_ENV
 
       - name: Upload artifact
-        if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.ref != 'refs/heads/master')
         uses: actions/upload-artifact@v4
         with:
-          name: ngcms-build
-          path: ~/package/
+          name: ${{ env.FOLDER_NAME }}
+          path: ~/${{ env.FOLDER_NAME }}/
