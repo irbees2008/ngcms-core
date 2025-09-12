@@ -29,15 +29,15 @@ function pm_send()
         return;
     }
     $db = NGEngine::getInstance()->getDB();
-    $query = 'select * from '.uprefix.'_users where name = :name';
+    $query = 'select * from ' . uprefix . '_users where name = :name';
     $params = ['name' => $sendto];
     if (is_numeric($sendto)) {
-        $query = 'select * from '.uprefix.'_users where id = :id';
+        $query = 'select * from ' . uprefix . '_users where id = :id';
         $params = ['id' => $sendto];
     }
     if ($sendto && ($torow = $db->record($query, $params))) {
         $content = secure_html(trim($content));
-        $db->exec('insert into '.uprefix.'_users_pm (from_id, to_id, pmdate, title, content) values (:from_id, :to_id, unix_timestamp(now()), :title, :content)', ['from_id' => $userROW['id'], 'to_id' => $torow['id'], 'title' => $title, 'content' => $content]);
+        $db->exec('insert into ' . prefix . '_pm (subject, message, from_id, to_id, date, viewed, folder) values (:subject, :message, :from_id, :to_id, unix_timestamp(now()), 0, "inbox")', ['subject' => $title, 'message' => $content, 'from_id' => $userROW['id'], 'to_id' => $torow['id']]);
         msg(['text' => $lang['msgo_sent']]);
     } else {
         msg(['type' => 'error', 'text' => $lang['msge_nouser'], 'info' => $lang['msgi_nouser']]);
@@ -51,7 +51,7 @@ function pm_list()
         'token'     => genUToken('pm.token'),
     ];
     $db = NGEngine::getInstance()->getDB();
-    foreach ($db->query('select pm.*, u.id as uid, u.name as uname from '.uprefix.'_users_pm pm left join '.uprefix.'_users u on pm.from_id=u.id where pm.to_id = :id order by pmid desc limit 0, 30', ['id' => $userROW['id']]) as $row) {
+    foreach ($db->query('select pm.*, u.id as uid, u.name as uname from ' . prefix . '_pm pm left join ' . uprefix . '_users u on pm.from_id=u.id where pm.to_id = :id order by id desc limit 0, 30', ['id' => $userROW['id']]) as $row) {
         $senderProfileURL = '';
         $senderName = $lang['messaging'];
         if ($row['from_id'] && $row['uid']) {
@@ -63,9 +63,9 @@ function pm_list()
             $senderName = $lang['udeleted'];
         }
         $tEntry = [
-            'id'               => $row['pmid'],
-            'date'             => LangDate('j.m.Y - H:i', $row['pmdate']),
-            'title'            => $row['title'],
+            'id'               => $row['id'],
+            'date'             => LangDate('j.m.Y - H:i', $row['date']),
+            'title'            => $row['subject'],
             'senderID'         => $row['from_id'],
             'senderProfileURL' => $senderProfileURL,
             'senderName'       => $senderName,
@@ -76,7 +76,7 @@ function pm_list()
         ];
         $tVars['entries'][] = $tEntry;
     }
-    $xt = $twig->loadTemplate('skins/'.$config['admin_skin'].'/tpl/pm/table.tpl');
+    $xt = $twig->loadTemplate('skins/' . $config['admin_skin'] . '/tpl/pm/table.tpl');
     return $xt->render($tVars);
 }
 function pm_read()
@@ -87,7 +87,7 @@ function pm_read()
         return;
     }
     $db = NGEngine::getInstance()->getDB();
-    if ($row = $db->record('select * from '.uprefix.'_users_pm where pmid = :pmid and (to_id = :to_id or from_id= :from_id)', ['pmid' => $_REQUEST['pmid'], 'to_id' => $userROW['id'], 'from_id' => $userROW['id']])) {
+    if ($row = $db->record('select * from ' . uprefix . '_users_pm where pmid = :pmid and (to_id = :to_id or from_id= :from_id)', ['pmid' => $_REQUEST['pmid'], 'to_id' => $userROW['id'], 'from_id' => $userROW['id']])) {
         $tVars = [
             'id'        => $row['pmid'],
             'token'     => genUToken('pm.token'),
@@ -109,12 +109,12 @@ function pm_read()
         if ((!$row['viewed']) && ($row['to_id'] == $userROW['id'])) {
             // Mark as read ONLY if token is correct
             if (isset($_REQUEST['token']) && ($_REQUEST['token'] == genUToken('pm.token'))) {
-                $db->exec('update '.uprefix.'_users_pm set viewed = 1 WHERE pmid = :pmid', ['pmid' => $row['pmid']]);
+                $db->exec('update ' . uprefix . '_users_pm set viewed = 1 WHERE pmid = :pmid', ['pmid' => $row['pmid']]);
             } else {
                 msg(['type' => 'error', 'text' => $lang['error.security.token']]);
             }
         }
-        $xt = $twig->loadTemplate('skins/'.$config['admin_skin'].'/tpl/pm/read.tpl');
+        $xt = $twig->loadTemplate('skins/' . $config['admin_skin'] . '/tpl/pm/read.tpl');
         return $xt->render($tVars);
     } else {
         msg(['type' => 'error', 'text' => $lang['msge_bad']]);
@@ -128,12 +128,12 @@ function pm_reply()
         return;
     }
     $db = NGEngine::getInstance()->getDB();
-    if ($row = $db->record('select * from '.uprefix.'_users_pm where pmid = :pmid and (to_id = :to_id or from_id= :from_id)', ['pmid' => $_REQUEST['pmid'], 'to_id' => $userROW['id'], 'from_id' => $userROW['id']])) {
+    if ($row = $db->record('select * from ' . uprefix . '_users_pm where pmid = :pmid and (to_id = :to_id or from_id= :from_id)', ['pmid' => $_REQUEST['pmid'], 'to_id' => $userROW['id'], 'from_id' => $userROW['id']])) {
         if (!is_array($row)) {
             msg(['type' => 'error', 'text' => $lang['msge_reply']]);
             return;
         }
-        $reTitle = 'Re:'.$row['title'];
+        $reTitle = 'Re:' . $row['title'];
         if (mb_strlen($reTitle) > 50) {
             $reTitle = mb_substr($reTitle, 0, 50);
         }
@@ -156,7 +156,7 @@ function pm_reply()
             $r = locateUserById($row['to_id']);
             $tVars['fromName'] = (isset($r['name'])) ? $r['name'] : $lang['udeleted'];
         }
-        $xt = $twig->loadTemplate('skins/'.$config['admin_skin'].'/tpl/pm/reply.tpl');
+        $xt = $twig->loadTemplate('skins/' . $config['admin_skin'] . '/tpl/pm/reply.tpl');
         return $xt->render($tVars);
     } else {
         msg(['type' => 'error', 'text' => $lang['msge_bad']]);
@@ -170,7 +170,7 @@ function pm_write()
         'smilies'   => ($config['use_smilies'] == '1') ? InsertSmilies('content', 10) : '',
         'token'     => genUToken('pm.token'),
     ];
-    $xt = $twig->loadTemplate('skins/'.$config['admin_skin'].'/tpl/pm/write.tpl');
+    $xt = $twig->loadTemplate('skins/' . $config['admin_skin'] . '/tpl/pm/write.tpl');
     return $xt->render($tVars);
 }
 function pm_delete()
@@ -187,7 +187,7 @@ function pm_delete()
     }
     $db = NGEngine::getInstance()->getDB();
     foreach ($selected_pm as $id) {
-        $db->exec('delete from '.uprefix.'_users_pm where pmid = :pmid and (from_id= :from_id or to_id= :to_id)', ['pmid' => $id, 'from_id' => $userROW['id'], 'to_id' => $userROW['id']]);
+        $db->exec('delete from ' . uprefix . '_users_pm where pmid = :pmid and (from_id= :from_id or to_id= :to_id)', ['pmid' => $id, 'from_id' => $userROW['id'], 'to_id' => $userROW['id']]);
     }
     msg(['text' => $lang['msgo_deleted']]);
 }

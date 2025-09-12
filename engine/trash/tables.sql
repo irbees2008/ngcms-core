@@ -210,21 +210,6 @@ CREATE TABLE `XPREFIX_users` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 -- --------------------------------------------------------
 --
--- Table `PREFIX_users_pm`
---
-CREATE TABLE `XPREFIX_users_pm` (
-  `pmid` int(10) NOT NULL auto_increment,
-  `from_id` int(10) default '0',
-  `to_id` int(10) default '0',
-  `pmdate` int(10) NOT NULL,
-  `title` varchar(191) default NULL,
-  `content` text NOT NULL,
-  `viewed` tinyint(1) default '0',
-  PRIMARY KEY  (`pmid`),
-  KEY `from_id` (`from_id`,`to_id`,`viewed`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
--- --------------------------------------------------------
---
 -- Table `PREFIX_load`
 --
 CREATE TABLE `XPREFIX_load` (
