@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Инструмент обновления базы данных NGCMS
  *
@@ -132,6 +133,8 @@ function doUpgrade(int $fromVersion, int $toVersion): void
             // Выполняем конвертацию кодировки
             echo "<h4>Конвертация базы данных в UTF-8 (utf8mb4)</h4>";
             convertDatabaseEncodingToUtf8mb4($db);
+            // Проверяем, что все таблицы и база используют utf8mb4
+            checkAndConvertAllTablesToUtf8mb4($db);
         } else {
             // Специальная логика для определенных версий
             if ($version == 7) {
@@ -181,6 +184,40 @@ function doUpgrade(int $fromVersion, int $toVersion): void
     }
     // Восстановление стандартного режима SQL
     $db->exec("SET SQL_MODE=''");
+    /**
+     * Проверяет и конвертирует все таблицы в utf8mb4, если требуется
+     */
+    function checkAndConvertAllTablesToUtf8mb4($db): void
+    {
+        try {
+            $result = $db->query("SHOW TABLES");
+            $tables = [];
+            if (is_array($result)) {
+                foreach ($result as $row) {
+                    $tables[] = reset($row);
+                }
+            } else {
+                while ($row = $result->fetch(PDO::FETCH_NUM)) {
+                    $tables[] = $row[0];
+                }
+            }
+            foreach ($tables as $tableName) {
+                $createResult = $db->query("SHOW CREATE TABLE `{$tableName}`");
+                $createTable = '';
+                if (is_array($createResult)) {
+                    $createTable = $createResult[0]['Create Table'] ?? $createResult[0][1] ?? '';
+                } else {
+                    $createRow = $createResult->fetch(PDO::FETCH_NUM);
+                    $createTable = $createRow[1] ?? '';
+                }
+                if (strpos($createTable, 'CHARSET=utf8mb4') === false) {
+                    executeSqlWithReporting($db, "ALTER TABLE `{$tableName}` CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
+                }
+            }
+        } catch (Exception $e) {
+            echo "<div class='error'>Ошибка при конвертации таблиц: " . htmlspecialchars($e->getMessage()) . "</div>";
+        }
+    }
     echo renderSuccessMessage();
     renderFooter();
 }

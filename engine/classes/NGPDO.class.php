@@ -9,7 +9,7 @@ class NGPDO
     protected $errorSecurity = 0;
     protected $eventLogger = null;
     protected $errorHandler = null;
-    protected $dbCharset = 'UTF8';
+    protected $dbCharset = 'utf8mb4';
 
     public function __construct(array $params)
     {
@@ -55,24 +55,24 @@ class NGPDO
         }
 
         if (isset($params['charset'])) {
-            $this->dbCharset = $params['charset'];
+            $this->dbCharset = strtolower($params['charset']) == 'utf8' ? 'utf8mb4' : $params['charset'];
         }
 
         // Mark start of DB connection procedure
         $tStart = $this->eventLogger->tickStart();
 
         try {
-            $this->db = new PDO('mysql:host='.$params['host'].(isset($params['db']) ? ';dbname='.$params['db'] : ''), $params['user'], $params['pass']);
+            $this->db = new PDO('mysql:host=' . $params['host'] . (isset($params['db']) ? ';dbname=' . $params['db'] : ''), $params['user'], $params['pass']);
             $this->db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
         } catch (PDOException $e) {
-            throw new Exception('NG_PDO: Error connecting to DB ('.$e->getCode().') ['.$e->getMessage().']', $e->getCode());
+            throw new Exception('NG_PDO: Error connecting to DB (' . $e->getCode() . ') [' . $e->getMessage() . ']', $e->getCode());
         }
 
         // Try to switch CHARSET
         try {
-            $this->db->exec("/*!40101 SET NAMES '".$this->dbCharset."' */");
+            $this->db->exec("/*!40101 SET NAMES '" . $this->dbCharset . "' */");
         } catch (PDOException $e) {
-            throw new Exception("NG_PDO: Error switching to charset '".$this->dbCharset."' (".$e->getCode().') ['.$e->getMessage().']');
+            throw new Exception("NG_PDO: Error switching to charset '" . $this->dbCharset . "' (" . $e->getCode() . ') [' . $e->getMessage() . ']');
         }
 
         $this->eventLogger->registerEvent('NG_PDO', '', '* DB Connection established', $this->eventLogger->tickStop($tStart));
@@ -215,7 +215,7 @@ class NGPDO
             if (empty($table)) {
                 return $this->db->lastInsertId();
             } else {
-                $r = $this->record('SHOW TABLE STATUS LIKE \''.prefix.'_'.$table.'\'');
+                $r = $this->record('SHOW TABLE STATUS LIKE \'' . prefix . '_' . $table . '\'');
 
                 return $r['Auto_increment'] - 1;
             }
@@ -330,7 +330,7 @@ class NGPDO
         $cursor = $this->db->prepare($query);
         if (is_array($params)) {
             foreach ($params as $key => $value) {
-                $cursor->bindParam(':'.$key, $value, is_int($value) ? PDO::PARAM_INT : PDO::PARAM_STR);
+                $cursor->bindParam(':' . $key, $value, is_int($value) ? PDO::PARAM_INT : PDO::PARAM_STR);
             }
         }
         $cursor->execute();
