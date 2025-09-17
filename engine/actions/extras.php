@@ -1,7 +1,7 @@
 <?php
 
 //
-// Copyright (C) 2006-2014 Next Generation CMS (http://ngcms.ru/)
+// Copyright (C) 2006-2014 Next Generation CMS (http://ngcms.org/)
 // Name: extras.php
 // Description: List plugins
 // Author: Vitaly Ponomarev
@@ -59,7 +59,7 @@ function admGeneratePluginList()
         ];
 
         if (isset($repoPluginInfo[$extra['id']]) && ($repoPluginInfo[$extra['id']][1] > $extra['version'])) {
-            $tEntry['new'] = '<a href="http://ngcms.ru/sync/plugins.php?action=jump&amp;id=' . $extra['id'] . '.html" title="' . $repoPluginInfo[$extra['id']][1] . '"target="_blank"><img src="' . skins_url . '/images/new.png" width=30 height=15/></a>';
+            $tEntry['new'] = '<a href="http://ngcms.org/sync/plugins.php?action=jump&amp;id=' . $extra['id'] . '.html" title="' . $repoPluginInfo[$extra['id']][1] . '"target="_blank"><img src="' . skins_url . '/images/new.png" width=30 height=15/></a>';
         } else {
             $tEntry['new'] = '';
         }
@@ -232,7 +232,7 @@ if (isset($_REQUEST['manageConfig']) && $_REQUEST['manageConfig']) {
         'config' => $confLine,
         'token'  => genUToken('admin.extras'),
     ];
-    $xt = $twig->loadTemplate('skins/'.$config['admin_skin'].'/tpl/extras/manage_config.tpl');
+    $xt = $twig->loadTemplate('skins/' . $config['admin_skin'] . '/tpl/extras/manage_config.tpl');
 
     return $xt->render($tVars);
 

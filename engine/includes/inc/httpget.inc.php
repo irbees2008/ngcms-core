@@ -45,7 +45,7 @@ class http_get
         $elist = [];
         if (is_array($params)) {
             foreach ($params as $k => $v) {
-                array_push($elist, $k.'='.$v);
+                array_push($elist, $k . '=' . $v);
             }
             $ext = implode('&', $elist);
         } else {
@@ -56,23 +56,23 @@ class http_get
         if (mb_strtolower($proto) == 'get') {
             fwrite(
                 $fp,
-                "GET /$path".(!empty($ext) ? ('?'.$ext) : '')." HTTP/1.1\r\n".
-                "Host: $host\r\nConnection: close\r\n".
-                ($referer ? ('Referer: http://'.$_SERVER['HTTP_HOST']."/\r\n") : '').
-                'User-Agent: PHPfetcher class '.$this->getVersion()."(designed for: http://ngcms.ru/)\r\n".
-                "\r\n"
+                "GET /$path" . (!empty($ext) ? ('?' . $ext) : '') . " HTTP/1.1\r\n" .
+                    "Host: $host\r\nConnection: close\r\n" .
+                    ($referer ? ('Referer: http://' . $_SERVER['HTTP_HOST'] . "/\r\n") : '') .
+                    'User-Agent: PHPfetcher class ' . $this->getVersion() . "(designed for: http://ngcms.org/)\r\n" .
+                    "\r\n"
             );
         } elseif (mb_strtolower($proto) == 'post') {
             fwrite(
                 $fp,
-                "POST /$path HTTP/1.1\r\n".
-                "Host: $host\r\nConnection: close\r\n".
-                'Content-length: '.mb_strlen($ext)."\r\n".
-                "Content-Type: application/x-www-form-urlencoded\r\n".
-                ($referer ? ('Referer: http://'.$_SERVER['HTTP_HOST']."/\r\n") : '').
-                'User-Agent: PHPfetcher class '.$this->getVersion()." (designed for: http://ngcms.ru/)\r\n".
-                "\r\n".
-                $ext
+                "POST /$path HTTP/1.1\r\n" .
+                    "Host: $host\r\nConnection: close\r\n" .
+                    'Content-length: ' . mb_strlen($ext) . "\r\n" .
+                    "Content-Type: application/x-www-form-urlencoded\r\n" .
+                    ($referer ? ('Referer: http://' . $_SERVER['HTTP_HOST'] . "/\r\n") : '') .
+                    'User-Agent: PHPfetcher class ' . $this->getVersion() . " (designed for: http://ngcms.org/)\r\n" .
+                    "\r\n" .
+                    $ext
             );
         }
 

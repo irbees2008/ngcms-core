@@ -1,7 +1,7 @@
 <?php
 
 //
-// Copyright (C) 2006-2014 Next Generation CMS (http://ngcms.ru/)
+// Copyright (C) 2006-2014 Next Generation CMS (http://ngcms.org/)
 // Name: lib_admin.php
 // Description: General function for site administration calls
 // Author: Vitaly Ponomarev
@@ -574,10 +574,10 @@ function addNews($mode = [])
     // Metatags (only for adding via admin panel)
     if ($config['meta'] && (!isset($mode['no.meta']) || !$mode['no.meta'])) {
         $SQL['description'] = isset($_REQUEST['description']) ? $_REQUEST['description'] : '';
-        $SQL['keywords'] = isset($_REQUEST['keywords']) ? $_REQUEST['keywords'] : ''; 
+        $SQL['keywords'] = isset($_REQUEST['keywords']) ? $_REQUEST['keywords'] : '';
     } else {
         $SQL['description'] = '';
-        $SQL['keywords'] = ''; 
+        $SQL['keywords'] = '';
     }
     $SQL['author'] = $userROW['name'];
     $SQL['author_id'] = $userROW['id'];

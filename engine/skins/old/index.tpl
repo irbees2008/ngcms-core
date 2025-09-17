@@ -53,7 +53,7 @@ $.timepicker.setDefaults($.timepicker.regional['{{ lang['langcode'] }}']);
 <div class="clear_ftr"></div>
 <div id="footpanel">
     <ul id="mainpanel">
-        <li><a href="http://ngcms.ru" target="_blank" class="home">© 2008-{{ year }} <strong>Next Generation</strong> CMS <small>{{ lang['ngcms_site'] }}</small></a></li>
+        <li><a href="http://ngcms.org" target="_blank" class="home">© 2008-{{ year }} <strong>Next Generation</strong> CMS <small>{{ lang['ngcms_site'] }}</small></a></li>
         <li><a href="{{ php_self }}?mod=news&amp;action=add" class="add_news">{{ lang['addnews_t'] }}<small>{{ lang['addnews_t'] }}</small></a></li>
         <li><a href="{{ php_self }}?mod=news" class="add_edit">{{ lang['editnews'] }}<small>{{ lang['editnews'] }}</small></a></li>
         <li><a href="{{ php_self }}?mod=categories" class="add_category">{{ lang['categories'] }}<small>{{ lang['categories'] }}</small></a></li>

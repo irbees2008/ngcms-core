@@ -1,6 +1,6 @@
 <?php
 //
-// Copyright (C) 2006-2020 Next Generation CMS (http://ngcms.ru/)
+// Copyright (C) 2006-2020 Next Generation CMS (http://ngcms.org/)
 // Name: pm.php
 // Description: Personal messages
 // Author: NGCMS Development Team

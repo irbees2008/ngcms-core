@@ -1,7 +1,7 @@
 <?php
 
 //
-// Copyright (C) 2006-2008 Next Generation CMS (http://ngcms.ru/)
+// Copyright (C) 2006-2008 Next Generation CMS (http://ngcms.org/)
 // Name: extraconf.inc.php
 // Description: Plugin configuration manager
 // Author: Vitaly Ponomarev
@@ -41,12 +41,12 @@ function pluginSwitch($pluginID, $mode = 'on')
             // Mark module to be activated in all listed actions
             if (isset($extras[$pluginID]['acts']) && isset($extras[$pluginID]['file'])) {
                 foreach (explode(',', $extras[$pluginID]['acts']) as $act) {
-                    $activated['actions'][$act][$pluginID] = $extras[$pluginID]['dir'].'/'.$extras[$pluginID]['file'];
+                    $activated['actions'][$act][$pluginID] = $extras[$pluginID]['dir'] . '/' . $extras[$pluginID]['file'];
                 }
             }
 
             foreach ($extras[$pluginID]['actions'] as $act => $file) {
-                $activated['actions'][$act][$pluginID] = $extras[$pluginID]['dir'].'/'.$file;
+                $activated['actions'][$act][$pluginID] = $extras[$pluginID]['dir'] . '/' . $file;
             }
 
             if (count($extras[$pluginID]['library'])) {
@@ -58,7 +58,7 @@ function pluginSwitch($pluginID, $mode = 'on')
 
             return savePluginsActiveList();
 
-        // TURN _OFF_
+            // TURN _OFF_
         case 'off':
             unset($activated['active'][$pluginID]);
             unset($activated['libs'][$pluginID]);
@@ -93,7 +93,7 @@ function savePluginsActiveList()
         return false;
     }
 
-    $content = '<?php $array = '.var_export($PLUGINS['active'], true).'; ?>';
+    $content = '<?php $array = ' . var_export($PLUGINS['active'], true) . '; ?>';
     fwrite($file, $content);
     fclose($file);
 

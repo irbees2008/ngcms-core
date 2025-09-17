@@ -1,6 +1,6 @@
 <?php
 //
-// Copyright (C) 2006-2014 Next Generation CMS (http://ngcms.ru/)
+// Copyright (C) 2006-2014 Next Generation CMS (http://ngcms.org/)
 // Name: cron.php
 // Description: Manage scheduled jobs
 // Author: Vitaly Ponomarev

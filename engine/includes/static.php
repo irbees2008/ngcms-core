@@ -1,7 +1,7 @@
 <?php
 
 //
-// Copyright (C) 2006-2010 Next Generation CMS (http://ngcms.ru/)
+// Copyright (C) 2006-2010 Next Generation CMS (http://ngcms.org/)
 // Name: static.php
 // Description: Static pages display sub-engine
 // Author: Vitaly Ponomarev, Alexey Zinchenko
@@ -25,12 +25,12 @@ function showStaticPage($params)
 
     $limit = '';
     if ((int) $params['id']) {
-        $limit = 'id = '.db_squote($params['id']);
+        $limit = 'id = ' . db_squote($params['id']);
     } elseif ($params['altname']) {
-        $limit = 'alt_name = '.db_squote($params['altname']);
+        $limit = 'alt_name = ' . db_squote($params['altname']);
     }
 
-    if ((!$limit) || (!is_array($row = $mysql->record('select * from '.prefix.'_static where approve = 1 and '.$limit)))) {
+    if ((!$limit) || (!is_array($row = $mysql->record('select * from ' . prefix . '_static where approve = 1 and ' . $limit)))) {
         if (!$params['FFC']) {
             error404();
         }
@@ -83,14 +83,14 @@ function showStaticPage($params)
     ]);
 
     $showModifyButtons = $canViewAdminPanel
-                            && $staticPerms['view']
-                            && $staticPerms['modify'];
+        && $staticPerms['view']
+        && $staticPerms['modify'];
 
     $tvars['flags']['canEdit'] = false;
 
     if ($showModifyButtons) {
         $tvars['flags']['canEdit'] = true;
-        $tvars['edit_static_url'] = admin_url.'/admin.php?mod=static&action=editForm&id='.$row['id'];
+        $tvars['edit_static_url'] = admin_url . '/admin.php?mod=static&action=editForm&id=' . $row['id'];
     }
 
     $tvars['print_static_url'] = generatePluginLink('static', 'print', ['id' => $row['id'], 'altname' => $params['altname']], [], true);
@@ -106,19 +106,19 @@ function showStaticPage($params)
     if (!$row['template']) {
         $templateName = 'static/default';
     } else {
-        $templateName = 'static/'.$row['template'];
+        $templateName = 'static/' . $row['template'];
     }
 
     // Check for print mode
-    if ($params['print'] && file_exists(tpl_dir.$config['theme'].'/static/'.($row['template'] ? $row['template'] : 'default').'.print.tpl')) {
+    if ($params['print'] && file_exists(tpl_dir . $config['theme'] . '/static/' . ($row['template'] ? $row['template'] : 'default') . '.print.tpl')) {
         $templateName .= '.print';
         $SUPRESS_TEMPLATE_SHOW = true;
     }
 
     // Check for OWN main.tpl for static page
-    if (($row['flags'] & 4) && file_exists(tpl_dir.$config['theme'].'/static/'.($row['template'] ? $row['template'] : 'default').'.main.tpl')) {
-        $SYSTEM_FLAGS['template.main.name'] = ($row['template'] ? $row['template'] : 'default').'.main';
-        $SYSTEM_FLAGS['template.main.path'] = tpl_dir.$config['theme'].'/static';
+    if (($row['flags'] & 4) && file_exists(tpl_dir . $config['theme'] . '/static/' . ($row['template'] ? $row['template'] : 'default') . '.main.tpl')) {
+        $SYSTEM_FLAGS['template.main.name'] = ($row['template'] ? $row['template'] : 'default') . '.main';
+        $SYSTEM_FLAGS['template.main.path'] = tpl_dir . $config['theme'] . '/static';
     }
 
     // Set meta tags for news page
@@ -126,8 +126,8 @@ function showStaticPage($params)
     $SYSTEM_FLAGS['meta']['description'] = $row['description'];
     $SYSTEM_FLAGS['meta']['keywords'] = $row['keywords'];
 
-    $template['vars']['titles'] .= ' : '.$row['title'];
-    $template['vars']['mainblock'] .= $twig->render($templateName.'.tpl', $tvars);
+    $template['vars']['titles'] .= ' : ' . $row['title'];
+    $template['vars']['mainblock'] .= $twig->render($templateName . '.tpl', $tvars);
 
     return true;
 }

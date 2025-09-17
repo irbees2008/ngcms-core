@@ -1,6 +1,6 @@
 <?php
 //
-// Copyright (C) 2006-2012 Next Generation CMS (http://ngcms.ru/)
+// Copyright (C) 2006-2012 Next Generation CMS (http://ngcms.org/)
 // Name: templates.php
 // Description: Manage/Edit templates
 // Author: Vitaly Ponomarev, Alexey Zinchenko
@@ -15,14 +15,14 @@ LoadLang('templates', 'admin', 'templates');
 //
 function loadTemplateVersions()
 {
-    $tDir = root.'../templates';
+    $tDir = root . '../templates';
     $tlist = [];
     if ($dRec = opendir($tDir)) {
         while (($dName = readdir($dRec)) !== false) {
             if (($dName == '.') || ($dName == '..')) {
                 continue;
             }
-            if (is_dir($tDir.'/'.$dName) && file_exists($vfn = $tDir.'/'.$dName.'/version') && (filesize($vfn)) && ($vf = @fopen($vfn, 'r'))) {
+            if (is_dir($tDir . '/' . $dName) && file_exists($vfn = $tDir . '/' . $dName . '/version') && (filesize($vfn)) && ($vf = @fopen($vfn, 'r'))) {
                 $tRec = ['name' => $dName];
                 while (!feof($vf)) {
                     $line = fgets($vf);
@@ -56,5 +56,5 @@ $tlist = loadTemplateVersions();
 foreach ($tlist as $tver) {
     $tVars['siteTemplates'][] = $tver;
 }
-$xt = $twig->loadTemplate('skins/'.$config['admin_skin'].'/tpl/templates.tpl');
+$xt = $twig->loadTemplate('skins/' . $config['admin_skin'] . '/tpl/templates.tpl');
 $main_admin = $xt->render($tVars);

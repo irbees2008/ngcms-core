@@ -1,7 +1,7 @@
 <?php
 
 //
-// Copyright (C) 2006-2014 Next Generation CMS (http://ngcms.ru/)
+// Copyright (C) 2006-2014 Next Generation CMS (http://ngcms.org/)
 // Name: configuration.php
 // Description: Configuration managment
 // Author: Vitaly Ponomarev, Alexey Zinchenko
@@ -19,11 +19,11 @@ function twigmkSelect($params)
     $values = '';
     if (isset($params['values']) && is_array($params['values'])) {
         foreach ($params['values'] as $k => $v) {
-            $values .= '<option value="'.$k.'"'.(($k == $params['value']) ? ' selected="selected"' : '').'>'.$v.'</option>';
+            $values .= '<option value="' . $k . '"' . (($k == $params['value']) ? ' selected="selected"' : '') . '>' . $v . '</option>';
         }
     }
 
-    return '<select '.((isset($params['id']) && $params['id']) ? 'id="'.$params['id'].'" ' : '').'name="'.$params['name'].'">'.$values.'</select>';
+    return '<select ' . ((isset($params['id']) && $params['id']) ? 'id="' . $params['id'] . '" ' : '') . 'name="' . $params['name'] . '">' . $values . '</select>';
 }
 
 function twigmkSelectYN($params)
@@ -90,7 +90,7 @@ function systemConfigSave()
     // Save our UUID or regenerate LOST UUID
     $save_con['UUID'] = $config['UUID'];
     if ($save_con['UUID'] == '') {
-        $save_con['UUID'] = md5(mt_rand().mt_rand()).md5(mt_rand().mt_rand());
+        $save_con['UUID'] = md5(mt_rand() . mt_rand()) . md5(mt_rand() . mt_rand());
     }
 
     // Manage "load_profiler" variable
@@ -102,16 +102,16 @@ function systemConfigSave()
     }
 
     // Prepare resulting config content
-    $fcData = "<?php\n".'$config = '.var_export($save_con, true)."\n;?>";
+    $fcData = "<?php\n" . '$config = ' . var_export($save_con, true) . "\n;?>";
 
     // Try to save config
-    $fcHandler = @fopen(confroot.'config.php', 'w');
+    $fcHandler = @fopen(confroot . 'config.php', 'w');
     if ($fcHandler) {
         fwrite($fcHandler, $fcData);
         fclose($fcHandler);
 
         msgSticker($lang['msgo_saved']);
-    //msg(array("text" => $lang['msgo_saved']));
+        //msg(array("text" => $lang['msgo_saved']));
     } else {
         msg(['type' => 'error', 'text' => $lang['msge_save_error'], 'info' => $lang['msge_save_error#desc']]);
 
@@ -151,7 +151,7 @@ function systemConfigEditForm()
 
     // Load config file from configuration
     // Now in $config we have original version of configuration data
-    include confroot.'config.php';
+    include confroot . 'config.php';
 
     $load_profiler = $config['load_profiler'] - time();
     if (($load_profiler < 0) || ($load_profiler > 86400)) {
@@ -200,13 +200,13 @@ function systemConfigEditForm()
     if (is_array($multiconfig)) {
         foreach ($multiconfig as $mid => $mline) {
             $tmpdom = implode("\n", $mline['domains']);
-            $tmpline .= "<tr class='contentEntry1'><td>".($mline['active'] ? 'On' : 'Off')."</td><td>$mid</td><td>".($tmpdom ? $tmpdom : '-не указано-')."</td><td>&nbsp;</td></tr>\n";
+            $tmpline .= "<tr class='contentEntry1'><td>" . ($mline['active'] ? 'On' : 'Off') . "</td><td>$mid</td><td>" . ($tmpdom ? $tmpdom : '-не указано-') . "</td><td>&nbsp;</td></tr>\n";
         }
     }
     $tvars['vars']['multilist'] = $tmpline;
     $tvars['vars']['defaultSection'] = (isset($_REQUEST['selectedOption']) && $_REQUEST['selectedOption']) ? htmlspecialchars($_REQUEST['selectedOption'], ENT_COMPAT | ENT_HTML401, 'UTF-8') : 'news';
 
-    $xt = $twig->loadTemplate('skins/'.$config['admin_skin'].'/tpl/configuration.tpl');
+    $xt = $twig->loadTemplate('skins/' . $config['admin_skin'] . '/tpl/configuration.tpl');
 
     return $xt->render($tVars);
 }
@@ -215,21 +215,21 @@ function systemConfigEditForm()
 //
 // Check if SAVE is requested and SAVE was successfull
 if (isset($_REQUEST['subaction']) && ($_REQUEST['subaction'] == 'save') && ($_SERVER['REQUEST_METHOD'] == 'POST') && systemConfigSave()) {
-    @include confroot.'config.php';
-    
+    @include confroot . 'config.php';
+
     // Clear cache
     if (isset($_REQUEST['clear_cache']) && $_REQUEST['clear_cache'] == '1') {
         $cacheDir = root . 'cache/';
         if (is_dir($cacheDir)) {
             $files = glob($cacheDir . '*');
-            foreach($files as $file) {
-                if(is_file($file)) {
+            foreach ($files as $file) {
+                if (is_file($file)) {
                     @unlink($file);
                 }
             }
         }
     }
-    
+
     // Redirect to refresh page with new skin
     if (isset($_REQUEST['redirect']) && $_REQUEST['redirect']) {
         header('Location: ' . $_REQUEST['redirect']);

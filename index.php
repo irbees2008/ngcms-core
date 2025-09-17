@@ -1,6 +1,6 @@
 <?php
 //
-// Copyright (C) 2006-2016 Next Generation CMS (http://ngcms.ru)
+// Copyright (C) 2006-2016 Next Generation CMS (http://ngcms.org)
 // Name: index.php
 // Description: core index file
 // Author: NGCMS project team

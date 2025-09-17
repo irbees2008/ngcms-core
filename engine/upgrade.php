@@ -3,7 +3,7 @@
 /**
  * Инструмент обновления базы данных NGCMS
  *
- * @copyright Copyright (C) 2008-2025 Next Generation CMS (http://ngcms.ru/)
+ * @copyright Copyright (C) 2008-2025 Next Generation CMS (http://ngcms.org/)
  * @license MIT
  */
 @include_once 'core.php';

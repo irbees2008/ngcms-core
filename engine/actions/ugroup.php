@@ -1,6 +1,6 @@
 <?php
 //
-// Copyright (C) 2006-2014 Next Generation CMS (http://ngcms.ru/)
+// Copyright (C) 2006-2014 Next Generation CMS (http://ngcms.org/)
 // Name: ugroup.php
 // Description: User group management
 // Author: Vitaly Ponomarev

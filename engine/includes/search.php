@@ -1,6 +1,6 @@
 <?php
 //
-// Copyright (C) 2006-2013 Next Generation CMS (http://ngcms.ru/)
+// Copyright (C) 2006-2013 Next Generation CMS (http://ngcms.org/)
 // Name: search.php
 // Description: News search
 // Author: Vitaly Ponomarev
@@ -89,7 +89,7 @@ function search_news()
         'customCategoryTemplate' => true,
         'extendedReturnData' => true,  // Возвращает данные в виде массива
         'entendedReturnPagination' => true, // Добавляем этот параметр
-            ];
+    ];
     if ($_REQUEST['page']) {
         $callingParams['page'] = (int) $_REQUEST['page'];
     }

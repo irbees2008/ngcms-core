@@ -1,6 +1,6 @@
 <?php
 //
-// Copyright (C) 2006-2011 Next Generation CMS (http://ngcms.ru/)
+// Copyright (C) 2006-2011 Next Generation CMS (http://ngcms.org/)
 // Name: multimaster.php
 // Description: multidomain mastering
 // Author: Vitaly A Ponomarev, vp7@mail.ru
@@ -11,15 +11,16 @@ function multi_multisites()
     $siteDomainName = '';
     $multiDomainName = '';
     // Анализируем мультидоменную конфигурацию
-    if (!is_file(root.'conf/multiconfig.php')) {
+    if (!is_file(root . 'conf/multiconfig.php')) {
         return;
     }
-    @include root.'conf/multiconfig.php';
+    @include root . 'conf/multiconfig.php';
     if (!is_array($multiconfig)) {
         return;
     }
     // Если не выбран МультиМастер - не обрабатываем мультиконфиг
-    if (!$multimaster || (!is_array($multiconfig[$multimaster])) ||
+    if (
+        !$multimaster || (!is_array($multiconfig[$multimaster])) ||
         (!$multiconfig[$multimaster]['active']) || (!is_array($multiconfig[$multimaster]['domains']))
     ) {
         return;

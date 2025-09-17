@@ -1,6 +1,6 @@
 #
 #
-# Copyright (C) 2006-2014 Next Generation CMS (http://ngcms.ru)
+# Copyright (C) 2006-2014 Next Generation CMS (http://ngcms.org)
 # Name: .htaccess
 # Description: mod_rewrite htaccess file
 # Author: NGCMS project team
@@ -9,7 +9,7 @@
 DirectoryIndex index.php
 
 <files .htaccess>
-order allow,deny 
+order allow,deny
 deny from all
 </files>
 

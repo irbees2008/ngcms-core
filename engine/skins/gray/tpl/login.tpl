@@ -43,7 +43,7 @@
 						</div>
 
 						<div class="card-footer">
-							<div class="text-center text-muted">2008-{{ year }} © <a href="http://ngcms.ru" target="_blank">Next Generation CMS</a></div>
+							<div class="text-center text-muted">2008-{{ year }} © <a href="http://ngcms.org" target="_blank">Next Generation CMS</a></div>
 						</div>
 					</form>
 				</div>

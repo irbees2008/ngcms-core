@@ -1,7 +1,7 @@
 <?php
 
 //
-// Copyright (C) 2006-2013 Next Generation CMS (http://ngcms.ru/)
+// Copyright (C) 2006-2013 Next Generation CMS (http://ngcms.org/)
 // Name: cache.class.php
 // Description: Cache manager
 // Author: Vitaly Ponomarev
@@ -61,7 +61,7 @@ class cacheClassFile extends cacheClassAbstract
         }
 
         // Try to open file with data
-        if (($fn = @fopen($dir.$fname, 'r')) == false) {
+        if (($fn = @fopen($dir . $fname, 'r')) == false) {
             return false;
         }
 
@@ -120,7 +120,7 @@ class cacheClassFile extends cacheClassAbstract
         }
 
         // Try to create file
-        if (($fn = @fopen($dir.$fname, 'w')) == false) {
+        if (($fn = @fopen($dir . $fname, 'w')) == false) {
             return false;
         }
 
@@ -188,7 +188,7 @@ class cacheClassMemcached extends cacheClassAbstract
 
     public function get($plugin, $key, $expire = -1)
     {
-        return $this->cache->get($this->params['prefix'].':'.$plugin.':'.$key);
+        return $this->cache->get($this->params['prefix'] . ':' . $plugin . ':' . $key);
     }
 
     public function getMulti($plugin, $keyList, $expire = -1)
@@ -199,7 +199,7 @@ class cacheClassMemcached extends cacheClassAbstract
         }
 
         foreach ($keyList as $k) {
-            $keyResult[] = $this->params['prefix'].':'.$plugin.':'.$k;
+            $keyResult[] = $this->params['prefix'] . ':' . $plugin . ':' . $k;
         }
 
         return $this->cache->getMulti($keyResult);
@@ -207,7 +207,7 @@ class cacheClassMemcached extends cacheClassAbstract
 
     public function set($plugin, $key, $value, $expiration = -1)
     {
-        return $this->cache->set($this->params['prefix'].':'.$plugin.':'.$key, $value, ($expiration >= 0) ? $expiration : $this->params['expiration']);
+        return $this->cache->set($this->params['prefix'] . ':' . $plugin . ':' . $key, $value, ($expiration >= 0) ? $expiration : $this->params['expiration']);
     }
 
     public function setMulti($plugin, $keyList, $expiration = 0)
@@ -218,7 +218,7 @@ class cacheClassMemcached extends cacheClassAbstract
         }
 
         foreach ($keyList as $k => $v) {
-            $keyResult[$this->params['prefix'].':'.$plugin.':'.$k] = $v;
+            $keyResult[$this->params['prefix'] . ':' . $plugin . ':' . $k] = $v;
         }
 
         return $this->cache->setMulti($keyResult, ($expiration >= 0) ? $expiration : $this->params['expiration']);
@@ -241,21 +241,21 @@ class cacheClassMemcached extends cacheClassAbstract
 
     public function touch($plugin, $key, $expiration)
     {
-        return $this->cache->touch($this->params['prefix'].':'.$plugin.':'.$key, $value, $expiration);
+        return $this->cache->touch($this->params['prefix'] . ':' . $plugin . ':' . $key, $value, $expiration);
     }
 
     public function increment($plugin, $key, $offset = 1)
     {
-        return $this->cache->increment($this->params['prefix'].':'.$plugin.':'.$key, $offset);
+        return $this->cache->increment($this->params['prefix'] . ':' . $plugin . ':' . $key, $offset);
     }
 
     public function decrement($plugin, $key, $offset = 1)
     {
-        return $this->cache->decrement($this->params['prefix'].':'.$plugin.':'.$key, $offset);
+        return $this->cache->decrement($this->params['prefix'] . ':' . $plugin . ':' . $key, $offset);
     }
 
     public function del($plugin, $key)
     {
-        return $this->cache->del($this->params['prefix'].':'.$plugin.':'.$key);
+        return $this->cache->del($this->params['prefix'] . ':' . $plugin . ':' . $key);
     }
 }

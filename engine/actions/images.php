@@ -1,7 +1,7 @@
 <?php
 
 //
-// Copyright (C) 2006-2010 Next Generation CMS (http://ngcms.ru/)
+// Copyright (C) 2006-2010 Next Generation CMS (http://ngcms.org/)
 // Name: images.php
 // Description: Images managment
 // Author: Vitaly Ponomarev
@@ -13,8 +13,8 @@ if (!defined('NGCMS')) {
 }
 
 $lang = LoadLang('images', 'admin');
-@include_once root.'includes/classes/upload.class.php';
-@include_once root.'includes/inc/file_managment.php';
+@include_once root . 'includes/classes/upload.class.php';
+@include_once root . 'includes/inc/file_managment.php';
 
 // =======================================
 // BODY

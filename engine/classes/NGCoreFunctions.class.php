@@ -24,11 +24,11 @@ class NGCoreFunctions
             }
 
             if ($is_error) {
-                echo   "<html>\n<head><title>FATAL EXECUTION ERROR</title></head>\n".
-                        "<body>\n<div style='font: 24px verdana; background-color: #EEEEEE; border: #ABCDEF 1px solid; margin: 1px; padding: 3px;'>".
-                        "<span style='color: red;'>FATAL ERROR</span><br/>".
-                        '<span style="font: 16px arial;"> Cannot load file CORE libraries of <a href="http://ngcms.ru/">NGCMS</a> (<b>engine/core.php</b>), PHP extension ['.$kModule.'] with function ['.$vFunction.'] is not loaded!</span>'.
-                        "</div>\n</body>\n</html>\n";
+                echo   "<html>\n<head><title>FATAL EXECUTION ERROR</title></head>\n" .
+                    "<body>\n<div style='font: 24px verdana; background-color: #EEEEEE; border: #ABCDEF 1px solid; margin: 1px; padding: 3px;'>" .
+                    "<span style='color: red;'>FATAL ERROR</span><br/>" .
+                    '<span style="font: 16px arial;"> Cannot load file CORE libraries of <a href="http://ngcms.org/">NGCMS</a> (<b>engine/core.php</b>), PHP extension [' . $kModule . '] with function [' . $vFunction . '] is not loaded!</span>' .
+                    "</div>\n</body>\n</html>\n";
                 exit();
             }
         }

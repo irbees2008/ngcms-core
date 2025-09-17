@@ -1,7 +1,7 @@
 #
-# Copyright (C) 2006-2010 Next Generation CMS (http://ngcms.ru)
+# Copyright (C) 2006-2010 Next Generation CMS (http://ngcms.org)
 # Name: .htaccess
-# Description: admin directory // mod_rewrite htaccess file 
+# Description: admin directory // mod_rewrite htaccess file
 # Author: NGCMS project team
 #
 
@@ -9,7 +9,7 @@ Options -Indexes
 DirectoryIndex index.html
 
 <files .htaccess>
-order allow,deny 
+order allow,deny
 deny from all
 </files>
 

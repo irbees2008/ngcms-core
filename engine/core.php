@@ -1,7 +1,7 @@
 <?php
 
 //
-// Copyright (C) 2006-2017 Next Generation CMS (http://ngcms.ru)
+// Copyright (C) 2006-2017 Next Generation CMS (http://ngcms.org)
 // Name: core.php
 // Description: core
 // Author: NGCMS project team

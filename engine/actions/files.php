@@ -1,6 +1,6 @@
 <?php
 //
-// Copyright (C) 2006-2008 Next Generation CMS (http://ngcms.ru/)
+// Copyright (C) 2006-2008 Next Generation CMS (http://ngcms.org/)
 // Name: files.php
 // Description: File managment
 // Author: Vitaly Ponomarev
@@ -10,8 +10,8 @@ if (!defined('NGCMS')) {
     exit('HAL');
 }
 $lang = LoadLang('files', 'admin');
-@include_once root.'includes/classes/upload.class.php';
-@include_once root.'includes/inc/file_managment.php';
+@include_once root . 'includes/classes/upload.class.php';
+@include_once root . 'includes/inc/file_managment.php';
 // =======================================
 // BODY
 // =======================================

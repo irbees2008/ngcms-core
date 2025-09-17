@@ -1,7 +1,7 @@
 <?php
 
 //
-// Copyright (C) 2006-2020 Next Generation CMS (http://ngcms.ru/)
+// Copyright (C) 2006-2020 Next Generation CMS (http://ngcms.org/)
 // Name: configuration.rpc.php
 // Description: RPC library for CONFIGURATION module
 // Author: Vitaly Ponomarev
@@ -15,7 +15,7 @@ if (!defined('NGCMS')) {
 }
 
 // Load library
-@include_once root.'includes/classes/upload.class.php';
+@include_once root . 'includes/classes/upload.class.php';
 $lang = LoadLang('configuration', 'admin');
 
 function admConfigurationTestDB($params)
@@ -51,13 +51,13 @@ function admConfigurationTestDB($params)
         switch ($e->getCode()) {
             case 1045:
                 return ['status' => 0, 'errorCode' => 4, 'errorText' => $lang['dbcheck_noconnect']];
-            break;
+                break;
             case 1049:
                 return ['status' => 0, 'errorCode' => 5, 'errorText' => $lang['dbcheck_nodb']];
-            break;
+                break;
             default:
-                return ['status' => 0, 'errorCode' => 5, 'errorText' => $e->getCode().' '.$lang['dbcheck_noconnect']];
-            break;
+                return ['status' => 0, 'errorCode' => 5, 'errorText' => $e->getCode() . ' ' . $lang['dbcheck_noconnect']];
+                break;
         }
     }
 
@@ -100,7 +100,7 @@ function admConfigurationTestMemcached($params)
 
     // Check result code
     if ($cacheTest->getResultCode() != 0) {
-        return ['status' => 0, 'errorCode' => 5, 'errorText' => $lang['memcached_error'].' ['.$cacheTest->getResultCode().']: '.$cacheTest->getResultMessage()];
+        return ['status' => 0, 'errorCode' => 5, 'errorText' => $lang['memcached_error'] . ' [' . $cacheTest->getResultCode() . ']: ' . $cacheTest->getResultMessage()];
     }
 
     // Compare SET == GET values
@@ -174,7 +174,7 @@ function admConfigurationTestEMail($params)
     }
 
     if (!$sendResult) {
-        return ['status' => 0, 'errorCode' => 1, 'errorText' => $lang['smtp_test_error'].' '.$mail->ErrorInfo];
+        return ['status' => 0, 'errorCode' => 1, 'errorText' => $lang['smtp_test_error'] . ' ' . $mail->ErrorInfo];
     }
 
     return ['status' => 1, 'errorCode' => 0, 'errorText' => str_replace(['{email}'], [$params['to']['email']], $lang['smtp_test_successfully'])];

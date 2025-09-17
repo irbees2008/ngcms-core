@@ -1,7 +1,7 @@
 <?php
 
 //
-// Copyright (C) 2006-2016 Next Generation CMS (http://ngcms.ru/)
+// Copyright (C) 2006-2016 Next Generation CMS (http://ngcms.org/)
 // Name: editcomments.php
 // Description: News comments managment
 // Author: Vitaly Ponomarev, Alexey Zinchenko
@@ -41,10 +41,10 @@ if ($subaction == 'doeditcomment') {
 
         $mail = trim($_REQUEST['mail']);
 
-        $mysql->query('UPDATE '.prefix.'_comments SET mail='.db_squote($mail).', text='.db_squote($comment).', answer='.db_squote($content).', name='.db_squote($userROW['name']).' WHERE id='.db_squote($comid));
+        $mysql->query('UPDATE ' . prefix . '_comments SET mail=' . db_squote($mail) . ', text=' . db_squote($comment) . ', answer=' . db_squote($content) . ', name=' . db_squote($userROW['name']) . ' WHERE id=' . db_squote($comid));
 
         if ($content && $_REQUEST['send_notice'] && $mail) {
-            $row = $mysql->record('select * from '.prefix.'_news where id='.db_squote($newsid));
+            $row = $mysql->record('select * from ' . prefix . '_news where id=' . db_squote($newsid));
             $newsLink = newsGenerateLink($row, false, 0, true);
             sendEmailMessage($mail, $lang['comanswer'], sprintf($lang['notice'], $userROW['name'], $content, $newsLink), 'html');
         }
@@ -54,12 +54,12 @@ if ($subaction == 'doeditcomment') {
 }
 
 if ($subaction == 'deletecomment') {
-    if ($row = $mysql->record('select * from '.prefix.'_comments where id='.db_squote($comid))) {
-        $mysql->query('delete from '.prefix.'_comments where id='.db_squote($comid));
-        $mysql->query('update '.uprefix.'_users set com=com-1 where id='.db_squote($row['author_id']));
-        $mysql->query('update '.prefix.'_news set com=com-1 where id='.db_squote($row['post']));
-        msg(['text' => $lang['msgo_deleted'], 'info' => sprintf($lang['msgi_deleted'], 'admin.php?mod=news&action=edit&id='.$row['post'])]);
-        header('Location: admin.php?mod=news&action=edit&id='.$row['post']);
+    if ($row = $mysql->record('select * from ' . prefix . '_comments where id=' . db_squote($comid))) {
+        $mysql->query('delete from ' . prefix . '_comments where id=' . db_squote($comid));
+        $mysql->query('update ' . uprefix . '_users set com=com-1 where id=' . db_squote($row['author_id']));
+        $mysql->query('update ' . prefix . '_news set com=com-1 where id=' . db_squote($row['post']));
+        msg(['text' => $lang['msgo_deleted'], 'info' => sprintf($lang['msgi_deleted'], 'admin.php?mod=news&action=edit&id=' . $row['post'])]);
+        header('Location: admin.php?mod=news&action=edit&id=' . $row['post']);
         exit;
     } else {
         msg(['type' => 'error', 'text' => $lang['msge_not_found']]);
@@ -67,7 +67,7 @@ if ($subaction == 'deletecomment') {
 }
 
 if ($subaction != 'deletecomment') {
-    $row = $mysql->record('select * from '.prefix.'_comments where id = '.db_squote($comid));
+    $row = $mysql->record('select * from ' . prefix . '_comments where id = ' . db_squote($comid));
     if ($row) {
         $row['text'] = str_replace('<br />', "\r\n", $row['text']);
         $row['answer'] = str_replace('<br />', "\r\n", $row['answer']);

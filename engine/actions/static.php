@@ -1,6 +1,6 @@
 <?php
 //
-// Copyright (C) 2006-2014 Next Generation CMS (http://ngcms.ru/)
+// Copyright (C) 2006-2014 Next Generation CMS (http://ngcms.org/)
 // Name: static.php
 // Description: Manage static pages
 // Author: Vitaly Ponomarev
@@ -39,8 +39,8 @@ function listStatic()
         $pageNo = 1;
     }
     $query = [];
-    $query['sql'] = 'select * from '.prefix.'_static order by title limit '.(($pageNo - 1) * $per_page).', '.$per_page;
-    $query['count'] = 'select count(*) as cnt from '.prefix.'_static ';
+    $query['sql'] = 'select * from ' . prefix . '_static order by title limit ' . (($pageNo - 1) * $per_page) . ', ' . $per_page;
+    $query['count'] = 'select count(*) as cnt from ' . prefix . '_static ';
     $nCount = 0;
     $tEntries = [];
     foreach ($mysql->select($query['sql']) as $row) {
@@ -53,14 +53,14 @@ function listStatic()
             'date'     => ($row['postdate'] > 0) ? strftime('%d.%m.%Y %H:%M', $row['postdate']) : '',
         ];
         if (strlen($row['title']) > 70) {
-            $row['title'] = substr($row['title'], 0, 70).' ...';
+            $row['title'] = substr($row['title'], 0, 70) . ' ...';
         }
         $link = checkLinkAvailable('static', '') ?
             generateLink('static', '', ['altname' => $row['alt_name'], 'id' => $row['id']], [], false, true) :
             generateLink('core', 'plugin', ['plugin' => 'static'], ['altname' => $row['alt_name'], 'id' => $row['id']], false, true);
-        $tEntry['url'] = $row['approve'] ? ('<a href="'.$link.'" target="_blank">'.$link.'</a>') : '';
+        $tEntry['url'] = $row['approve'] ? ('<a href="' . $link . '" target="_blank">' . $link . '</a>') : '';
         $tEntry['title'] = str_replace(["'", '"'], ['&#039;', '&quot;'], $row['title']);
-        $tEntry['status'] = ($row['approve']) ? '<img src="'.skins_url.'/images/yes.png" alt="'.$lang['approved'].'" />' : '<img src="'.skins_url.'/images/no.png" alt="'.$lang['unapproved'].'" />';
+        $tEntry['status'] = ($row['approve']) ? '<img src="' . skins_url . '/images/yes.png" alt="' . $lang['approved'] . '" />' : '<img src="' . skins_url . '/images/no.png" alt="' . $lang['unapproved'] . '" />';
         $tEntries[] = $tEntry;
     }
     $tVars = [
@@ -76,9 +76,9 @@ function listStatic()
     $cnt = $mysql->record($query['count']);
     $all_count_rec = $cnt['cnt'];
     $countPages = ceil($all_count_rec / $per_page);
-    $tVars['pagesss'] = generateAdminPagelist(['current' => $pageNo, 'count' => $countPages, 'url' => admin_url.'/admin.php?mod=static&action=list'.(getIsSet($_REQUEST['per_page']) ? '&per_page='.$per_page : '').'&page=%page%']);
+    $tVars['pagesss'] = generateAdminPagelist(['current' => $pageNo, 'count' => $countPages, 'url' => admin_url . '/admin.php?mod=static&action=list' . (getIsSet($_REQUEST['per_page']) ? '&per_page=' . $per_page : '') . '&page=%page%']);
     exec_acts('static_list');
-    $xt = $twig->loadTemplate('skins/'.$config['admin_skin'].'/tpl/static/table.tpl');
+    $xt = $twig->loadTemplate('skins/' . $config['admin_skin'] . '/tpl/static/table.tpl');
     return $xt->render($tVars);
 }
 //
@@ -106,7 +106,7 @@ function massStaticModify($setValue, $langParam, $tag = '')
         return;
     }
     foreach ($selected as $id) {
-        $mysql->query('UPDATE '.prefix."_static SET $setValue WHERE id=".db_squote($id));
+        $mysql->query('UPDATE ' . prefix . "_static SET $setValue WHERE id=" . db_squote($id));
     }
     msg(['text' => $lang[$langParam]]);
 }
@@ -132,13 +132,13 @@ function massStaticDelete()
         return;
     }
     foreach ($selected as $id) {
-        if ($srow = $mysql->record('select * from '.prefix.'_static where id = '.db_squote($id))) {
+        if ($srow = $mysql->record('select * from ' . prefix . '_static where id = ' . db_squote($id))) {
             if (is_array($PFILTERS['static'])) {
                 foreach ($PFILTERS['static'] as $k => $v) {
                     $v->deleteStatic($srow['id'], $srow);
                 }
             }
-            $mysql->query('delete from '.prefix.'_static where id='.db_squote($id));
+            $mysql->query('delete from ' . prefix . '_static where id=' . db_squote($id));
         }
     }
     msg(['text' => $lang['msgo_deleted']]);
@@ -148,7 +148,7 @@ function staticTemplateList()
 {
     global $config;
     $result = [''];
-    foreach (ListFiles(tpl_dir.$config['theme'].'/static', 'tpl') as $k) {
+    foreach (ListFiles(tpl_dir . $config['theme'] . '/static', 'tpl') as $k) {
         if (preg_match('#\.(print|main)$#', $k)) {
             continue;
         }
@@ -184,7 +184,7 @@ function addEditStaticForm($operationMode = 1, $sID = 0)
     $requestID = ($sID > 0) ? $sID : ((isset($_REQUEST['id']) && $_REQUEST['id']) ? $_REQUEST['id'] : 0);
     // EDIT
     if (($operationMode == 3) || ($operationMode == 4)) {
-        if (!$requestID || !is_array($row = $mysql->record('select * from '.prefix.'_static where id = '.db_squote($requestID)))) {
+        if (!$requestID || !is_array($row = $mysql->record('select * from ' . prefix . '_static where id = ' . db_squote($requestID)))) {
             msgSticker($lang['msge_not_found'], 'error');
             return 0;
         }
@@ -258,7 +258,7 @@ function addEditStaticForm($operationMode = 1, $sID = 0)
             }
         }
     }
-    $xt = $twig->loadTemplate('skins/'.$config['admin_skin'].'/tpl/static/edit.tpl');
+    $xt = $twig->loadTemplate('skins/' . $config['admin_skin'] . '/tpl/static/edit.tpl');
     return $xt->render($tVars);
     return 1;
 }
@@ -297,7 +297,7 @@ function addStatic()
     $SQL['title'] = $title;
     // Check for dup if alt_name is specified
     if ($alt_name) {
-        if (is_array($mysql->record('select id from '.prefix.'_static where alt_name = '.db_squote($alt_name).' limit 1'))) {
+        if (is_array($mysql->record('select id from ' . prefix . '_static where alt_name = ' . db_squote($alt_name) . ' limit 1'))) {
             msg(['type' => 'error', 'text' => $lang['msge_alt_name'], 'info' => $lang['msgi_alt_name']]);
             return 0;
         }
@@ -306,10 +306,10 @@ function addStatic()
         // Generate uniq alt_name if no alt_name specified
         $alt_name = strtolower($parse->translit(trim($title), 1));
         $i = '';
-        while (is_array($mysql->record('select id from '.prefix.'_static where alt_name = '.db_squote($alt_name.$i).' limit 1'))) {
+        while (is_array($mysql->record('select id from ' . prefix . '_static where alt_name = ' . db_squote($alt_name . $i) . ' limit 1'))) {
             $i++;
         }
-        $SQL['alt_name'] = $alt_name.$i;
+        $SQL['alt_name'] = $alt_name . $i;
     }
     if ($config['meta']) {
         $SQL['description'] = $_REQUEST['description'];
@@ -333,14 +333,14 @@ function addStatic()
         $vnames[] = $k;
         $vparams[] = db_squote($v);
     }
-    $mysql->query('insert into '.prefix.'_static (postdate, '.implode(',', $vnames).') values (unix_timestamp(now()), '.implode(',', $vparams).')');
+    $mysql->query('insert into ' . prefix . '_static (postdate, ' . implode(',', $vnames) . ') values (unix_timestamp(now()), ' . implode(',', $vparams) . ')');
     $id = $mysql->result('SELECT LAST_INSERT_ID() as id');
     $link = (checkLinkAvailable('static', '') ?
         generateLink('static', '', ['altname' => $SQL['alt_name'], 'id' => $id], [], false, true) :
         generateLink('core', 'plugin', ['plugin' => 'static'], ['altname' => $SQL['alt_name'], 'id' => $id], false, true));
     msg([
         'text' => str_replace('{url}', $link, $lang['msg.added']),
-        'info' => str_replace(['{url}', '{url_edit}', '{url_list}'], [$link, $PHP_SELF.'?mod=static&action=editForm&id='.$id, $PHP_SELF.'?mod=static'], $lang['msg.added#descr']),
+        'info' => str_replace(['{url}', '{url_edit}', '{url_list}'], [$link, $PHP_SELF . '?mod=static&action=editForm&id=' . $id, $PHP_SELF . '?mod=static'], $lang['msg.added#descr']),
     ]);
     return $id;
 }
@@ -366,7 +366,7 @@ function editStatic()
     $content = $_REQUEST['content'];
     $alt_name = $parse->translit(trim($_REQUEST['alt_name']), 1, 1);
     // Try to find news that we're trying to edit
-    if (!is_array($row = $mysql->record('select * from '.prefix.'_static where id='.db_squote($id)))) {
+    if (!is_array($row = $mysql->record('select * from ' . prefix . '_static where id=' . db_squote($id)))) {
         msg(['type' => 'error', 'text' => $lang['msge_not_found']]);
         return -1;
     }
@@ -376,7 +376,7 @@ function editStatic()
     }
     $SQL['title'] = $title;
     // Check for dup if alt_name is specified
-    if (is_array($mysql->record('select id from '.prefix.'_static where alt_name = '.db_squote($alt_name).' and id <> '.$row['id'].' limit 1'))) {
+    if (is_array($mysql->record('select id from ' . prefix . '_static where alt_name = ' . db_squote($alt_name) . ' and id <> ' . $row['id'] . ' limit 1'))) {
         msgSticker([[$lang['msge_alt_name'], 'title', 1], [$lang['msgi_alt_name'], '', 1]], 'error', 1);
         //msg(array("type" => "error", "text" => $lang['msge_alt_name'], "info" => $lang['msgi_alt_name']));
         return 0;
@@ -402,9 +402,9 @@ function editStatic()
     }
     $SQLparams = [];
     foreach ($SQL as $k => $v) {
-        $SQLparams[] = $k.' = '.db_squote($v);
+        $SQLparams[] = $k . ' = ' . db_squote($v);
     }
-    $mysql->query('update '.prefix.'_static set '.implode(', ', $SQLparams).' where id = '.db_squote($id));
+    $mysql->query('update ' . prefix . '_static set ' . implode(', ', $SQLparams) . ' where id = ' . db_squote($id));
     $link = (checkLinkAvailable('static', '') ?
         generateLink('static', '', ['altname' => $SQL['alt_name'], 'id' => $id], [], false, true) :
         generateLink('core', 'plugin', ['plugin' => 'static'], ['altname' => $SQL['alt_name'], 'id' => $id], false, true));
@@ -457,4 +457,4 @@ switch ($action) {
                 break;
         }
         $main_admin = listStatic();
-    }
+}

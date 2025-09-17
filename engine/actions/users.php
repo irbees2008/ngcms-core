@@ -1,6 +1,6 @@
 <?php
 //
-// Copyright (C) 2006-2014 Next Generation CMS (http://ngcms.ru/)
+// Copyright (C) 2006-2014 Next Generation CMS (http://ngcms.org/)
 // Name: users.php
 // Description: manage users
 // Author: Vitaly Ponomarev
@@ -27,7 +27,7 @@ function userEditForm()
         msg(['type' => 'error', 'text' => $lang['perm.denied']], 1, 1);
         return;
     }
-    if (!($row = $mysql->record('select * from '.uprefix.'_users where id='.db_squote($id)))) {
+    if (!($row = $mysql->record('select * from ' . uprefix . '_users where id=' . db_squote($id)))) {
         ngSYSLOG(['plugin' => '#admin', 'item' => 'users', 'ds_id' => $id], ['action' => 'editForm'], null, [0, 'NOT.FOUND']);
         msg(['type' => 'error', 'text' => $lang['msge_not_found']]);
         return;
@@ -40,7 +40,7 @@ function userEditForm()
     }
     $status = '';
     foreach ($UGROUP as $ugID => $ugData) {
-        $status .= ' <option value="'.$ugID.'"'.(($row['status'] == $ugID) ? ' selected' : '').'>'.$ugID.' ('.$ugData['name'].')</option>';
+        $status .= ' <option value="' . $ugID . '"' . (($row['status'] == $ugID) ? ' selected' : '') . '>' . $ugID . ' (' . $ugData['name'] . ')</option>';
     }
     //	Обрабатываем необходимые переменные для шаблона
     $tVars = [
@@ -67,7 +67,7 @@ function userEditForm()
         }
     }
     ngSYSLOG(['plugin' => '#admin', 'item' => 'users', 'ds_id' => $id], ['action' => 'editForm'], null, [1]);
-    $xt = $twig->loadTemplate('skins/'.$config['admin_skin'].'/tpl/users/edit.tpl');
+    $xt = $twig->loadTemplate('skins/' . $config['admin_skin'] . '/tpl/users/edit.tpl');
     return $xt->render($tVars);
 }
 //
@@ -89,7 +89,7 @@ function userEdit()
     }
     $id = intval($_REQUEST['id']);
     // Check if user exists
-    if (!($row = $mysql->record('select * from '.uprefix.'_users where id='.db_squote($id)))) {
+    if (!($row = $mysql->record('select * from ' . uprefix . '_users where id=' . db_squote($id)))) {
         msg(['type' => 'error', 'text' => $lang['msge_not_found']]);
         ngSYSLOG(['plugin' => '#admin', 'item' => 'users', 'ds_id' => $id], ['action' => 'editForm'], null, [0, 'NOT.FOUND']);
         return;
@@ -106,7 +106,7 @@ function userEdit()
         $cList['pass'] = ['****', '****'];
     }
     ngSYSLOG(['plugin' => '#admin', 'item' => 'users', 'ds_id' => $id], ['action' => 'editForm', 'list' => $cList], null, [1]);
-    $mysql->query('update '.uprefix.'_users set `status`='.db_squote($_REQUEST['status']).', `where_from`='.db_squote($_REQUEST['where_from']).', `info`='.db_squote($_REQUEST['info']).', `mail`='.db_squote($_REQUEST['mail']).($pass ? ', `pass`='.db_squote($pass) : '').' where id='.db_squote($row['id']));
+    $mysql->query('update ' . uprefix . '_users set `status`=' . db_squote($_REQUEST['status']) . ', `where_from`=' . db_squote($_REQUEST['where_from']) . ', `info`=' . db_squote($_REQUEST['info']) . ', `mail`=' . db_squote($_REQUEST['mail']) . ($pass ? ', `pass`=' . db_squote($pass) : '') . ' where id=' . db_squote($row['id']));
     msg(['text' => $lang['msgo_edituser']]);
 }
 //
@@ -132,13 +132,13 @@ function userAdd()
         msg(['type' => 'error', 'text' => $lang['msge_fields'], 'info' => $lang['msgi_fields']]);
         return;
     }
-    if ($mysql->record('select * from '.uprefix.'_users where lower(name) = '.db_squote(strtolower($regusername)).' or lower(mail)='.db_squote(strtolower($regemail)))) {
+    if ($mysql->record('select * from ' . uprefix . '_users where lower(name) = ' . db_squote(strtolower($regusername)) . ' or lower(mail)=' . db_squote(strtolower($regemail)))) {
         msg(['type' => 'error', 'text' => $lang['msge_userexists'], 'info' => $lang['msgi_userexists']]);
         return;
     }
     $add_time = time() + ($config['date_adjust'] * 60);
     $regpassword = EncodePassword($regpassword);
-    $mysql->query('insert into '.uprefix.'_users (name, pass, mail, status, reg) values ('.db_squote($regusername).', '.db_squote($regpassword).', '.db_squote($regemail).', '.db_squote($reglevel).', '.db_squote($add_time).')');
+    $mysql->query('insert into ' . uprefix . '_users (name, pass, mail, status, reg) values (' . db_squote($regusername) . ', ' . db_squote($regpassword) . ', ' . db_squote($regemail) . ', ' . db_squote($reglevel) . ', ' . db_squote($add_time) . ')');
     msg(['text' => $lang['msgo_adduser']]);
 }
 //
@@ -162,7 +162,7 @@ function userMassActivate()
         return;
     }
     foreach ($selected_users as $id) {
-        $mysql->query('update '.uprefix."_users set activation='' where id=".db_squote($id));
+        $mysql->query('update ' . uprefix . "_users set activation='' where id=" . db_squote($id));
     }
     msg(['text' => $lang['msgo_activate']]);
 }
@@ -188,7 +188,7 @@ function userMassLock()
     }
     // Lock all users (excluding admins) and log them out!
     foreach ($selected_users as $id) {
-        $mysql->query('update '.uprefix.'_users set activation='.db_squote(MakeRandomPassword()).", authcookie='' where (id=".db_squote($id).') and (status <> 1)');
+        $mysql->query('update ' . uprefix . '_users set activation=' . db_squote(MakeRandomPassword()) . ", authcookie='' where (id=" . db_squote($id) . ') and (status <> 1)');
     }
     msg(['text' => $lang['msgo_lock']]);
 }
@@ -221,7 +221,7 @@ function userMassSetStatus()
     }
     // Lock all users (excluding admins)
     foreach ($selected_users as $id) {
-        $mysql->query('update '.uprefix.'_users set status='.db_squote($status).' where (id='.db_squote($id).') and (status <> 1)');
+        $mysql->query('update ' . uprefix . '_users set status=' . db_squote($status) . ' where (id=' . db_squote($id) . ') and (status <> 1)');
     }
     msg(['text' => $lang['msgo_status']]);
 }
@@ -251,16 +251,16 @@ function userMassDelete()
             continue;
         }
         // Fetch user's record
-        if (is_array($urow = $mysql->record('select * from '.prefix.'_users where id = '.db_squote($id)))) {
+        if (is_array($urow = $mysql->record('select * from ' . prefix . '_users where id = ' . db_squote($id)))) {
             // Do not delete admins
             if ($urow['status'] == 1) {
                 continue;
             }
             // Check if user has his own  avatar
-            if (($urow['avatar'] != '') && (file_exists($config['avatars_dir'].$urow['avatar']))) {
-                @unlink($config['avatars_dir'].$urow['avatar']);
+            if (($urow['avatar'] != '') && (file_exists($config['avatars_dir'] . $urow['avatar']))) {
+                @unlink($config['avatars_dir'] . $urow['avatar']);
             }
-            $mysql->query('delete from '.uprefix.'_users where id='.db_squote($id));
+            $mysql->query('delete from ' . uprefix . '_users where id=' . db_squote($id));
         }
     }
     msg(['text' => $lang['msgo_deluser']]);
@@ -281,7 +281,7 @@ function userMassDeleteInactive()
         return;
     }
     $today = time();
-    $mysql->query('DELETE FROM '.uprefix."_users WHERE ((last IS NULL) OR (last='')) AND ((reg + 86400) < $today) AND (news < 1)");
+    $mysql->query('DELETE FROM ' . uprefix . "_users WHERE ((last IS NULL) OR (last='')) AND ((reg + 86400) < $today) AND (news < 1)");
     msg(['text' => $lang['msgo_delunact']]);
 }
 //
@@ -319,24 +319,24 @@ function userList()
     $sortLinkMap = [];
     foreach (['i', 'n', 'r', 'l', 'p', 'g'] as $kOrder) {
         $sRec = [];
-        $sRec['isActive'] = (($inSort == $kOrder) || ($inSort == $kOrder.'d')) ? 1 : 0;
+        $sRec['isActive'] = (($inSort == $kOrder) || ($inSort == $kOrder . 'd')) ? 1 : 0;
         if ($sRec['isActive']) {
             $sRec['sign'] = ($inSort == $kOrder) ? '&#8595;&#8595;' : '&#8593;&#8593;';
-            $sRec['link'] = admin_url.'/admin.php?mod=users&action=list'.
-                (isset($_REQUEST['name']) && $_REQUEST['name'] ? '&name='.htmlspecialchars($_REQUEST['name'], ENT_COMPAT | ENT_HTML401, 'UTF-8') : '').
-                (isset($_REQUEST['rpp']) && $_REQUEST['rpp'] ? '&rpp='.intval($_REQUEST['rpp']) : '').
-                '&sort='.$kOrder.(($inSort == $kOrder) ? 'd' : '');
+            $sRec['link'] = admin_url . '/admin.php?mod=users&action=list' .
+                (isset($_REQUEST['name']) && $_REQUEST['name'] ? '&name=' . htmlspecialchars($_REQUEST['name'], ENT_COMPAT | ENT_HTML401, 'UTF-8') : '') .
+                (isset($_REQUEST['rpp']) && $_REQUEST['rpp'] ? '&rpp=' . intval($_REQUEST['rpp']) : '') .
+                '&sort=' . $kOrder . (($inSort == $kOrder) ? 'd' : '');
         } else {
             $sRec['sign'] = '';
-            $sRec['link'] = admin_url.'/admin.php?mod=users&action=list'.
-                (isset($_REQUEST['name']) && $_REQUEST['name'] ? '&name='.htmlspecialchars($_REQUEST['name'], ENT_COMPAT | ENT_HTML401, 'UTF-8') : '').
-                (isset($_REQUEST['rpp']) && $_REQUEST['rpp'] ? '&rpp='.intval($_REQUEST['rpp']) : '').
-                '&sort='.$kOrder;
+            $sRec['link'] = admin_url . '/admin.php?mod=users&action=list' .
+                (isset($_REQUEST['name']) && $_REQUEST['name'] ? '&name=' . htmlspecialchars($_REQUEST['name'], ENT_COMPAT | ENT_HTML401, 'UTF-8') : '') .
+                (isset($_REQUEST['rpp']) && $_REQUEST['rpp'] ? '&rpp=' . intval($_REQUEST['rpp']) : '') .
+                '&sort=' . $kOrder;
         }
         $sortLinkMap[$kOrder] = $sRec;
     }
     $sortValue = (isset($_REQUEST['sort']) && isset($sortOrderMap[$_REQUEST['sort']])) ? $sortOrderMap[$_REQUEST['sort']] : 'id';
-    $name = (isset($_REQUEST['name']) && $_REQUEST['name'] != '') ? ("'%".$mysql->db_quote($_REQUEST['name'])."%'") : '';
+    $name = (isset($_REQUEST['name']) && $_REQUEST['name'] != '') ? ("'%" . $mysql->db_quote($_REQUEST['name']) . "%'") : '';
     // Records Per Page
     // - Load
     $fRPP = (isset($_REQUEST['rpp']) && ($_REQUEST['rpp'] != '')) ? intval($_REQUEST['rpp']) : intval($admCookie['users']['pp']);
@@ -354,16 +354,16 @@ function userList()
     // FILTER (where) PARAMETERS
     $whereRules = [];
     if (strlen($name)) {
-        $whereRules[] = 'name like '.$name;
+        $whereRules[] = 'name like ' . $name;
     }
     if (isset($_REQUEST['group']) && (intval($_REQUEST['group']) > 0)) {
-        $whereRules[] = 'status = '.intval($_REQUEST['group']);
+        $whereRules[] = 'status = ' . intval($_REQUEST['group']);
     }
-    $queryFilter = count($whereRules) ? 'where '.implode(' and ', $whereRules) : '';
-    $sql = 'select * from '.uprefix.'_users '.$queryFilter.' order by '.$sortValue.' '.'limit '.(($pageNo - 1) * $fRPP).', '.$fRPP;
+    $queryFilter = count($whereRules) ? 'where ' . implode(' and ', $whereRules) : '';
+    $sql = 'select * from ' . uprefix . '_users ' . $queryFilter . ' order by ' . $sortValue . ' ' . 'limit ' . (($pageNo - 1) * $fRPP) . ', ' . $fRPP;
     $tEntries = [];
     foreach ($mysql->select($sql) as $row) {
-        $status = isset($UGROUP[$row['status']]) ? $UGROUP[$row['status']]['name'] : ('Unknown ['.$row['status'].']');
+        $status = isset($UGROUP[$row['status']]) ? $UGROUP[$row['status']]['name'] : ('Unknown [' . $row['status'] . ']');
         $tEntry = [
             'id'          => $row['id'],
             'name'        => $row['name'],
@@ -379,17 +379,17 @@ function userList()
         ];
         $tEntries[] = $tEntry;
     }
-    $userCount = $mysql->result('SELECT count(*) FROM '.uprefix.'_users '.$queryFilter);
+    $userCount = $mysql->result('SELECT count(*) FROM ' . uprefix . '_users ' . $queryFilter);
     $pageCount = ceil($userCount / $fRPP);
     // Sorting flags
     //$linkSortOrders
     $pagination = generateAdminPagelist([
         'current' => $pageNo,
         'count'   => $pageCount,
-        'url'     => admin_url.'/admin.php?mod=users&action=list'.
-            (isset($_REQUEST['name']) && $_REQUEST['name'] ? '&name='.htmlspecialchars($_REQUEST['name'], ENT_COMPAT | ENT_HTML401, 'UTF-8') : '').
-            (isset($_REQUEST['how']) && $_REQUEST['how'] ? '&how='.htmlspecialchars($_REQUEST['how'], ENT_COMPAT | ENT_HTML401, 'UTF-8') : '').
-            (isset($_REQUEST['rpp']) && $_REQUEST['rpp'] ? '&rpp='.intval($_REQUEST['rpp']) : '').
+        'url'     => admin_url . '/admin.php?mod=users&action=list' .
+            (isset($_REQUEST['name']) && $_REQUEST['name'] ? '&name=' . htmlspecialchars($_REQUEST['name'], ENT_COMPAT | ENT_HTML401, 'UTF-8') : '') .
+            (isset($_REQUEST['how']) && $_REQUEST['how'] ? '&how=' . htmlspecialchars($_REQUEST['how'], ENT_COMPAT | ENT_HTML401, 'UTF-8') : '') .
+            (isset($_REQUEST['rpp']) && $_REQUEST['rpp'] ? '&rpp=' . intval($_REQUEST['rpp']) : '') .
             '&page=%page%',
     ]);
     $tUgroup = [];
@@ -418,7 +418,7 @@ function userList()
             'haveComments'  => getPluginStatusInstalled('comments') ? 1 : 0,
         ],
     ];
-    $xt = $twig->loadTemplate('skins/'.$config['admin_skin'].'/tpl/users/table.tpl');
+    $xt = $twig->loadTemplate('skins/' . $config['admin_skin'] . '/tpl/users/table.tpl');
     return $xt->render($tVars);
 }
 // ==============================================

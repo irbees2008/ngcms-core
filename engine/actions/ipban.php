@@ -1,6 +1,6 @@
 <?php
 //
-// Copyright (C) 2006-2011 Next Generation CMS (http://ngcms.ru/)
+// Copyright (C) 2006-2011 Next Generation CMS (http://ngcms.org/)
 // Name: ipban.php
 // Description: IP BAN configuration procedures
 // Author: Vitaly Ponomarev

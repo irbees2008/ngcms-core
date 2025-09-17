@@ -1,12 +1,13 @@
 <?php
 //
-// Copyright (C) 2006-2016 Next Generation CMS (http://ngcms.ru/)
+// Copyright (C) 2006-2016 Next Generation CMS (http://ngcms.org/)
 // Name: functions.php
 // Description: Common system functions
 // Author: Vitaly Ponomarev, Alexey Zinchenko
 //
 // Protect against hack attempts
 use PHPMailer\PHPMailer\PHPMailer;
+
 if (!defined('NGCMS')) {
     exit('HAL');
 }
@@ -1141,15 +1142,15 @@ function generateCategoryMenu($treeMasterCategory = null, $flags = [])
                 }
             }
             // Формируем данные иконки как в makeCategoryInfo()
-           // $iconData = null;
-           // if ($v['icon_id'] && $v['icon_folder']) {
-           //     $iconData = [
-           //         'url' => $config['attach_url'] . '/' . $v['icon_folder'] . '/' . $v['icon_name'],
-           //         'purl'       => $v['icon_preview'] ? ($config['attach_url'] . '/' . $v['icon_folder'] . '/thumb/' . $v['icon_name']) : '',
-           //         'isExtended' => true,
-           //         'hasPreview' => $v['icon_preview'] ? true : false,
-           //     ];
-           // } elseif ($v['icon']) {
+            // $iconData = null;
+            // if ($v['icon_id'] && $v['icon_folder']) {
+            //     $iconData = [
+            //         'url' => $config['attach_url'] . '/' . $v['icon_folder'] . '/' . $v['icon_name'],
+            //         'purl'       => $v['icon_preview'] ? ($config['attach_url'] . '/' . $v['icon_folder'] . '/thumb/' . $v['icon_name']) : '',
+            //         'isExtended' => true,
+            //         'hasPreview' => $v['icon_preview'] ? true : false,
+            //     ];
+            // } elseif ($v['icon']) {
             //    $iconData = [
             //        'url'        => $v['icon'],
             //        'isExtended' => false,
@@ -1164,7 +1165,7 @@ function generateCategoryMenu($treeMasterCategory = null, $flags = [])
                 'level'   => $v['poslevel'],
                 'info'    => $v['info'],
                 'counter' => $v['posts'],
-                'icon'    => $v['icon'] ,  //$iconData, // ← Теперь с правильными данными
+                'icon'    => $v['icon'],  //$iconData, // ← Теперь с правильными данными
                 'flags'   => [
                     'active'  => (isset($SYSTEM_FLAGS['news']['currentCategory.id']) && ($v['id'] == $SYSTEM_FLAGS['news']['currentCategory.id'])) ? true : false,
                     'counter' => ($config['category_counters'] && $v['posts']) ? true : false,
@@ -2140,22 +2141,26 @@ function ngExceptionHandler($exception)
 {
 ?>
     <html>
+
     <head>
         <title>NGCMS Runtime exception: <?php echo get_class($exception); ?></title>
         <style>
             body {
                 font: 1em Georgia, "Times New Roman", serif;
             }
+
             .dmsg {
                 border: 1px #EEEEEE solid;
                 padding: 10px;
                 background-color: yellow;
             }
+
             .dtrace TBODY TD {
                 padding: 3px;
                 /*border: 1px #EEEEEE solid;*/
                 background-color: #EEEEEE;
             }
+
             .dtrace THEAD TD {
                 padding: 3px;
                 background-color: #EEEEEE;
@@ -2163,6 +2168,7 @@ function ngExceptionHandler($exception)
             }
         </style>
     </head>
+
     <body>
         <?php
         echo '<h1>NGCMS Runtime exception: ' . get_class($exception) . "</h1>\n";
@@ -2212,22 +2218,26 @@ function ngExceptionHandler($exception)
             return true;
         } ?>
         <html>
+
         <head>
             <title>NGCMS Runtime error: <?php echo $lastError['message']; ?></title>
             <style type="text/css">
                 body {
                     font: 1em Georgia, "Times New Roman", serif;
                 }
+
                 .dmsg {
                     border: 1px #EEEEEE solid;
                     padding: 10px;
                     background-color: yellow;
                 }
+
                 .dtrace TBODY TD {
                     padding: 3px;
                     /*border: 1px #EEEEEE solid;*/
                     background-color: #EEEEEE;
                 }
+
                 .dtrace THEAD TD {
                     padding: 3px;
                     background-color: #EEEEEE;
@@ -2235,6 +2245,7 @@ function ngExceptionHandler($exception)
                 }
             </style>
         </head>
+
         <body>
             <?php
             echo '<div id="ngErrorInformer">';
@@ -2278,22 +2289,26 @@ function ngExceptionHandler($exception)
     {
         ?>
             <html>
+
             <head>
                 <title>NGCMS Runtime error: <?php echo $title; ?></title>
                 <style type="text/css">
                     body {
                         font: 1em Georgia, "Times New Roman", serif;
                     }
+
                     .dmsg {
                         border: 1px #EEEEEE solid;
                         padding: 10px;
                         background-color: yellow;
                     }
+
                     .dtrace TBODY TD {
                         padding: 3px;
                         /*border: 1px #EEEEEE solid;*/
                         background-color: #EEEEEE;
                     }
+
                     .dtrace THEAD TD {
                         padding: 3px;
                         background-color: #EEEEEE;
@@ -2301,6 +2316,7 @@ function ngExceptionHandler($exception)
                     }
                 </style>
             </head>
+
             <body>
                 <div id="hdrSpanItem"></div>
                 <script language="Javascript">
@@ -2661,7 +2677,7 @@ function ngExceptionHandler($exception)
                 $tVars['profile_link'] = generateLink('uprofile', 'edit');
                 // Добавляем ссылку на просмотр профиля
                 // Формируем ссылку на профиль
-                if (isset($userROW['name']) ) {
+                if (isset($userROW['name'])) {
                     $tVars['user_link'] = generateLink('uprofile', 'show', array('name' => $userROW['name']));
                 } else {
                     // Иначе используем ID

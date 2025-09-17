@@ -1,7 +1,7 @@
 <?php
 
 //
-// Copyright (C) 2006-2012 Next Generation CMS (http://ngcms.ru/)
+// Copyright (C) 2006-2012 Next Generation CMS (http://ngcms.org/)
 // Name: news.php
 // Description: News display sub-engine
 // Author: Vitaly Ponomarev

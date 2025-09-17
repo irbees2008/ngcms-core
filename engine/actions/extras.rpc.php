@@ -1,7 +1,7 @@
 <?php
 
 //
-// Copyright (C) 2006-2014 Next Generation CMS (http://ngcms.ru/)
+// Copyright (C) 2006-2014 Next Generation CMS (http://ngcms.org/)
 // Name: extras.rpc.php
 // Description: Externally available library for EXTRAS manipulation
 // Author: Vitaly Ponomarev
@@ -16,7 +16,7 @@ header('Content-Type: text/html; charset=utf-8');
 setlocale(LC_ALL, 'ru_RU.UTF-8');
 
 // Load library
-@include_once root.'includes/classes/upload.class.php';
+@include_once root . 'includes/classes/upload.class.php';
 $lang = LoadLang('extras', 'admin');
 
 // ////////////////////////////////////////////////////////////////////////////
@@ -72,7 +72,7 @@ function admExtrasOnOff($params)
 
     $extras = pluginsGetList();
     if (!isset($extras[$params['plugin']])) {
-        return ['status' => 0, 'errorCode' => 7, 'errorText' => 'Plugin ['.$params['plugin'].' is not found'];
+        return ['status' => 0, 'errorCode' => 7, 'errorText' => 'Plugin [' . $params['plugin'] . ' is not found'];
     }
 
     // Manage `ON` call
@@ -80,29 +80,29 @@ function admExtrasOnOff($params)
         if (pluginSwitch($params['plugin'], 'on')) {
             ngSYSLOG(['plugin' => '#admin', 'item' => 'extras'], ['action' => 'switch_on', 'list' => ['plugin' => $params['plugin']]], null, [1, '']);
 
-            return ['status' => 1, 'errorCode' => 0, 'errorText' => 'Ok', 'content' => 'Plugin ['.$params['plugin'].']is switched on'];
+            return ['status' => 1, 'errorCode' => 0, 'errorText' => 'Ok', 'content' => 'Plugin [' . $params['plugin'] . ']is switched on'];
         } else {
             // generate error message
-            ngSYSLOG(['plugin' => '#admin', 'item' => 'extras'], ['action' => 'switch_on', 'list' => ['plugin' => $params['plugin']]], null, [0, 'ERROR: '.$params['state']]);
+            ngSYSLOG(['plugin' => '#admin', 'item' => 'extras'], ['action' => 'switch_on', 'list' => ['plugin' => $params['plugin']]], null, [0, 'ERROR: ' . $params['state']]);
 
-            return ['status' => 0, 'errorCode' => 8, 'errorText' => 'Error turning plugin ['.$params['plugin'].'] on'];
+            return ['status' => 0, 'errorCode' => 8, 'errorText' => 'Error turning plugin [' . $params['plugin'] . '] on'];
         }
     }
 
     if ($params['state'] == 'off') {
         if ($extras[$params['plugin']]['permanent']) {
-            ngSYSLOG(['plugin' => '#admin', 'item' => 'extras'], ['action' => 'switch_off', 'list' => ['plugin' => $params['plugin']]], null, [0, 'ERROR: PLUGIN is permanent '.$params['state']]);
+            ngSYSLOG(['plugin' => '#admin', 'item' => 'extras'], ['action' => 'switch_off', 'list' => ['plugin' => $params['plugin']]], null, [0, 'ERROR: PLUGIN is permanent ' . $params['state']]);
 
-            return ['status' => 0, 'errorCode' => 9, 'errorText' => 'Cannot turn off permanent plugin ['.$params['plugin'].']'];
+            return ['status' => 0, 'errorCode' => 9, 'errorText' => 'Cannot turn off permanent plugin [' . $params['plugin'] . ']'];
         } else {
             if (pluginSwitch($params['plugin'], 'off')) {
                 ngSYSLOG(['plugin' => '#admin', 'item' => 'extras'], ['action' => 'switch_off', 'list' => ['plugin' => $params['plugin']]], null, [1, '']);
 
-                return ['status' => 1, 'errorCode' => 0, 'errorText' => 'Ok', 'content' => 'Plugin ['.$params['plugin'].']is switched on'];
+                return ['status' => 1, 'errorCode' => 0, 'errorText' => 'Ok', 'content' => 'Plugin [' . $params['plugin'] . ']is switched on'];
             } else {
-                ngSYSLOG(['plugin' => '#admin', 'item' => 'extras'], ['action' => 'switch_on', 'list' => ['plugin' => $params['plugin']]], null, [0, 'ERROR: '.$params['state']]);
+                ngSYSLOG(['plugin' => '#admin', 'item' => 'extras'], ['action' => 'switch_on', 'list' => ['plugin' => $params['plugin']]], null, [0, 'ERROR: ' . $params['state']]);
 
-                return ['status' => 0, 'errorCode' => 10, 'errorText' => 'Error turning plugin ['.$params['plugin'].'] off'];
+                return ['status' => 0, 'errorCode' => 10, 'errorText' => 'Error turning plugin [' . $params['plugin'] . '] off'];
             }
         }
     }

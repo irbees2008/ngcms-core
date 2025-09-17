@@ -18,7 +18,7 @@ if (!defined('NGCMS')) define('NGCMS', true);
 if (!defined('engineName')) define('engineName', 'NGCMS');
 if (!defined('engineVersion')) define('engineVersion', '0.9.8 Release');
 if (!defined('engineVersionType')) define('engineVersionType', 'GIT');
-if (!defined('engineVersionBuild')) define('engineVersionBuild', ' d2f66cc ');
+if (!defined('engineVersionBuild')) define('engineVersionBuild', '23b3116'); 
 if (!defined('minDBVersion')) define('minDBVersion', 7);
 if (!defined('prefix')) define('prefix', $config['prefix']);
 if (!defined('uprefix')) define('uprefix', $config['uprefix']);

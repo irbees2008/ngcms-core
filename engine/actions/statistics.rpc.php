@@ -1,6 +1,6 @@
 <?php
 //
-// Copyright (C) 2020-2020 Next Generation CMS (http://ngcms.ru/)
+// Copyright (C) 2020-2020 Next Generation CMS (http://ngcms.org/)
 // Name: statistics.rpc.php
 // Description: RPC library for STATISTICS module
 // Author: NGCMS Development Team
@@ -12,7 +12,7 @@ if (!defined('NGCMS')) {
 // ==============================================================
 //  Module functions
 // ==============================================================
-@include_once root.'includes/inc/httpget.inc.php';
+@include_once root . 'includes/inc/httpget.inc.php';
 // Calculate cache size
 function getCacheSize($params)
 {
@@ -26,7 +26,7 @@ function getCacheSize($params)
         ngSYSLOG(['plugin' => '#admin', 'item' => 'rewrite'], ['action' => 'modify'], null, [0, 'SECURITY.TOKEN']);
         return ['status' => 0, 'errorCode' => 2, 'errorText' => 'Access denied (token)'];
     }
-    $dir = root.'cache/';
+    $dir = root . 'cache/';
     $files = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($dir, RecursiveDirectoryIterator::SKIP_DOTS), RecursiveIteratorIterator::CHILD_FIRST);
     $stat = [
         'numFiles' => 0,
@@ -66,7 +66,7 @@ function cleanCache($params)
         ngSYSLOG(['plugin' => '#admin', 'item' => 'rewrite'], ['action' => 'modify'], null, [0, 'SECURITY.TOKEN']);
         return ['status' => 0, 'errorCode' => 2, 'errorText' => 'Access denied (token)'];
     }
-    $dir = root.'cache/';
+    $dir = root . 'cache/';
     $files = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($dir, RecursiveDirectoryIterator::SKIP_DOTS), RecursiveIteratorIterator::CHILD_FIRST);
     try {
         foreach ($files as $fname => $fileinfo) {

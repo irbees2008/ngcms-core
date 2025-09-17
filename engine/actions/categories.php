@@ -1,7 +1,7 @@
 <?php
 
 //
-// Copyright (C) 2006-2013 Next Generation CMS (http://ngcms.ru/)
+// Copyright (C) 2006-2013 Next Generation CMS (http://ngcms.org/)
 // Name: categories.php
 // Description: Category management
 // Author: Vitaly Ponomarev
@@ -13,7 +13,7 @@ if (!defined('NGCMS')) {
 }
 
 // Load library
-@include_once root.'actions/categories.rpc.php';
+@include_once root . 'actions/categories.rpc.php';
 
 $lang = LoadLang('categories', 'admin');
 
@@ -22,7 +22,7 @@ function listSubdirs($dir)
     $list = [];
     if ($h = @opendir($dir)) {
         while (($fn = readdir($h)) !== false) {
-            if (($fn != '.') && ($fn != '..') && is_dir($dir.'/'.$fn)) {
+            if (($fn != '.') && ($fn != '..') && is_dir($dir . '/' . $fn)) {
                 array_push($list, $fn);
             }
         }
@@ -47,14 +47,14 @@ function admCategoryAddForm()
         return;
     }
 
-    $tpl_list = '<option value="">* '.$lang['cat_tpldefault']." *</option>\n";
-    foreach (listSubdirs(tpl_site.'ncustom/') as $k) {
-        $tpl_list .= '<option value="'.secure_html($k).'"'.(($row['tpl'] == $k) ? ' selected="selected"' : '').'>'.secure_html($k)."</option>\n";
+    $tpl_list = '<option value="">* ' . $lang['cat_tpldefault'] . " *</option>\n";
+    foreach (listSubdirs(tpl_site . 'ncustom/') as $k) {
+        $tpl_list .= '<option value="' . secure_html($k) . '"' . (($row['tpl'] == $k) ? ' selected="selected"' : '') . '>' . secure_html($k) . "</option>\n";
     }
 
     $templateMode = '';
     foreach (['0', '1', '2'] as $k => $v) {
-        $templateMode .= '<option value="'.$k.'"'.(($k == intval(substr(getIsSet($row['flags']), 2, 1))) ? ' selected="selected"' : '').'>'.$lang['template_mode.'.$v].'</option>';
+        $templateMode .= '<option value="' . $k . '"' . (($k == intval(substr(getIsSet($row['flags']), 2, 1))) ? ' selected="selected"' : '') . '>' . $lang['template_mode.' . $v] . '</option>';
     }
 
     $tVars = [
@@ -75,7 +75,7 @@ function admCategoryAddForm()
         }
     }
 
-    $xt = $twig->loadTemplate('skins/'.$config['admin_skin'].'/tpl/categories/add.tpl');
+    $xt = $twig->loadTemplate('skins/' . $config['admin_skin'] . '/tpl/categories/add.tpl');
 
     return $xt->render($tVars);
 }
@@ -136,7 +136,7 @@ function admCategoryAdd()
         }
 
         // - check for duplicate alt name
-        if (is_array($mysql->record('select * from '.prefix.'_category where lower(alt) = '.db_squote($SQL['alt'])))) {
+        if (is_array($mysql->record('select * from ' . prefix . '_category where lower(alt) = ' . db_squote($SQL['alt'])))) {
             msg(['type' => 'error', 'text' => $lang['category.err.dupalt'], 'info' => $lang['category.err.dupalt#desc']]);
 
             return;
@@ -146,10 +146,10 @@ function admCategoryAdd()
         $SQL['alt'] = strtolower($parse->translit($SQL['name']));
 
         $i = '';
-        while (is_array($mysql->record('select id from '.prefix.'_category where alt = '.db_squote($SQL['alt'].$i).' limit 1'))) {
+        while (is_array($mysql->record('select id from ' . prefix . '_category where alt = ' . db_squote($SQL['alt'] . $i) . ' limit 1'))) {
             $i++;
         }
-        $SQL['alt'] = $SQL['alt'].$i;
+        $SQL['alt'] = $SQL['alt'] . $i;
     }
 
     if ($config['meta']) {
@@ -178,7 +178,7 @@ function admCategoryAdd()
 
     cacheStoreFile('LoadCategories.dat', '');
     // Add new record into SQL table
-    $mysql->query('insert into '.prefix.'_category ('.implode(', ', array_keys($SQLout)).') values ('.implode(', ', array_values($SQLout)).')');
+    $mysql->query('insert into ' . prefix . '_category (' . implode(', ', array_keys($SQLout)) . ') values (' . implode(', ', array_values($SQLout)) . ')');
     $rowID = $mysql->record('select LAST_INSERT_ID() as id');
 
     $fmanager = new file_managment();
@@ -199,7 +199,7 @@ function admCategoryAdd()
             $img_pwidth = 0;
             $img_pheight = 0;
 
-            if (is_array($sz = $imanager->get_size($config['attach_dir'].$up[2].'/'.$up[1]))) {
+            if (is_array($sz = $imanager->get_size($config['attach_dir'] . $up[2] . '/' . $up[1]))) {
                 //print "<pre>IMG SIZE. ret:".var_export($sz, true)."</pre>";
 
                 $img_width = $sz[1];
@@ -209,7 +209,7 @@ function admCategoryAdd()
                 if (($tsz < 10) || ($tsz > 1000)) {
                     $tsz = 150;
                 }
-                $thumb = $imanager->create_thumb($config['attach_dir'].$up[2], $up[1], $tsz, $tsz, $config['thumb_quality']);
+                $thumb = $imanager->create_thumb($config['attach_dir'] . $up[2], $up[1], $tsz, $tsz, $config['thumb_quality']);
                 if ($thumb) {
                     $img_preview = 1;
                     $img_pwidth = $thumb[0];
@@ -219,10 +219,10 @@ function admCategoryAdd()
             }
 
             // Update table 'images'
-            $mysql->query('update '.prefix.'_images set width='.db_squote($img_width).', height='.db_squote($img_height).', preview='.db_squote($img_preview).', p_width='.db_squote($img_pwidth).', p_height='.db_squote($img_pheight).' where id = '.db_squote($up[0]));
+            $mysql->query('update ' . prefix . '_images set width=' . db_squote($img_width) . ', height=' . db_squote($img_height) . ', preview=' . db_squote($img_preview) . ', p_width=' . db_squote($img_pwidth) . ', p_height=' . db_squote($img_pheight) . ' where id = ' . db_squote($up[0]));
 
             // Update table 'categories'
-            $mysql->query('update '.prefix.'_category set image_id = '.db_squote($up[0]).' where id = '.db_squote($rowID['id']));
+            $mysql->query('update ' . prefix . '_category set image_id = ' . db_squote($up[0]) . ' where id = ' . db_squote($rowID['id']));
         }
     }
 
@@ -249,25 +249,25 @@ function admCategoryEditForm()
     }
 
     $catid = intval($_REQUEST['catid']);
-    if (!is_array($row = $mysql->record('select nc.*, ni.id as icon_id, ni.name as icon_name, ni.storage as icon_storage, ni.folder as icon_folder, ni.preview as icon_preview, ni.width as icon_width, ni.height as icon_height, ni.p_width as icon_pwidth, ni.p_height as icon_pheight from `'.prefix.'_category` as nc left join `'.prefix.'_images` ni on nc.image_id = ni.id where nc.id = '.db_squote($catid).' order by nc.posorder asc'))) {
-        msg(['type' => 'error', 'text' => $lang['msge_id'], 'info' => sprintf($lang['msgi_id'], $PHP_SELF.'?mod=categories')]);
+    if (!is_array($row = $mysql->record('select nc.*, ni.id as icon_id, ni.name as icon_name, ni.storage as icon_storage, ni.folder as icon_folder, ni.preview as icon_preview, ni.width as icon_width, ni.height as icon_height, ni.p_width as icon_pwidth, ni.p_height as icon_pheight from `' . prefix . '_category` as nc left join `' . prefix . '_images` ni on nc.image_id = ni.id where nc.id = ' . db_squote($catid) . ' order by nc.posorder asc'))) {
+        msg(['type' => 'error', 'text' => $lang['msge_id'], 'info' => sprintf($lang['msgi_id'], $PHP_SELF . '?mod=categories')]);
 
         return;
     }
 
-    $tpl_list = '<option value="">* '.$lang['cat_tpldefault']." *</option>\n";
-    foreach (listSubdirs(tpl_site.'ncustom/') as $k) {
-        $tpl_list .= '<option value="'.secure_html($k).'"'.(($row['tpl'] == $k) ? ' selected="selected"' : '').'>'.secure_html($k)."</option>\n";
+    $tpl_list = '<option value="">* ' . $lang['cat_tpldefault'] . " *</option>\n";
+    foreach (listSubdirs(tpl_site . 'ncustom/') as $k) {
+        $tpl_list .= '<option value="' . secure_html($k) . '"' . (($row['tpl'] == $k) ? ' selected="selected"' : '') . '>' . secure_html($k) . "</option>\n";
     }
 
     $showLink = '';
     foreach (['always', 'ifnews', 'never'] as $k => $v) {
-        $showLink .= '<option value="'.$k.'"'.(($k == intval(substr($row['flags'], 1, 1))) ? ' selected="selected"' : '').'>'.$lang['link.'.$v].'</option>';
+        $showLink .= '<option value="' . $k . '"' . (($k == intval(substr($row['flags'], 1, 1))) ? ' selected="selected"' : '') . '>' . $lang['link.' . $v] . '</option>';
     }
 
     $templateMode = '';
     foreach (['0', '1', '2'] as $k => $v) {
-        $templateMode .= '<option value="'.$k.'"'.(($k == intval(substr($row['flags'], 2, 1))) ? ' selected="selected"' : '').'>'.$lang['template_mode.'.$v].'</option>';
+        $templateMode .= '<option value="' . $k . '"' . (($k == intval(substr($row['flags'], 2, 1))) ? ' selected="selected"' : '') . '>' . $lang['template_mode.' . $v] . '</option>';
     }
 
     $tVars = [
@@ -297,7 +297,7 @@ function admCategoryEditForm()
     ];
 
     if ($row['icon_id']) {
-        $tVars['attach_url'] = $config['attach_url'].'/'.$row['icon_folder'].'/'.($row['icon_preview'] ? 'thumb/' : '').$row['icon_name'];
+        $tVars['attach_url'] = $config['attach_url'] . '/' . $row['icon_folder'] . '/' . ($row['icon_preview'] ? 'thumb/' : '') . $row['icon_name'];
     }
 
     if (is_array($AFILTERS['categories'])) {
@@ -306,7 +306,7 @@ function admCategoryEditForm()
         }
     }
 
-    $xt = $twig->loadTemplate('skins/'.$config['admin_skin'].'/tpl/categories/edit.tpl');
+    $xt = $twig->loadTemplate('skins/' . $config['admin_skin'] . '/tpl/categories/edit.tpl');
 
     return $xt->render($tVars);
 }
@@ -375,7 +375,7 @@ function admCategoryEdit()
         }
 
         // - check for duplicate alt name
-        if (is_array($mysql->record('select * from '.prefix.'_category where (id <> '.db_squote($catid).') and (lower(alt) = '.db_squote($SQL['alt']).')'))) {
+        if (is_array($mysql->record('select * from ' . prefix . '_category where (id <> ' . db_squote($catid) . ') and (lower(alt) = ' . db_squote($SQL['alt']) . ')'))) {
             msg(['type' => 'error', 'text' => $lang['category.err.dupalt'], 'info' => $lang['category.err.dupalt#desc']]);
 
             return;
@@ -411,7 +411,7 @@ function admCategoryEdit()
             $img_pwidth = 0;
             $img_pheight = 0;
 
-            if (is_array($sz = $imanager->get_size($config['attach_dir'].$up[2].'/'.$up[1]))) {
+            if (is_array($sz = $imanager->get_size($config['attach_dir'] . $up[2] . '/' . $up[1]))) {
                 //print "<pre>IMG SIZE. ret:".var_export($sz, true)."</pre>";
 
                 $img_width = $sz[1];
@@ -421,7 +421,7 @@ function admCategoryEdit()
                 if (($tsz < 10) || ($tsz > 1000)) {
                     $tsz = 150;
                 }
-                $thumb = $imanager->create_thumb($config['attach_dir'].$up[2], $up[1], $tsz, $tsz, $config['thumb_quality']);
+                $thumb = $imanager->create_thumb($config['attach_dir'] . $up[2], $up[1], $tsz, $tsz, $config['thumb_quality']);
                 if ($thumb) {
                     $img_preview = 1;
                     $img_pwidth = $thumb[0];
@@ -431,7 +431,7 @@ function admCategoryEdit()
             }
 
             // Update SQL records
-            $mysql->query('update '.prefix.'_images set width='.db_squote($img_width).', height='.db_squote($img_height).', preview='.db_squote($img_preview).', p_width='.db_squote($img_pwidth).', p_height='.db_squote($img_pheight).' where id = '.db_squote($up[0]));
+            $mysql->query('update ' . prefix . '_images set width=' . db_squote($img_width) . ', height=' . db_squote($img_height) . ', preview=' . db_squote($img_preview) . ', p_width=' . db_squote($img_pwidth) . ', p_height=' . db_squote($img_pheight) . ' where id = ' . db_squote($up[0]));
             $SQL['image_id'] = $up[0];
         }
     }
@@ -452,12 +452,12 @@ function admCategoryEdit()
 
     $SQLout = [];
     foreach ($SQL as $var => $val) {
-        $SQLout[] = '`'.$var.'` = '.db_squote($val);
+        $SQLout[] = '`' . $var . '` = ' . db_squote($val);
     }
 
     cacheStoreFile('LoadCategories.dat', '');
 
-    $mysql->query('update '.prefix.'_category set '.implode(', ', $SQLout).' where id='.db_squote($catid));
+    $mysql->query('update ' . prefix . '_category set ' . implode(', ', $SQLout) . ' where id=' . db_squote($catid));
     msg(['text' => $lang['msgo_saved']]);
 }
 

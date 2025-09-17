@@ -1,6 +1,6 @@
 <?php
 //
-// Copyright (C) 2006-2014 Next Generation CMS (http://ngcms.ru/)
+// Copyright (C) 2006-2014 Next Generation CMS (http://ngcms.org/)
 // Name: perm.php
 // Description: Permission manager
 // Author: Vitaly Ponomarev
@@ -10,7 +10,7 @@ if (!defined('NGCMS')) {
     exit('HAL');
 }
 $lang = LoadLang('perm', 'admin');
-@include_once root.'includes/inc/extrainst.inc.php';
+@include_once root . 'includes/inc/extrainst.inc.php';
 $pManager = new permissionRuleManager();
 $pManager->load();
 // Preconfigure list of groups from global group list
@@ -62,11 +62,11 @@ function showList($grp)
                                 'title'            => (isset($ve['title']) && $ve['title']) ? $ve['title'] : '',
                                 'description'      => (isset($ve['description']) && $ve['description']) ? $ve['description'] : '',
                                 'type'             => 'listCategoriesSelector',
-                                'name'             => str_replace('.', ':', $kb.'|'.$ka.'|'.$ke),
+                                'name'             => str_replace('.', ':', $kb . '|' . $ka . '|' . $ke),
                                 'generatedOptions' => makeCategoryList(['skipDisabled' => true, 'noHeader' => true, 'doall' => true, 'allmarker' => '*', 'returnOptArray' => true]),
-                                'uniqId'           => 'id'.$nl1.'_'.$nl2.'_'.$nl3,
+                                'uniqId'           => 'id' . $nl1 . '_' . $nl2 . '_' . $nl3,
                             ];
-                        //$dArea['items'] []= $dEntry;
+                            //$dArea['items'] []= $dEntry;
                             //continue;
                         } else {
                             // [[ NORMAL SELECT ]]
@@ -75,7 +75,7 @@ function showList($grp)
                                 'title'       => (isset($ve['title']) && $ve['title']) ? $ve['title'] : '',
                                 'description' => (isset($ve['description']) && $ve['description']) ? $ve['description'] : '',
                                 'perm'        => [],
-                                'name'        => $kb.'|'.$ka.'|'.$ke,
+                                'name'        => $kb . '|' . $ka . '|' . $ke,
                                 'type'        => '',
                             ];
                         }
@@ -93,11 +93,11 @@ function showList($grp)
                                     foreach (explode(',', $x) as $cx) {
                                         $catArray[$cx] = true;
                                     }
-                                    $dvalue[$dEntry['name'].'|'.$kg['id']] = $catArray;
+                                    $dvalue[$dEntry['name'] . '|' . $kg['id']] = $catArray;
                                     $dEntry['perm'][$kg['id']] = $catArray; //$PERM[$kg['id']][$kb][$ka][$ke];
                                 } else {
                                     $dEntry['perm'][$kg['id']] = $x; //$PERM[$kg['id']][$kb][$ka][$ke];
-                                    $dvalue[$dEntry['name'].'|'.$kg['id']] = (!isset($PERM[$kg['id']][$kb][$ka][$ke]) || ($PERM[$kg['id']][$kb][$ka][$ke] === null)) ? -1 : ($x ? 1 : 0);
+                                    $dvalue[$dEntry['name'] . '|' . $kg['id']] = (!isset($PERM[$kg['id']][$kb][$ka][$ke]) || ($PERM[$kg['id']][$kb][$ka][$ke] === null)) ? -1 : ($x ? 1 : 0);
                                 }
                             }
                         }
@@ -111,7 +111,7 @@ function showList($grp)
     }
     //print "<pre><select size='10' multiple='multiple'>".makeCategoryList(array('skipDisabled' => true, 'noHeader' => true))."</select></pre>";
     // Print template
-    $xt = $twig->loadTemplate('skins/'. $config['admin_skin'] .'/tpl/perm/list.tpl');
+    $xt = $twig->loadTemplate('skins/' . $config['admin_skin'] . '/tpl/perm/list.tpl');
     return $xt->render([
         'CONFIG'       => $data,
         'PERM'         => $PERM,
@@ -195,7 +195,7 @@ function updateConfig()
             if ($markValue != $v) {
                 // Save information about updates
                 $updateList[] = [
-                    'id'         => $m[1].' &#8594; '.$m[2].' &#8594; '.$m[3],
+                    'id'         => $m[1] . ' &#8594; ' . $m[2] . ' &#8594; ' . $m[3],
                     'group'      => $m[4],
                     'title'      => $pList[$m[1]]['items'][$m[2]]['items'][$m[3]]['title'],
                     'type'       => $itemType,
@@ -213,7 +213,7 @@ function updateConfig()
                 ) {
                     //print "DELETE OVERRIDEN $k<br/>\n";
                     unset($confPermUser[$m[4]][$m[1]][$m[2]][$m[3]]);
-                // -- delete overrided $confPermUser record
+                    // -- delete overrided $confPermUser record
                 } else {
                     // -- SAVE new value for $confPermUser record
                     if ($itemIsCategories) {

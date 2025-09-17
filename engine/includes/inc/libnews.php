@@ -1,6 +1,6 @@
 <?php
 //
-// Copyright (C) 2006-2016 Next Generation CMS (http://ngcms.ru/)
+// Copyright (C) 2006-2016 Next Generation CMS (http://ngcms.org/)
 // Name: libnews.php
 // Description: News engine shared functions
 // Author: Vitaly A Ponomarev, vp7@mail.ru
@@ -46,24 +46,24 @@ function news_showone($newsID, $alt_name, $callingParams = [])
         $callingParams['emulateMode'] = 1;
     } else {
         if ($newsID) {
-            $filter = ['id='.db_squote($newsID)];
+            $filter = ['id=' . db_squote($newsID)];
         } elseif ($alt_name) {
-            $filter = ['alt_name='.db_squote($alt_name)];
+            $filter = ['alt_name=' . db_squote($alt_name)];
         } else {
             return false;
         }
         if ($year) {
-            array_push($filter, 'postdate >= '.db_squote(mktime(0, 0, 0, $month ? $month : 1, $day ? $day : 1, $year)));
-            array_push($filter, 'postdate <= '.db_squote(mktime(23, 59, 59, $month ? $month : 12, $day ? $day : 31, $year)));
+            array_push($filter, 'postdate >= ' . db_squote(mktime(0, 0, 0, $month ? $month : 1, $day ? $day : 1, $year)));
+            array_push($filter, 'postdate <= ' . db_squote(mktime(23, 59, 59, $month ? $month : 12, $day ? $day : 31, $year)));
         }
         // Load news from DB
-        if (!is_array($row = $mysql->record('select * from '.prefix.'_news where approve=1'.(count($filter) ? ' and '.implode(' and ', $filter) : '')))) {
+        if (!is_array($row = $mysql->record('select * from ' . prefix . '_news where approve=1' . (count($filter) ? ' and ' . implode(' and ', $filter) : '')))) {
             error404();
             return false;
         }
         // Check if canonical link should be added
         if ($callingParams['addCanonicalLink']) {
-            $EXTRA_HTML_VARS[] = ['type' => 'plain', 'data' => '<link rel="canonical" href="'.newsGenerateLink($row, false, 0, true).'"/>'];
+            $EXTRA_HTML_VARS[] = ['type' => 'plain', 'data' => '<link rel="canonical" href="' . newsGenerateLink($row, false, 0, true) . '"/>'];
         }
         // Check if correct categories were specified [ only for SINGLE category display
         if ((isset($callingParams['validateCategoryID']) || isset($callingParams['validateCategoryAlt']) || 1) && $config['news_multicat_url']) {
@@ -78,12 +78,12 @@ function news_showone($newsID, $alt_name, $callingParams = [])
         }
         // Fetch attached images/files (if any)
         if ($row['num_files']) {
-            $row['#files'] = $mysql->select('select * from '.prefix.'_files where linked_ds = 1 and linked_id = '.db_squote($row['id']));
+            $row['#files'] = $mysql->select('select * from ' . prefix . '_files where linked_ds = 1 and linked_id = ' . db_squote($row['id']));
         } else {
             $row['#files'] = [];
         }
         if ($row['num_images']) {
-            $row['#images'] = $mysql->select('select * from '.prefix.'_images where linked_ds = 1 and linked_id = '.db_squote($row['id']));
+            $row['#images'] = $mysql->select('select * from ' . prefix . '_images where linked_ds = 1 and linked_id = ' . db_squote($row['id']));
         } else {
             $row['#images'] = [];
         }
@@ -125,13 +125,13 @@ function news_showone($newsID, $alt_name, $callingParams = [])
     if (is_array($PFILTERS['news'])) {
         foreach ($PFILTERS['news'] as $k => $v) {
             $v->showNewsPre($row['id'], $row, $callingParams);
-            $timer->registerEvent('[FILTER] News->showNewsPre: call plugin ['.$k.']');
+            $timer->registerEvent('[FILTER] News->showNewsPre: call plugin [' . $k . ']');
         }
     }
     $tX2 = $timer->stop(4);
     $tvars = newsFillVariables($row, 1, isset($_REQUEST['page']) ? $_REQUEST['page'] : 0, (substr($callingParams['style'], 0, 6) == 'export') ? 1 : 0);
     $tX3 = $timer->stop(4);
-    $timer->registerEvent('call newsFillVariables() for [ '.($tX3 - $tX2).' ] sec');
+    $timer->registerEvent('call newsFillVariables() for [ ' . ($tX3 - $tX2) . ' ] sec');
     $tvars['vars']['comnum'] = $row['com'];
     // Prepare list of linked files and images
     $callingParams['linkedFiles'] = [];
@@ -143,7 +143,7 @@ function news_showone($newsID, $alt_name, $callingParams = [])
             $tvars['vars']['_files'][] = [
                 'plugin'      => $v['plugin'],
                 'pidentity'   => $v['pidentity'],
-                'url'         => ($v['storage'] ? $config['attach_url'] : $config['files_url']).'/'.$v['folder'].'/'.$v['name'],
+                'url'         => ($v['storage'] ? $config['attach_url'] : $config['files_url']) . '/' . $v['folder'] . '/' . $v['name'],
                 'name'        => $v['name'],
                 'origName'    => secure_html($v['orig_name']),
                 'description' => secure_html($v['description']),
@@ -159,8 +159,8 @@ function news_showone($newsID, $alt_name, $callingParams = [])
             $tvars['vars']['_images'][] = [
                 'plugin'      => $v['plugin'],
                 'pidentity'   => $v['pidentity'],
-                'url'         => ($v['storage'] ? $config['attach_url'] : $config['images_url']).'/'.$v['folder'].'/'.$v['name'],
-                'purl'        => $v['preview'] ? (($v['storage'] ? $config['attach_url'] : $config['images_url']).'/'.$v['folder'].'/thumb/'.$v['name']) : null,
+                'url'         => ($v['storage'] ? $config['attach_url'] : $config['images_url']) . '/' . $v['folder'] . '/' . $v['name'],
+                'purl'        => $v['preview'] ? (($v['storage'] ? $config['attach_url'] : $config['images_url']) . '/' . $v['folder'] . '/thumb/' . $v['name']) : null,
                 'width'       => $v['width'],
                 'height'      => $v['height'],
                 'pwidth'      => $v['p_width'],
@@ -196,28 +196,28 @@ function news_showone($newsID, $alt_name, $callingParams = [])
         'personal.modify.published',
     ]);
     $canModifyPersonalNews = $canViewAdminPanel
-                                && $userROW['id'] == $row['author_id']
-                                && $newsPersonalPerms['personal.view']
-                                && $newsPersonalPerms['personal.modify']
-                                && $newsPersonalPerms['personal.modify.published'];
+        && $userROW['id'] == $row['author_id']
+        && $newsPersonalPerms['personal.view']
+        && $newsPersonalPerms['personal.modify']
+        && $newsPersonalPerms['personal.modify.published'];
     $newsOtherPerms = checkPermission(['plugin' => '#admin', 'item' => 'news'], null, [
         'other.view',
         'other.modify',
         'other.modify.published',
     ]);
     $canModifyOtherNews = $canViewAdminPanel
-                            && $newsOtherPerms['other.view']
-                            && $newsOtherPerms['other.modify']
-                            && $newsOtherPerms['other.modify.published'];
+        && $newsOtherPerms['other.view']
+        && $newsOtherPerms['other.modify']
+        && $newsOtherPerms['other.modify.published'];
     $showModifyButtons = $canModifyPersonalNews || $canModifyOtherNews;
     if ($showModifyButtons) {
         $tvars['vars']['news']['flags']['canEdit'] = true;
         $tvars['vars']['news']['flags']['canDelete'] = true;
-        $tvars['vars']['news']['url']['edit'] = admin_url.'/admin.php?mod=news&amp;action=edit&amp;id='.$row['id'];
-        $tvars['vars']['news']['url']['delete'] = admin_url.'/admin.php?mod=news&amp;action=manage&amp;subaction=mass_delete&amp;token='.genUToken('admin.news.edit').'&amp;selected_news[]='.$row['id'];
-        $tvars['vars']['[edit-news]'] = '<a href="'.admin_url.'/admin.php?mod=news&amp;action=edit&amp;id='.$row['id'].'" target="_blank">';
+        $tvars['vars']['news']['url']['edit'] = admin_url . '/admin.php?mod=news&amp;action=edit&amp;id=' . $row['id'];
+        $tvars['vars']['news']['url']['delete'] = admin_url . '/admin.php?mod=news&amp;action=manage&amp;subaction=mass_delete&amp;token=' . genUToken('admin.news.edit') . '&amp;selected_news[]=' . $row['id'];
+        $tvars['vars']['[edit-news]'] = '<a href="' . admin_url . '/admin.php?mod=news&amp;action=edit&amp;id=' . $row['id'] . '" target="_blank">';
         $tvars['vars']['[/edit-news]'] = '</a>';
-        $tvars['vars']['[del-news]'] = "<a onclick=\"confirmit('".admin_url.'/admin.php?mod=news&amp;subaction=do_mass_delete&amp;token='.genUToken('admin.news.edit').'&amp;selected_news[]='.$row['id']."', '".$lang['sure_del']."')\" target=\"_blank\" style=\"cursor: pointer;\">";
+        $tvars['vars']['[del-news]'] = "<a onclick=\"confirmit('" . admin_url . '/admin.php?mod=news&amp;subaction=do_mass_delete&amp;token=' . genUToken('admin.news.edit') . '&amp;selected_news[]=' . $row['id'] . "', '" . $lang['sure_del'] . "')\" target=\"_blank\" style=\"cursor: pointer;\">";
         $tvars['vars']['[/del-news]'] = '</a>';
     } else {
         $tvars['regx']["'\\[edit-news\\].*?\\[/edit-news\\]'si"] = '';
@@ -232,7 +232,7 @@ function news_showone($newsID, $alt_name, $callingParams = [])
     $tvars['vars']['news']['embed'] = ['images' => []];
     if ($callingParams['extractEmbeddedItems']) {
         // Join short/full news into single line
-        $tempLine = $tvars['vars']['news']['short'].$tvars['vars']['news']['full'];
+        $tempLine = $tvars['vars']['news']['short'] . $tvars['vars']['news']['full'];
         // Scan for <img> tag
         if (preg_match_all("#\<img (.+?)(?: *\/?)\>#", $tempLine, $m)) {
             // Analyze all found <img> tags for parameters
@@ -251,15 +251,15 @@ function news_showone($newsID, $alt_name, $callingParams = [])
     // Execute filters
     if (is_array($PFILTERS['news'])) {
         foreach ($PFILTERS['news'] as $k => $v) {
-            $timer->registerEvent('[FILTER] News->showNews: call plugin ['.$k.']');
+            $timer->registerEvent('[FILTER] News->showNews: call plugin [' . $k . ']');
             $v->showNews($row['id'], $row, $tvars, $callingParams);
         }
     }
     $tX2 = $timer->stop(4);
-    $timer->registerEvent('Show single news: full exec time [ '.($tX2 - $tX0).' ] sec');
+    $timer->registerEvent('Show single news: full exec time [ ' . ($tX2 - $tX0) . ' ] sec');
     // Check if we need only to export body
     if ($callingParams['style'] == 'export_body') {
-        return $tvars['vars']['short-story'].' '.$tvars['vars']['full-story'];
+        return $tvars['vars']['short-story'] . ' ' . $tvars['vars']['full-story'];
     }
     if ($callingParams['style'] == 'export_short') {
         return $tvars['vars']['short-story'];
@@ -275,9 +275,9 @@ function news_showone($newsID, $alt_name, $callingParams = [])
         $cmode = intval($config['news_view_counters']);
         if ($cmode > 1) {
             // Delayed update of counters
-            $mysql->query('insert into '.prefix.'_news_view (id, cnt) values ('.db_squote($row['id']).', 1) on duplicate key update cnt = cnt + 1');
+            $mysql->query('insert into ' . prefix . '_news_view (id, cnt) values (' . db_squote($row['id']) . ', 1) on duplicate key update cnt = cnt + 1');
         } elseif ($cmode > 0) {
-            $mysql->query('update '.prefix.'_news set views=views+1 where id = '.db_squote($row['id']));
+            $mysql->query('update ' . prefix . '_news set views=views+1 where id = ' . db_squote($row['id']));
         }
     }
     // Make temlate procession - auto/manual overriding
@@ -305,7 +305,7 @@ function news_showone($newsID, $alt_name, $callingParams = [])
         }
     }
     // Set default template path
-    $templatePath = tpl_dir.$config['theme'];
+    $templatePath = tpl_dir . $config['theme'];
     // -> desired template path - override path if needed
     if (getIsSet($callingParams['overrideTemplatePath'])) {
         $templatePath = $callingParams['overrideTemplatePath'];
@@ -318,10 +318,10 @@ function news_showone($newsID, $alt_name, $callingParams = [])
         // Check if there is a custom mapping
         if (getIsSet($fcat) && $catmap[$fcat] && ($ctname = $catz[$catmap[$fcat]]['tpl'])) {
             // Check if directory exists
-            if (is_dir($templatePath.'/ncustom/'.$ctname)) {
-                $templatePath = $templatePath.'/ncustom/'.$ctname;
-                if (file_exists($templatePath.'/ncustom/'.$ctname.'/main.tpl')) {
-                    $SYSTEM_FLAGS['template.main.path'] = $templatePath.'/ncustom/'.$ctname;
+            if (is_dir($templatePath . '/ncustom/' . $ctname)) {
+                $templatePath = $templatePath . '/ncustom/' . $ctname;
+                if (file_exists($templatePath . '/ncustom/' . $ctname . '/main.tpl')) {
+                    $SYSTEM_FLAGS['template.main.path'] = $templatePath . '/ncustom/' . $ctname;
                 }
             }
         }
@@ -361,10 +361,10 @@ function newsProcessFilter($conditions)
                 $rec = newsProcessFilter($conditions[$i]);
                 //print ".result: ".var_export($rec, true)."<br/>\n";
                 if ($rec != '') {
-                    $list[] = '('.$rec.')';
+                    $list[] = '(' . $rec . ')';
                 }
             }
-            return implode(' '.mb_strtoupper($conditions[0]).' ', $list);
+            return implode(' ' . mb_strtoupper($conditions[0]) . ' ', $list);
         case 'DATA':
             if ($conditions[1] == 'category') {
                 switch ($conditions[2]) {
@@ -381,19 +381,19 @@ function newsProcessFilter($conditions)
                     case '>':
                     case '<':
                     case 'LIKE':
-                        return '`'.$conditions[1].'` '.$conditions[2].' '.db_squote($conditions[3]);
+                        return '`' . $conditions[1] . '` ' . $conditions[2] . ' ' . db_squote($conditions[3]);
                     case 'IN':
                         if (is_array($conditions[3])) {
                             $xt = [];
                             foreach ($conditions[3] as $r) {
                                 $xt[] = db_squote($r);
                             }
-                            return '`'.$conditions[1].'` IN ('.implode(',', $xt).') ';
+                            return '`' . $conditions[1] . '` IN (' . implode(',', $xt) . ') ';
                         }
                         return '';
                     case 'BETWEEN':
                         if (is_array($conditions[3])) {
-                            return '`'.$conditions[1].'` BETWEEN '.db_squote($conditions[3][0]).' AND '.db_squote($conditions[3][1]);
+                            return '`' . $conditions[1] . '` BETWEEN ' . db_squote($conditions[3][0]) . ' AND ' . db_squote($conditions[3][1]);
                         }
                         return '';
                 }
@@ -401,7 +401,7 @@ function newsProcessFilter($conditions)
             //
             break;
         case 'SQL':
-            return '('.$conditions[1].')';
+            return '(' . $conditions[1] . ')';
         default:
             return '';
     }
@@ -491,7 +491,7 @@ function news_showlist($filterConditions = [], $paginationParams = [], $callingP
         }
     }
     // Set default template path
-    $templatePath = tpl_dir.$config['theme'];
+    $templatePath = tpl_dir . $config['theme'];
     $cstart = $start_from = intval($callingParams['page']);
     if ($cstart < 1) {
         $cstart = 1;
@@ -509,15 +509,15 @@ function news_showlist($filterConditions = [], $paginationParams = [], $callingP
     }
     switch ((isset($callingParams['pin']) && $callingParams['pin']) ? $callingParams['pin'] : '') {
         case 1:
-            $orderBy = 'catpinned desc, '.$orderBy;
+            $orderBy = 'catpinned desc, ' . $orderBy;
             break;
         case 2:
             break;
         default:
-            $orderBy = 'pinned desc, '.$orderBy;
+            $orderBy = 'pinned desc, ' . $orderBy;
             break;
     }
-    $query['orderby'] = ' order by '.$orderBy.' limit '.$limit_start.','.$limit_count;
+    $query['orderby'] = ' order by ' . $orderBy . ' limit ' . $limit_start . ',' . $limit_count;
     // Make select / news counting queries
     $nCount = 0;
     $output = '';
@@ -531,7 +531,7 @@ function news_showlist($filterConditions = [], $paginationParams = [], $callingP
     } else {
         // $query['result'] = "SELECT * FROM " . prefix . "_news WHERE " . $query['filter'] . $query['orderby'];
         // Optimize query
-        $query['result'] = 'SELECT N.* FROM '.prefix.'_news N JOIN (SELECT id FROM '.prefix.'_news WHERE '.$query['filter'].') as NT on NT.id=N.id'.$query['orderby'];
+        $query['result'] = 'SELECT N.* FROM ' . prefix . '_news N JOIN (SELECT id FROM ' . prefix . '_news WHERE ' . $query['filter'] . ') as NT on NT.id=N.id' . $query['orderby'];
     }
     $selectResult = $mysql->select($query['result']);
     if (isset($callingParams['disablePagination']) && ($callingParams['disablePagination'])) {
@@ -539,9 +539,9 @@ function news_showlist($filterConditions = [], $paginationParams = [], $callingP
         $pages_count = 1;
     } else {
         if (isset($callingParams['paginationCategoryID']) && ($callingParams['paginationCategoryID'] > 0)) {
-            $query['count'] = 'SELECT count(*) FROM '.prefix.'_news_map where categoryID = '.db_squote($callingParams['paginationCategoryID']);
+            $query['count'] = 'SELECT count(*) FROM ' . prefix . '_news_map where categoryID = ' . db_squote($callingParams['paginationCategoryID']);
         } else {
-            $query['count'] = 'SELECT count(*) as count FROM '.prefix.'_news WHERE '.$query['filter'];
+            $query['count'] = 'SELECT count(*) as count FROM ' . prefix . '_news WHERE ' . $query['filter'];
         }
         $newsCount = $mysql->result($query['count']);
         $pages_count = ceil($newsCount / $showNumber);
@@ -582,7 +582,7 @@ function news_showlist($filterConditions = [], $paginationParams = [], $callingP
     // Load linked images
     $linkedImages = [];
     if (count($nilink)) {
-        foreach ($mysql->select('select * from '.prefix.'_images where (linked_ds = 1) and (linked_id in ('.implode(', ', $nilink).'))') as $nirow) {
+        foreach ($mysql->select('select * from ' . prefix . '_images where (linked_ds = 1) and (linked_id in (' . implode(', ', $nilink) . '))') as $nirow) {
             $linkedImages['ids'][] = $nirow['id'];
             $linkedImages['data'][$nirow['id']] = $nirow;
         }
@@ -590,7 +590,7 @@ function news_showlist($filterConditions = [], $paginationParams = [], $callingP
     // Load linked files
     $linkedFiles = [];
     if (count($nflink)) {
-        foreach ($mysql->select('select * from '.prefix.'_files where (linked_ds = 1) and (linked_id in ('.implode(', ', $nflink).'))') as $nirow) {
+        foreach ($mysql->select('select * from ' . prefix . '_files where (linked_ds = 1) and (linked_id in (' . implode(', ', $nflink) . '))') as $nirow) {
             $linkedFiles['ids'][] = $nirow['id'];
             $linkedFiles['data'][$nirow['id']] = $nirow;
         }
@@ -618,16 +618,16 @@ function news_showlist($filterConditions = [], $paginationParams = [], $callingP
         'personal.modify.published',
     ]);
     $canModifyPersonalNews = $newsPersonalPerms['personal.view']
-                                && $newsPersonalPerms['personal.modify']
-                                && $newsPersonalPerms['personal.modify.published'];
+        && $newsPersonalPerms['personal.modify']
+        && $newsPersonalPerms['personal.modify.published'];
     $newsOtherPerms = checkPermission(['plugin' => '#admin', 'item' => 'news'], null, [
         'other.view',
         'other.modify',
         'other.modify.published',
     ]);
     $canModifyOtherNews = $newsOtherPerms['other.view']
-                                && $newsOtherPerms['other.modify']
-                                && $newsOtherPerms['other.modify.published'];
+        && $newsOtherPerms['other.modify']
+        && $newsOtherPerms['other.modify.published'];
     // Main processing cycle
     foreach ($selectResult as $row) {
         $i++;
@@ -653,7 +653,7 @@ function news_showlist($filterConditions = [], $paginationParams = [], $callingP
                     $tvars['vars']['_files'][] = [
                         'plugin'      => $v['plugin'],
                         'pidentity'   => $v['pidentity'],
-                        'url'         => ($v['storage'] ? $config['attach_url'] : $config['files_url']).'/'.$v['folder'].'/'.$v['name'],
+                        'url'         => ($v['storage'] ? $config['attach_url'] : $config['files_url']) . '/' . $v['folder'] . '/' . $v['name'],
                         'name'        => $v['name'],
                         'origName'    => secure_html($v['orig_name']),
                         'description' => secure_html($v['description']),
@@ -671,8 +671,8 @@ function news_showlist($filterConditions = [], $paginationParams = [], $callingP
                     $tvars['vars']['_images'][] = [
                         'plugin'      => $v['plugin'],
                         'pidentity'   => $v['pidentity'],
-                        'url'         => ($v['storage'] ? $config['attach_url'] : $config['images_url']).'/'.$v['folder'].'/'.$v['name'],
-                        'purl'        => $v['preview'] ? (($v['storage'] ? $config['attach_url'] : $config['images_url']).'/'.$v['folder'].'/thumb/'.$v['name']) : null,
+                        'url'         => ($v['storage'] ? $config['attach_url'] : $config['images_url']) . '/' . $v['folder'] . '/' . $v['name'],
+                        'purl'        => $v['preview'] ? (($v['storage'] ? $config['attach_url'] : $config['images_url']) . '/' . $v['folder'] . '/thumb/' . $v['name']) : null,
                         'width'       => $v['width'],
                         'height'      => $v['height'],
                         'pwidth'      => $v['p_width'],
@@ -695,7 +695,7 @@ function news_showlist($filterConditions = [], $paginationParams = [], $callingP
         $tvars['vars']['news']['embed'] = ['images' => []];
         if ($callingParams['extractEmbeddedItems']) {
             // Join short/full news into single line
-            $tempLine = $tvars['vars']['news']['short'].$tvars['vars']['news']['full'];
+            $tempLine = $tvars['vars']['news']['short'] . $tvars['vars']['news']['full'];
             // Scan for <img> tag
             if (preg_match_all("#\<img (.+?)(?: *\/?)\>#", $tempLine, $m)) {
                 // Analyze all found <img> tags for parameters
@@ -732,13 +732,13 @@ function news_showlist($filterConditions = [], $paginationParams = [], $callingP
             // [TWIG] news.flags.canEdit, news.flags.canDelete, news.url.edit, news.url.delete
             $tvars['vars']['news']['flags']['canEdit'] = true;
             $tvars['vars']['news']['flags']['canDelete'] = true;
-            $tvars['vars']['news']['url']['edit'] = admin_url.'/admin.php?mod=news&amp;action=edit&amp;id='.$row['id'];
-            $tvars['vars']['news']['url']['delete'] = admin_url.'/admin.php?mod=news&amp;action=manage&amp;subaction=mass_delete&amp;token='.genUToken('admin.news.edit').'&amp;selected_news[]='.$row['id'];
-            $tvars['vars']['editNewsLink'] = admin_url.'/admin.php?mod=news&amp;action=edit&amp;id='.$row['id'];
-            $tvars['vars']['[edit-news]'] = '<a href="'.admin_url.'/admin.php?mod=news&amp;action=edit&amp;id='.$row['id'].'" target="_blank">';
+            $tvars['vars']['news']['url']['edit'] = admin_url . '/admin.php?mod=news&amp;action=edit&amp;id=' . $row['id'];
+            $tvars['vars']['news']['url']['delete'] = admin_url . '/admin.php?mod=news&amp;action=manage&amp;subaction=mass_delete&amp;token=' . genUToken('admin.news.edit') . '&amp;selected_news[]=' . $row['id'];
+            $tvars['vars']['editNewsLink'] = admin_url . '/admin.php?mod=news&amp;action=edit&amp;id=' . $row['id'];
+            $tvars['vars']['[edit-news]'] = '<a href="' . admin_url . '/admin.php?mod=news&amp;action=edit&amp;id=' . $row['id'] . '" target="_blank">';
             $tvars['vars']['[/edit-news]'] = '</a>';
-            $tvars['vars']['[del-news]'] = "<a onclick=\"confirmit('".admin_url.'/admin.php?mod=news&amp;action=manage&amp;subaction=mass_delete&amp;token='.genUToken('admin.news.edit').'&amp;selected_news[]='.$row['id']."', '".$lang['sure_del']."')\" target=\"_blank\" style=\"cursor: pointer;\">";
-            $tvars['vars']['deleteNewsLink'] = admin_url.'/admin.php?mod=news&amp;action=manage&amp;subaction=mass_delete&amp;token='.genUToken('admin.news.edit').'&amp;selected_news[]='.$row['id'];
+            $tvars['vars']['[del-news]'] = "<a onclick=\"confirmit('" . admin_url . '/admin.php?mod=news&amp;action=manage&amp;subaction=mass_delete&amp;token=' . genUToken('admin.news.edit') . '&amp;selected_news[]=' . $row['id'] . "', '" . $lang['sure_del'] . "')\" target=\"_blank\" style=\"cursor: pointer;\">";
+            $tvars['vars']['deleteNewsLink'] = admin_url . '/admin.php?mod=news&amp;action=manage&amp;subaction=mass_delete&amp;token=' . genUToken('admin.news.edit') . '&amp;selected_news[]=' . $row['id'];
             $tvars['vars']['[/del-news]'] = '</a>';
         } else {
             $tvars['news']['flags']['canEdit'] = false;
@@ -754,7 +754,7 @@ function news_showlist($filterConditions = [], $paginationParams = [], $callingP
             }
         }
         // Set default template path
-        $templatePath = tpl_dir.$config['theme'];
+        $templatePath = tpl_dir . $config['theme'];
         // -> desired template path - override path if needed
         if (isset($callingParams['overrideTemplatePath']) && $callingParams['overrideTemplatePath']) {
             $templatePath = $callingParams['overrideTemplatePath'];
@@ -773,15 +773,15 @@ function news_showlist($filterConditions = [], $paginationParams = [], $callingP
             // Check if there is a custom mapping
             if ($fcat && $catmap[$fcat] && ($ctname = $catz[$catmap[$fcat]]['tpl'])) {
                 // Check if directory exists
-                if (is_dir($templatePath.'/ncustom/'.$ctname)) {
-                    $templatePath = $templatePath.'/ncustom/'.$ctname;
+                if (is_dir($templatePath . '/ncustom/' . $ctname)) {
+                    $templatePath = $templatePath . '/ncustom/' . $ctname;
                 }
             }
         }
         // Hack for 'automatic search mode'
         $currentTemplateName = $templateName;
         // switch to `search` template if no templateName was overrided AND style is search AND searchFlag is set AND search template file exists
-        if (isset($callingParams['searchFlag']) && ($callingParams['searchFlag']) && (!isset($callingParams['overrideTemplatePath'])) && ($callingParams['style'] == 'short') && (@file_exists($templatePath.'/news.search.tpl'))) {
+        if (isset($callingParams['searchFlag']) && ($callingParams['searchFlag']) && (!isset($callingParams['overrideTemplatePath'])) && ($callingParams['style'] == 'short') && (@file_exists($templatePath . '/news.search.tpl'))) {
             $currentTemplateName = 'news.search';
         }
         $res = '';
@@ -792,7 +792,7 @@ function news_showlist($filterConditions = [], $paginationParams = [], $callingP
             $tVars['templateName'] = $currentTemplateName;
             $tVars['templatePath'] = $templatePath;
             // Rende template
-            $xt = $twig->loadTemplate($templatePath.'/'.$currentTemplateName.'.tpl');
+            $xt = $twig->loadTemplate($templatePath . '/' . $currentTemplateName . '.tpl');
             $res = $xt->render($tVars);
         } else {
             $tpl->template($currentTemplateName, $templatePath);

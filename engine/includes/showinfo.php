@@ -1,7 +1,7 @@
 <?php
 
 //
-// Copyright (C) 2008 Next Generation CMS (http://ngcms.ru/)
+// Copyright (C) 2008 Next Generation CMS (http://ngcms.org/)
 // Name: showinfo.php
 // Description: Show different informational blocks
 // Author: Vitaly Ponomarev
@@ -29,8 +29,8 @@ if ($_REQUEST['mode'] == 'plugin') {
     }
 
     if ($_REQUEST['item'] == 'readme') {
-        $filePath = realpath(root.'plugins/'.$plugin.'/readme');
-        $basePath = realpath(root.'plugins/');
+        $filePath = realpath(root . 'plugins/' . $plugin . '/readme');
+        $basePath = realpath(root . 'plugins/');
         if ($filePath && $basePath && str_starts_with($filePath, $basePath) && file_exists($filePath)) {
             echo '<pre>';
             echo htmlspecialchars(file_get_contents($filePath), ENT_QUOTES, 'UTF-8');
@@ -38,8 +38,8 @@ if ($_REQUEST['mode'] == 'plugin') {
         }
     }
     if ($_REQUEST['item'] == 'history') {
-        $filePath = realpath(root.'plugins/'.$plugin.'/history');
-        $basePath = realpath(root.'plugins/');
+        $filePath = realpath(root . 'plugins/' . $plugin . '/history');
+        $basePath = realpath(root . 'plugins/');
         if ($filePath && $basePath && str_starts_with($filePath, $basePath) && file_exists($filePath)) {
             echo '<pre>';
             echo htmlspecialchars(file_get_contents($filePath), ENT_QUOTES, 'UTF-8');

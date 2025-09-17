@@ -1,6 +1,6 @@
 <?php
 //
-// Copyright (C) 2006-2011 Next Generation CMS (http://ngcms.ru/)
+// Copyright (C) 2006-2011 Next Generation CMS (http://ngcms.org/)
 // Name: files.rpc.php
 // Description: Externally available library for File/Image management
 // Author: Vitaly Ponomarev
@@ -10,7 +10,7 @@ if (!defined('NGCMS')) {
     exit('HAL');
 }
 // Load library
-@include_once root.'includes/classes/upload.class.php';
+@include_once root . 'includes/classes/upload.class.php';
 //
 // Manage upload request from external uploadify script
 function admRPCFilesUpload($params)
@@ -50,10 +50,10 @@ function admRPCFilesUpload($params)
     $mkThumb = 1;
     $mkStamp = (($config['stamp_mode'] == 2) || (!$config['stamp_mode'] && $_REQUEST['stamp'])) ? 1 : 0;
     $stampFileName = '';
-    if (file_exists(root.'trash/'.$config['wm_image'].'.png')) {
-        $stampFileName = root.'trash/'.$config['wm_image'].'.png';
-    } elseif (file_exists(root.'trash/'.$config['wm_image'])) {
-        $stampFileName = root.'trash/'.$config['wm_image'];
+    if (file_exists(root . 'trash/' . $config['wm_image'] . '.png')) {
+        $stampFileName = root . 'trash/' . $config['wm_image'] . '.png';
+    } elseif (file_exists(root . 'trash/' . $config['wm_image'])) {
+        $stampFileName = root . 'trash/' . $config['wm_image'];
     }
     $thumb = '';
     if ($mkThumb) {
@@ -65,7 +65,7 @@ function admRPCFilesUpload($params)
         if (($tsy < 10) || ($tsy > 1000)) {
             $tsy = 150;
         }
-        $thumb = $imanager->create_thumb($config['images_dir'].$ures['data']['category'], $ures['data']['name'], $tsx, $tsy, $config['thumb_quality'], ['rpc' => 1]);
+        $thumb = $imanager->create_thumb($config['images_dir'] . $ures['data']['category'], $ures['data']['name'], $tsx, $tsy, $config['thumb_quality'], ['rpc' => 1]);
         $ures['data']['thumb'] = $thumb;
         if (is_array($thumb) && ($thumb['status'])) {
             // If we created thumb - check if we need to transform it
@@ -73,7 +73,7 @@ function admRPCFilesUpload($params)
             if ($stampThumb) {
                 $stamp = $imanager->image_transform(
                     [
-                        'image'              => $dir.$ures['data']['category'].'/thumb/'.$ures['data']['name'],
+                        'image'              => $dir . $ures['data']['category'] . '/thumb/' . $ures['data']['name'],
                         'stamp'              => $stampThumb,
                         'stamp_transparency' => $config['wm_image_transition'],
                         'stampfile'          => $stampFileName,
@@ -87,7 +87,7 @@ function admRPCFilesUpload($params)
     if ($stampOrig) {
         $stamp = $imanager->image_transform(
             [
-                'image'              => $dir.$ures['data']['category'].'/'.$ures['data']['name'],
+                'image'              => $dir . $ures['data']['category'] . '/' . $ures['data']['name'],
                 'stamp'              => $stampOrig,
                 'stamp_transparency' => $config['wm_image_transition'],
                 'stampfile'          => $stampFileName,
@@ -97,16 +97,16 @@ function admRPCFilesUpload($params)
         $ures['data']['stamp'] = $stamp;
     }
     // Now write info about image into DB
-    if (is_array($sz = $imanager->get_size($dir.$ures['data']['category'].'/'.$ures['data']['name']))) {
+    if (is_array($sz = $imanager->get_size($dir . $ures['data']['category'] . '/' . $ures['data']['name']))) {
         $fmanager->get_limits($uploadType);
         // Gather filesize for thumbinals
         $thumb_size_x = 0;
         $thumb_size_y = 0;
-        if (is_array($thumb) && is_readable($dir.$ures['data']['category'].'/thumb/'.$ures['data']['name']) && is_array($szt = $imanager->get_size($dir.$ures['data']['category'].'/thumb/'.$ures['data']['name']))) {
+        if (is_array($thumb) && is_readable($dir . $ures['data']['category'] . '/thumb/' . $ures['data']['name']) && is_array($szt = $imanager->get_size($dir . $ures['data']['category'] . '/thumb/' . $ures['data']['name']))) {
             $thumb_size_x = $szt[1];
             $thumb_size_y = $szt[2];
         }
-        $mysql->query('update '.prefix.'_'.$fmanager->tname.' set width='.db_squote($sz[1]).', height='.db_squote($sz[2]).', preview='.db_squote(is_array($thumb) ? 1 : 0).', p_width='.db_squote($thumb_size_x).', p_height='.db_squote($thumb_size_y).', stamp='.db_squote(is_array($stamp) ? 1 : 0).' where id = '.db_squote($ures['data']['id']));
+        $mysql->query('update ' . prefix . '_' . $fmanager->tname . ' set width=' . db_squote($sz[1]) . ', height=' . db_squote($sz[2]) . ', preview=' . db_squote(is_array($thumb) ? 1 : 0) . ', p_width=' . db_squote($thumb_size_x) . ', p_height=' . db_squote($thumb_size_y) . ', stamp=' . db_squote(is_array($stamp) ? 1 : 0) . ' where id = ' . db_squote($ures['data']['id']));
     }
     return $ures;
 }

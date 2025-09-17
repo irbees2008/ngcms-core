@@ -1,7 +1,7 @@
 <?php
 
 //
-// Copyright (C) 2006-2020 Next Generation CMS (http://ngcms.ru)
+// Copyright (C) 2006-2020 Next Generation CMS (http://ngcms.org)
 // Name: rpc.php
 // Description: Service functions controller
 // Author: NGCMS Development Team
@@ -16,13 +16,13 @@ if (!defined('NGCMS')) {
 
 // Load additional handlers [ common ]
 loadActionHandlers('rpc');
-loadActionHandlers('rpc:'.(is_array($userROW) ? 'active' : 'inactive'));
+loadActionHandlers('rpc:' . (is_array($userROW) ? 'active' : 'inactive'));
 
 // Function to preload ADMIN rpc funcs
 function loadAdminRPC($mod)
 {
     if (in_array($mod, ['categories', 'extras', 'files', 'templates', 'configuration', 'statistics'])) {
-        @include_once './actions/'.$mod.'.rpc.php';
+        @include_once './actions/' . $mod . '.rpc.php';
 
         return true;
     }
@@ -102,7 +102,7 @@ function processJSON()
 //
 function rpcDefault($methodName = '', $params = [])
 {
-    return ['status' => 0, 'errorCode' => 1, 'errorText' => 'rpcDefault: method ['.$methodName.'] is unknown'];
+    return ['status' => 0, 'errorCode' => 1, 'errorText' => 'rpcDefault: method [' . $methodName . '] is unknown'];
 }
 
 //
@@ -150,7 +150,7 @@ function rpcRewriteSubmit($params)
         $rcall = $UHANDLER->populateHandler($ULIB, $pData);
         if ($rcall[0][0]) {
             // Error
-            return ['status' => 0, 'errorCode' => 4, 'errorText' => 'Parser error: '.$rcall[0][1], 'recID' => $pID];
+            return ['status' => 0, 'errorCode' => 4, 'errorText' => 'Parser error: ' . $rcall[0][1], 'recID' => $pID];
         }
         $hList[] = $rcall[1];
     }
@@ -185,16 +185,16 @@ function rpcAdminUsersSearch($params)
     // Check search mode
     // ! - show TOP users by posts
     if ($searchName == '!') {
-        $SQL = 'select name, news from '.uprefix.'_users where news > 0 order by news desc limit 20';
+        $SQL = 'select name, news from ' . uprefix . '_users where news > 0 order by news desc limit 20';
     } else {
         // Return a list of users
-        $SQL = 'select name, news from '.uprefix.'_users where name like '.db_squote('%'.$searchName.'%').' and news > 0 order by news desc limit 20';
+        $SQL = 'select name, news from ' . uprefix . '_users where name like ' . db_squote('%' . $searchName . '%') . ' and news > 0 order by news desc limit 20';
     }
 
     // Scan incoming params
     $output = [];
     foreach ($mysql->select($SQL) as $row) {
-        $output[] = [$row['name'], $row['news'].' '.$lang['news']];
+        $output[] = [$row['name'], $row['news'] . ' ' . $lang['news']];
     }
 
     return ['status' => 1, 'errorCode' => 0, 'data' => [$params, $output]];

@@ -1,52 +1,52 @@
 {
-    "name": "vponomarev/ngcms-core",
-    "description": "Репозиторий файлов ядра NGCMS.",
-    "type": "project",
-    "keywords": [
-        "ngcms",
-        "ngcms-core"
-    ],
-    "homepage": "https://ngcms.ru",
-    "readme": "README.md",
-    "license": "GPL-2.0-only",
-    "authors": [
-        {
-            "name": "Vitaliy Ponomarev",
-            "email": "github@vponomarev.me",
-            "homepage": "https://github.com/vponomarev",
-            "role": "Developer"
-        }
-    ],
-    "support": {
-        "forum": "https://ngcms.ru/forum",
-        "issues": "https://github.com/vponomarev/ngcms-core/issues",
-        "source": "https://github.com/vponomarev/ngcms-core"
-    },
-    "require": {
-        "php": ">=7.2",
-        "ext-gd": "*",
-        "ext-json": "*",
-        "ext-mbstring": "*",
-        "ext-pdo": "*",
-        "ext-zip": "*",
-        "ext-zlib": "*",
-        "ext-iconv": "*",
-        "phpmailer/phpmailer": "6.*",
-        "twig/twig": "^3.0",
-        "michelf/php-markdown": "^1.9",
-        "psr/container": "^2.0"
-    },
-    "require-dev": {},
-    "suggest": {
-        "ext-memcached": "Required to use the Memcached."
-    },
-    "autoload": {},
-    "autoload-dev": {},
-    "minimum-stability": "dev",
-    "prefer-stable": true,
-    "config": {
-        "preferred-install": "source",
-        "vendor-dir": "vendor"
-    },
-    "extra": {}
+  "name": "vponomarev/ngcms-core",
+  "description": "Репозиторий файлов ядра NGCMS.",
+  "type": "project",
+  "keywords": [
+    "ngcms",
+    "ngcms-core"
+  ],
+  "homepage": "https://ngcms.org",
+  "readme": "README.md",
+  "license": "GPL-2.0-only",
+  "authors": [
+    {
+      "name": "Vitaliy Ponomarev",
+      "email": "github@vponomarev.me",
+      "homepage": "https://github.com/vponomarev",
+      "role": "Developer"
+    }
+  ],
+  "support": {
+    "forum": "https://ngcms.org/forum",
+    "issues": "https://github.com/vponomarev/ngcms-core/issues",
+    "source": "https://github.com/vponomarev/ngcms-core"
+  },
+  "require": {
+    "php": ">=7.2",
+    "ext-gd": "*",
+    "ext-json": "*",
+    "ext-mbstring": "*",
+    "ext-pdo": "*",
+    "ext-zip": "*",
+    "ext-zlib": "*",
+    "ext-iconv": "*",
+    "phpmailer/phpmailer": "6.*",
+    "twig/twig": "^3.0",
+    "michelf/php-markdown": "^1.9",
+    "psr/container": "^2.0"
+  },
+  "require-dev": {},
+  "suggest": {
+    "ext-memcached": "Required to use the Memcached."
+  },
+  "autoload": {},
+  "autoload-dev": {},
+  "minimum-stability": "dev",
+  "prefer-stable": true,
+  "config": {
+    "preferred-install": "source",
+    "vendor-dir": "vendor"
+  },
+  "extra": {}
 }

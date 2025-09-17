@@ -1,7 +1,7 @@
 ﻿<?php
 
 //
-// Copyright (C) 2006-2017 Next Generation CMS (http://ngcms.ru/)
+// Copyright (C) 2006-2017 Next Generation CMS (http://ngcms.org/)
 // Name: dbo.php
 // Description: Database managment
 // Author: Vitaly Ponomarev, Alexey Zinchenko
@@ -33,7 +33,7 @@ function ParseQueries($sql)
                 $output[] = $queries[$i];
                 $queries[$i] = '';
             } else {
-                $temp = $queries[$i].';';
+                $temp = $queries[$i] . ';';
                 $queries[$i] = '';
                 $complete_stmt = false;
 
@@ -43,13 +43,13 @@ function ParseQueries($sql)
                     $unescaped_quotes = $total_quotes - $escaped_quotes;
 
                     if (($unescaped_quotes % 2) == 1) {
-                        $output[] = $temp.$queries[$j];
+                        $output[] = $temp . $queries[$j];
                         $queries[$j] = '';
                         $temp = '';
                         $complete_stmt = true;
                         $i = $j;
                     } else {
-                        $temp .= $queries[$j].';';
+                        $temp .= $queries[$j] . ';';
                         $queries[$j] = '';
                     }
                 }
@@ -91,7 +91,7 @@ function systemDboModify()
         $nmap = '';
         $start = 0;
         do {
-            $cursor = $db->createCursor('select id, catid, postdate, editdate from '.prefix.'_news where approve=1 limit '.$start.', 10000');
+            $cursor = $db->createCursor('select id, catid, postdate, editdate from ' . prefix . '_news where approve=1 limit ' . $start . ', 10000');
             $qRowCount = 0;
             $start += 10000;
             while ($row = $db->fetchCursor($cursor)) {
@@ -102,7 +102,7 @@ function systemDboModify()
                         continue;
                     }
                     $ncats++;
-                    $nmap .= '('.$row['id'].','.$key.',from_unixtime('.(($row['editdate'] > $row['postdate']) ? $row['editdate'] : $row['postdate']).')),';
+                    $nmap .= '(' . $row['id'] . ',' . $key . ',from_unixtime(' . (($row['editdate'] > $row['postdate']) ? $row['editdate'] : $row['postdate']) . ')),';
                     if (!$ccount[$key]) {
                         $ccount[$key] = 1;
                     } else {
@@ -110,68 +110,68 @@ function systemDboModify()
                     }
                 }
                 if (!$ncats) {
-                    $nmap .= '('.$row['id'].',0,from_unixtime('.(($row['editdate'] > $row['postdate']) ? $row['editdate'] : $row['postdate']).')),';
+                    $nmap .= '(' . $row['id'] . ',0,from_unixtime(' . (($row['editdate'] > $row['postdate']) ? $row['editdate'] : $row['postdate']) . ')),';
                 }
             }
         } while ($qRowCount > 0);
 
         // Update table `news_map`
-        $db->createCursor('truncate table '.prefix.'_news_map');
+        $db->createCursor('truncate table ' . prefix . '_news_map');
 
         if (strlen($nmap)) {
-            $db->exec('insert into '.prefix.'_news_map (newsID, categoryID, dt) values '.substr($nmap, 0, -1));
+            $db->exec('insert into ' . prefix . '_news_map (newsID, categoryID, dt) values ' . substr($nmap, 0, -1));
         }
 
         // Update category news counters
         foreach ($catz as $key) {
-            $db->exec('update '.prefix.'_category set posts = :posts where id = :id', ['posts' => intval(getIsSet($ccount[$key['id']])), 'id' => $key['id']]);
+            $db->exec('update ' . prefix . '_category set posts = :posts where id = :id', ['posts' => intval(getIsSet($ccount[$key['id']])), 'id' => $key['id']]);
         }
 
         // Check if we can update comments counters
-        $haveComments = $db->tableExists(prefix.'_comments');
+        $haveComments = $db->tableExists(prefix . '_comments');
 
         if ($haveComments) {
             $start = 0;
             do {
-                $cursor = $db->createCursor('select n.id, count(c.id) as cid from '.prefix.'_news n left join '.prefix.'_comments c on c.post=n.id group by n.id limit :lStart, 10000', ['lStart' => $start]);
+                $cursor = $db->createCursor('select n.id, count(c.id) as cid from ' . prefix . '_news n left join ' . prefix . '_comments c on c.post=n.id group by n.id limit :lStart, 10000', ['lStart' => $start]);
                 $start += 10000;
                 $qRowCount = 0;
 
                 while ($row = $db->fetchCursor($cursor)) {
                     $qRowCount++;
-                    $db->exec('update '.prefix.'_news set com= :cnt where id= :id', ['cnt' => $row['cid'], 'id' => $row['id']]);
+                    $db->exec('update ' . prefix . '_news set com= :cnt where id= :id', ['cnt' => $row['cid'], 'id' => $row['id']]);
                 }
             } while ($qRowCount > 0);
         }
 
         // Обновляем счетчик постов у юзеров
-        $db->exec('update '.prefix.'_users set news = 0'.($haveComments ? ', com = 0' : ''));
+        $db->exec('update ' . prefix . '_users set news = 0' . ($haveComments ? ', com = 0' : ''));
         $start = 0;
         do {
-            $cursor = $db->createCursor('select author_id, count(*) as cnt from '.prefix.'_news group by author_id limit :lStart, 10000', ['lStart' => $start]);
+            $cursor = $db->createCursor('select author_id, count(*) as cnt from ' . prefix . '_news group by author_id limit :lStart, 10000', ['lStart' => $start]);
             $start += 10000;
             $qRowCount = 0;
 
             while ($row = $db->fetchCursor($cursor)) {
                 $qRowCount++;
-                $db->exec('update '.uprefix.'_users set news= :nCount where id = :id', ['nCount' => $row['cnt'], 'id' => $row['author_id']]);
+                $db->exec('update ' . uprefix . '_users set news= :nCount where id = :id', ['nCount' => $row['cnt'], 'id' => $row['author_id']]);
             }
         } while ($qRowCount > 0);
 
         if ($haveComments) {
             // Обновляем счетчик комментариев у юзеров
-            foreach ($db->query('select author_id, count(*) as cnt from '.prefix.'_comments group by author_id') as $row) {
-                $db->exec('update '.uprefix.'_users set com= :cnt where id = :id', ['cnt' => $row['cnt'], 'id' => $row['author_id']]);
+            foreach ($db->query('select author_id, count(*) as cnt from ' . prefix . '_comments group by author_id') as $row) {
+                $db->exec('update ' . uprefix . '_users set com= :cnt where id = :id', ['cnt' => $row['cnt'], 'id' => $row['author_id']]);
             }
         }
         // Обновляем кол-во приложенных файлов/изображений к новостям
-        $db->exec('update '.prefix.'_news set num_files = 0, num_images = 0');
-        foreach ($db->query('select linked_id, count(id) as cnt from '.prefix.'_files where (storage=1) and (linked_ds=1) group by linked_id') as $row) {
-            $db->exec('update '.prefix.'_news set num_files = :cnt where id = :id', ['cnt' => $row['cnt'], 'id' => $row['linked_id']]);
+        $db->exec('update ' . prefix . '_news set num_files = 0, num_images = 0');
+        foreach ($db->query('select linked_id, count(id) as cnt from ' . prefix . '_files where (storage=1) and (linked_ds=1) group by linked_id') as $row) {
+            $db->exec('update ' . prefix . '_news set num_files = :cnt where id = :id', ['cnt' => $row['cnt'], 'id' => $row['linked_id']]);
         }
 
-        foreach ($db->query('select linked_id, count(id) as cnt from '.prefix.'_images where (storage=1) and (linked_ds=1) group by linked_id') as $row) {
-            $db->exec('update '.prefix.'_news set num_images = :cnt where id = :id', ['cnt' => $row['cnt'], 'id' => $row['linked_id']]);
+        foreach ($db->query('select linked_id, count(id) as cnt from ' . prefix . '_images where (storage=1) and (linked_ds=1) group by linked_id') as $row) {
+            $db->exec('update ' . prefix . '_news set num_images = :cnt where id = :id', ['cnt' => $row['cnt'], 'id' => $row['linked_id']]);
         }
 
         msg(['text' => $lang['dbo']['msgo_cat_recount']]);
@@ -183,7 +183,7 @@ function systemDboModify()
         if (!$filename) {
             msg(['type' => 'error', 'text' => $lang['dbo']['msge_delbackup']]);
         } else {
-            @unlink(root.'backups/'.$filename.'.gz');
+            @unlink(root . 'backups/' . $filename . '.gz');
             sg(['text' => sprintf($lang['dbo']['msgo_delbackup'], $filename)]);
         }
     }
@@ -206,16 +206,16 @@ function systemDboModify()
 
             for ($i = 0, $sizeof = count($tables); $i < $sizeof; $i++) {
                 if ($db->tableExists($tables[$i])) {
-                    $result = $db->record($mode.' table `'.$tables[$i].'`');
+                    $result = $db->record($mode . ' table `' . $tables[$i] . '`');
                     if ($result['Msg_text'] == "2 clients are using or haven't closed the table properly") {
                         $result['Msg_text'] = $lang['dbo']['chk_no'];
                     }
-                    $slist[] = $tables[$i].' &#8594; '.$result['Msg_text'];
+                    $slist[] = $tables[$i] . ' &#8594; ' . $result['Msg_text'];
                 } else {
-                    $slist[] = $tables[$i].' &#8594; '.'Table doesnot exists';
+                    $slist[] = $tables[$i] . ' &#8594; ' . 'Table doesnot exists';
                 }
             }
-            msg(['text' => $lang['dbo']['msgo_'.$mode], 'info' => '<small>'.implode("<br/>\n", $slist).'</small>']);
+            msg(['text' => $lang['dbo']['msgo_' . $mode], 'info' => '<small>' . implode("<br/>\n", $slist) . '</small>']);
         }
     }
 
@@ -227,7 +227,7 @@ function systemDboModify()
         } else {
             for ($i = 0, $sizeof = count($tables); $i < $sizeof; $i++) {
                 if ($db->tableExists($tables[$i])) {
-                    $db->query('drop table `'.$tables[$i].'`');
+                    $db->query('drop table `' . $tables[$i] . '`');
                     msg(['text' => sprintf($lang['dbo']['msgo_delete'], $tables[$i])]);
                 } else {
                     msg(['text' => sprintf($lang['dbo']['msgi_noexist'], $tables[$i], 'Table does not exists')]);
@@ -245,7 +245,7 @@ function systemDboModify()
             $date = date('Y_m_d_H_i', time());
             $date2 = LangDate('d Q Y - H:i', time());
 
-            $filename = root.'backups/backup_'.$date.(($_REQUEST['gzencode']) ? '.gz' : '.sql');
+            $filename = root . 'backups/backup_' . $date . (($_REQUEST['gzencode']) ? '.gz' : '.sql');
             dbBackup($filename, $_REQUEST['gzencode']);
 
             if ($_REQUEST['email_send']) {
@@ -260,13 +260,13 @@ function systemDboModify()
 
     //MASS: Delete backup files
     if (getIsSet($_REQUEST['massdelbackup'])) {
-        $backup_dir = opendir(root.'backups');
+        $backup_dir = opendir(root . 'backups');
         while ($bf = readdir($backup_dir)) {
             if (($bf == '.') || ($bf == '..')) {
                 continue;
             }
 
-            @unlink(root.'backups/'.$bf);
+            @unlink(root . 'backups/' . $bf);
         }
         msg(['text' => $lang['dbo']['msgo_massdelb']]);
     }
@@ -277,7 +277,7 @@ function systemDboModify()
         if (!$filename) {
             msg(['type' => 'error', 'text' => $lang['dbo']['msge_restore'], 'info' => $lang['dbo']['msgi_restore']]);
         } else {
-            $fp = gzopen(root.'backups/'.$filename.'.gz', 'r');
+            $fp = gzopen(root . 'backups/' . $filename . '.gz', 'r');
 
             $query = '';
             while (!gzeof($fp)) {
@@ -317,15 +317,15 @@ function systemDboForm()
     }
 
     $tableList = [];
-    foreach ($db->query('SHOW TABLES FROM `'.$config['dbname']."` LIKE '".prefix."_%'") as $table) {
+    foreach ($db->query('SHOW TABLES FROM `' . $config['dbname'] . "` LIKE '" . prefix . "_%'") as $table) {
         $tName = array_pop(array_values($table));
-        $info = $db->record("SHOW TABLE STATUS LIKE '".$tName."'");
+        $info = $db->record("SHOW TABLE STATUS LIKE '" . $tName . "'");
 
         $tableInfo = [
             'table'    => $info['Name'],
             'rows'     => $info['Rows'],
             'data'     => Formatsize($info['Data_length'] + $info['Index_length'] + $info['Data_free']),
-            'overhead' => ($info['Data_free'] > 0) ? "<span style='color:red;'>".Formatsize($info['Data_free']).'</span>' : 0,
+            'overhead' => ($info['Data_free'] > 0) ? "<span style='color:red;'>" . Formatsize($info['Data_free']) . '</span>' : 0,
         ];
 
         $tableList[] = $tableInfo;
@@ -334,11 +334,11 @@ function systemDboForm()
     $tVars = [
         'php_self' => $PHP_SELF,
         'tables'   => $tableList,
-        'restore'  => MakeDropDown(ListFiles(root.'backups', 'gz'), 'filename', ''),
+        'restore'  => MakeDropDown(ListFiles(root . 'backups', 'gz'), 'filename', ''),
         'token'    => genUToken('admin.dbo'),
     ];
 
-    $xt = $twig->loadTemplate('skins/'.$config['admin_skin'].'/tpl/dbo.tpl');
+    $xt = $twig->loadTemplate('skins/' . $config['admin_skin'] . '/tpl/dbo.tpl');
 
     return $xt->render($tVars);
 }
@@ -348,5 +348,3 @@ if (isset($_REQUEST['subaction']) && ($_REQUEST['subaction'] == 'modify')) {
 }
 
 $main_admin = systemDboForm();
-
-
