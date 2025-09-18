@@ -6,24 +6,20 @@
 	  <div class="col-sm-6">
 		<ol class="breadcrumb float-sm-right">
 			<li class="breadcrumb-item"><a href="{php_self}"><i class="fa fa-home"></i></a></li>
-
 			<li class="breadcrumb-item active" aria-current="page">{l_page-title}</li>
 		</ol>
 	  </div><!-- /.col -->
 	</div><!-- /.row -->
   </div><!-- /.container-fluid -->
-
 <form name="form" method="post" action="{php_self}?mod=editcomments">
 	<input type="hidden" name="mod" value="editcomments" />
 	<input type="hidden" name="newsid" value="{newsid}" />
 	<input type="hidden" name="comid" value="{comid}" />
 	<input type="hidden" name="poster" value="{author}" />
 	<input type="hidden" name="subaction" value="doeditcomment" />
-
 	<div class="row">
 		<!-- Left edit column -->
 		<div class="col-lg-8">
-
 			<!-- MAIN CONTENT -->
 			<div id="maincontent" class="card mb-4">
 				<div class="card-header">{l_maincontent}</div>
@@ -32,7 +28,6 @@
 						<label class="">{l_comment}</label>
 						<textarea name="comment" class="form-control" rows="10" cols="70">{text}</textarea>
 					</div>
-
 					{quicktags}
 					<!-- SMILES -->
 					<div id="modal-smiles" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="smiles-modal-label" aria-hidden="true">
@@ -51,7 +46,6 @@
 							</div>
 						</div>
 					</div>
-
 					<div class="form-group">
 						<label class="">{l_answer}</label>
 						<textarea id="content" name="content" class="form-control" rows="10" cols="70">{answer}</textarea>
@@ -59,7 +53,6 @@
 				</div>
 			</div>
 		</div>
-
 		<!-- Additional edit column -->
 		<div id="additional" class="col col-lg-4">
 			<div class="card mb-4">
@@ -70,12 +63,10 @@
 						<li>{l_ip}: <b><a href="http://www.nic.ru/whois/?ip={ip}" target="_blank">{ip}</a></b></li>
 						<li>{l_name}: <b>{author}</b></li>
 					</ul>
-
 					<div class="form-group">
 						<label>{l_email}:</label>
 						<input type="text" name="mail" value="{mail}" class="form-control" />
 					</div>
-
 					<div class="form-group mb-0">
 						<button type="button" onclick="document.location='{php_self}?mod=ipban&iplock={ip}'" class="btn btn-outline-danger">{l_block_ip}</>
 					</div>
@@ -83,7 +74,6 @@
 			</div>
 		</div>
 	</div>
-
 	<div class="row">
 		<div class="col col-lg-8">
 			<div class="row">
@@ -93,7 +83,6 @@
 						<span class="d-none d-xl-block">{l_delete}</span>
 					</button>
 				</div>
-
 				<div class="col-6 mb-4 text-right">
 					<div class="form-group">
 						<button type="submit" class="btn btn-outline-success" accesskey="s">
@@ -101,7 +90,6 @@
 							<span class="d-none d-xl-block">{l_save}</span>
 						</button>
 					</div>
-
 					<div class="form-group">
 						<label class="d-block">
 							<input type="checkbox" name="send_notice" value="send_notice" />
