@@ -391,10 +391,16 @@ function msg($params, $mode = 0, $disp = -1)
     if ($mode === 1) {
         $stickerText = '';
         $stickerType = '';
+        $isHtml = false;
         if (isset($params['text']) && !empty($params['text'])) {
             $stickerText = $params['text'];
+            if (isset($params['info']) && !empty($params['info'])) {
+                $stickerText .= '<br>' . $params['info'];
+                $isHtml = true;
+            }
         } elseif (isset($params['info']) && !empty($params['info'])) {
             $stickerText = $params['info'];
+            $isHtml = true;
         }
         if (isset($params['type']) && in_array($params['type'], ['error', 'info'])) {
             $stickerType = $params['type'];
@@ -402,7 +408,8 @@ function msg($params, $mode = 0, $disp = -1)
         return msgSticker(
             $stickerText,
             $stickerType,
-            $disp
+            $disp,
+            $isHtml
         );
     }
     // Choose working mode
@@ -457,16 +464,23 @@ function msgSticker($msg, $type = '', $disp = -1)
 {
     global $notify, $twig;
     $lines = [];
+    $isHtml = false;
+    // Новый параметр $isHtml (4-й аргумент)
+    $args = func_get_args();
+    if (isset($args[3])) {
+        $isHtml = $args[3];
+    }
     if (is_array($msg)) {
         foreach ($msg as $x) {
             $txt = (isset($x[2]) && ($x[2])) ? $x[0] : htmlspecialchars($x[0], ENT_COMPAT | ENT_HTML401, 'UTF-8');
             $lines[] = (isset($x[1]) && ($x[1] == 'title')) ? ('<b>' . $txt . '</b>') : $txt;
         }
+        $message = implode('<br/>', $lines);
     } else {
-        $lines[] = htmlspecialchars($msg, ENT_COMPAT | ENT_HTML401, 'UTF-8');
+        $message = $isHtml ? $msg : htmlspecialchars($msg, ENT_COMPAT | ENT_HTML401, 'UTF-8');
     }
     $notify .= $twig->render(tpl_actions . 'sticker.tpl', [
-        'message' => implode('<br/>', $lines),
+        'message' => $message,
         'type'    => $type,
     ]);
 }
