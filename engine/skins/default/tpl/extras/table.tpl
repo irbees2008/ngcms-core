@@ -19,7 +19,6 @@
 	<!-- /.row -->
 </div>
 <!-- /.container-fluid -->
-
 <div class="input-group mb-3">
 	<input type="text" id="searchInput" class="form-control" placeholder="{{ lang['extras.search'] }}">
 	<div class="input-group-append">
@@ -28,7 +27,6 @@
 		</span>
 	</div>
 </div>
-
 <div
 	class="container">
 	<!-- Фильтр -->
@@ -54,7 +52,6 @@
 			</a>
 		</li>
 	</ul>
-
 	<!-- Карточки плагинов -->
 	<div class="row" id="plugin-list">
 		{% for entry in entries %}
@@ -65,7 +62,6 @@
 {{ entry.id }}
 -
 {{ entry.title }}
-
 			<span class="badge badge-secondary float-right">{{ entry.version }}</span>
 		</h5>
 	</div>
@@ -101,7 +97,6 @@
 		{{ entry.install }}
 	</div>
 </div>
-
 			</div>
 		{% endfor %}
 	</div>
@@ -125,7 +120,6 @@
 		</div>
 	</div>
 </div>
-
 <!-- Модальное окно для истории -->
 <div class="modal fade" id="historyModal" tabindex="-1" role="dialog" aria-labelledby="historyModalLabel" aria-hidden="true">
 	<div class="modal-dialog modal-lg" role="document">
@@ -145,74 +139,58 @@
 		</div>
 	</div>
 </div>
-
 <script>
 	document.addEventListener('DOMContentLoaded', function () { // Обработчик для README
-const readmeLinks = document.querySelectorAll('.open-modal[data-target="#readmeModal"]');
+const readmeLinks = document.querySelectorAll('.open-modal[data-bs-target="#readmeModal"]');
 readmeLinks.forEach(link => {
 link.addEventListener('click', function () {
 const url = this.getAttribute('data-url');
 document.getElementById('readmeContent').src = url;
 });
 });
-
 // Обработчик для истории
-const historyLinks = document.querySelectorAll('.open-modal[data-target="#historyModal"]');
+const historyLinks = document.querySelectorAll('.open-modal[data-bs-target="#historyModal"]');
 historyLinks.forEach(link => {
 link.addEventListener('click', function () {
 const url = this.getAttribute('data-url');
 document.getElementById('historyContent').src = url;
 });
 });
-});
-document.addEventListener('DOMContentLoaded', function () { // Получаем элементы интерфейса
-const filterButtons = document.querySelectorAll('.nav-tabs .nav-link');
+// --- Фильтр вкладок ---
+const filterButtons = document.querySelectorAll('.nav-pills .nav-link');
 const pluginCards = document.querySelectorAll('.plugin-card');
-
-// Функция для сохранения выбранного фильтра в localStorage
 function saveSelectedFilter(filter) {
 localStorage.setItem('selectedFilter', filter);
 }
-
-// Функция для получения сохраненного фильтра из localStorage
 function getSavedFilter() {
-return localStorage.getItem('selectedFilter') || 'pluginEntryActive'; // По умолчанию "активные"
+return localStorage.getItem('selectedFilter') || 'pluginEntryActive';
 }
-
+// Сначала убрать active у всех вкладок
+filterButtons.forEach(btn => btn.classList.remove('active'));
 // Применяем сохраненный фильтр при загрузке страницы
 const savedFilter = getSavedFilter();
-const activeButton = document.querySelector(`.nav-tabs .nav-link[data-filter="${savedFilter}"]`);
+const activeButton = document.querySelector(`.nav-pills .nav-link[data-filter="${savedFilter}"]`);
 if (activeButton) {
 activeButton.classList.add('active');
 filterCards(savedFilter);
 } else { // Если сохраненного фильтра нет, активируем первую вкладку по умолчанию
-const defaultButton = document.querySelector('.nav-tabs .nav-link[data-filter="pluginEntryActive"]');
+const defaultButton = document.querySelector('.nav-pills .nav-link[data-filter="pluginEntryActive"]');
 if (defaultButton) {
 defaultButton.classList.add('active');
 filterCards('pluginEntryActive');
 }
 }
-
 // Обработчик кликов по вкладкам
 filterButtons.forEach(button => {
 button.addEventListener('click', function (e) {
 e.preventDefault();
-
-// Убираем класс 'active' у всех кнопок
 filterButtons.forEach(btn => btn.classList.remove('active'));
 this.classList.add('active');
-
 const filter = this.dataset.filter;
-
-// Сохраняем выбранный фильтр
 saveSelectedFilter(filter);
-
-// Фильтруем карточки
 filterCards(filter);
 });
 });
-
-// Функция для фильтрации карточек
 function filterCards(filter) {
 pluginCards.forEach(card => {
 if (filter === 'all' || card.classList.contains(filter)) {
@@ -222,7 +200,6 @@ card.style.display = 'none';
 }
 });
 }
-
 // Поиск по названию плагина
 const searchInput = document.getElementById('searchInput');
 if (searchInput) {

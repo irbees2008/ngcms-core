@@ -85,55 +85,84 @@
 			<td nowrap>{{ entry.link }}	{{ entry.install }}</td>
 		</tbody>
 	</tr>
-{% endfor %}</tbody></table></div><script>function tabsSwitch(pill) {
-$(".nav-tabs li>a").removeClass('active');
-const newSelection = $(pill).addClass('active').attr('data-filter');
-$('tr.all').show().not('.' + newSelection).hide();
-}
-$(document).ready(function () {
-$(".nav-tabs").on('click', 'li>a:not(.active)', function () {
-$("#searchInput").val('');
-tabsSwitch($(this));
+{% endfor %}
+</tbody>
+</table>
+</div>
+<script>
+document.addEventListener('DOMContentLoaded', function () { // Обработчик для README
+const readmeLinks = document.querySelectorAll('.open-modal[data-bs-target="#readmeModal"]');
+readmeLinks.forEach(link => {
+link.addEventListener('click', function () {
+const url = this.getAttribute('data-url');
+document.getElementById('readmeContent').src = url;
 });
-// Default plugin list display: active plugins
-tabsSwitch($(".nav-tabs li>a[data-filter=pluginEntryActive]"));
-$("#searchInput").on('keyup', function (event) {
-tabsSwitch($('.nav-tabs li>a').eq(0));
-const filter = $('#searchInput').val().toUpperCase();
-$('#entryList').find('tr').each(function (index, element) {
-const plugin = $(element).find('td').first().text();
-if (plugin && plugin.toUpperCase().includes(filter)) {
-$(element).show();
+});
+// Обработчик для истории
+const historyLinks = document.querySelectorAll('.open-modal[data-bs-target="#historyModal"]');
+historyLinks.forEach(link => {
+link.addEventListener('click', function () {
+const url = this.getAttribute('data-url');
+document.getElementById('historyContent').src = url;
+});
+});
+// --- Фильтр вкладок ---
+const filterButtons = document.querySelectorAll('.nav-pills .nav-link');
+const pluginCards = document.querySelectorAll('.plugin-card');
+function saveSelectedFilter(filter) {
+localStorage.setItem('selectedFilter', filter);
+}
+function getSavedFilter() {
+return localStorage.getItem('selectedFilter') || 'pluginEntryActive';
+}
+// Сначала убрать active у всех вкладок
+filterButtons.forEach(btn => btn.classList.remove('active'));
+// Применяем сохраненный фильтр при загрузке страницы
+const savedFilter = getSavedFilter();
+const activeButton = document.querySelector(`.nav-pills .nav-link[data-filter="${savedFilter}"]`);
+if (activeButton) {
+activeButton.classList.add('active');
+filterCards(savedFilter);
+} else { // Если сохраненного фильтра нет, активируем первую вкладку по умолчанию
+const defaultButton = document.querySelector('.nav-pills .nav-link[data-filter="pluginEntryActive"]');
+if (defaultButton) {
+defaultButton.classList.add('active');
+filterCards('pluginEntryActive');
+}
+}
+// Обработчик кликов по вкладкам
+filterButtons.forEach(button => {
+button.addEventListener('click', function (e) {
+e.preventDefault();
+filterButtons.forEach(btn => btn.classList.remove('active'));
+this.classList.add('active');
+const filter = this.dataset.filter;
+saveSelectedFilter(filter);
+filterCards(filter);
+});
+});
+function filterCards(filter) {
+pluginCards.forEach(card => {
+if (filter === 'all' || card.classList.contains(filter)) {
+card.style.display = 'block';
 } else {
-$(element).hide();
+card.style.display = 'none';
 }
 });
-});
-});
-function ngPluginSwitch(plugin, state) {
-ngShowLoading();
-$.post('/engine/rpc.php', {
-json: 1,
-methodName: 'admin.extras.switch',
-rndval: new Date().getTime(),
-params: json_encode(
-{'token': '{{ token }}', 'plugin': plugin, 'state': state}
-)
-}, function (data) {
-ngHideLoading();
-// Try to decode incoming data
-try {
-resTX = eval('(' + data + ')');
-} catch (err) {
-ngNotifyWindow('{{ lang['rpc_jsonError '] }}' + data, '{{ lang['notifyWindowError '] }}');
 }
-if (!resTX['status']) {
-ngNotifyWindow('Error [' + resTX['errorCode'] + ']: ' + resTX['errorText'], '{{ lang['notifyWindowInfo '] }}');
+// Поиск по названию плагина
+const searchInput = document.getElementById('searchInput');
+if (searchInput) {
+searchInput.addEventListener('input', function () {
+const query = this.value.toLowerCase();
+pluginCards.forEach(card => {
+const title = card.querySelector('.card-title').textContent.toLowerCase();
+if (title.includes(query)) {
+card.style.display = 'block';
 } else {
-ngNotifyWindow(resTX['errorText'], '{{ lang['notifyWindowInfo '] }}');
+card.style.display = 'none';
 }
-}, "text").error(function () {
-ngHideLoading();
-ngNotifyWindow('{{ lang['rpc_httpError '] }}', '{{ lang['notifyWindowError '] }}');
 });
-}</script>
+});
+}
+});</script>
