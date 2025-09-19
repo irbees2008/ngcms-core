@@ -363,10 +363,6 @@
 			</div>
 
 			<script type="text/javascript">
-				{
-# Устанавливаем временную переменную,
-чтобы отловить ошибки JSON - декодирования.#
-}
 {% set encode_lang = lang | json_encode(constant('JSON_PRETTY_PRINT') b-or constant('JSON_UNESCAPED_UNICODE')) %}
 window.NGCMS = {
 admin_url: '{{ admin_url }}',
