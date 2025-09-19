@@ -6,7 +6,7 @@
 <script>
 	document.addEventListener('DOMContentLoaded', function (event) {
 ngNotifySticker(`{{ message|raw }}`, {
-className: 'alert- {{ ('error' == type) ? 'danger' : 'info' }}',
+className: 'alert-{{ ('error' == type) ? 'danger' : 'info' }}',
 sticked: {{ 'error' == type ? 'true' : 'false' }},
 closeBTN: true
 });
