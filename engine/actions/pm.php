@@ -12,7 +12,7 @@ if (!defined('NGCMS')) {
 $lang = LoadLang('pm', 'admin');
 function pm_send()
 {
-    global $lang, $userROW;
+    global $lang, $userROW, $config;
     $sendto = trim($_REQUEST['sendto']);
     $title = secure_html($_REQUEST['title']);
     $content = $_REQUEST['content'];
@@ -37,7 +37,7 @@ function pm_send()
     }
     if ($sendto && ($torow = $db->record($query, $params))) {
         $content = secure_html(trim($content));
-        $db->exec('insert into ' . prefix . '_pm (subject, message, from_id, to_id, date, viewed, folder) values (:subject, :message, :from_id, :to_id, unix_timestamp(now()), 0, "inbox")', ['subject' => $title, 'message' => $content, 'from_id' => $userROW['id'], 'to_id' => $torow['id']]);
+        $db->exec('insert into ' . $config['prefix'] . '_pm (subject, message, from_id, to_id, date, viewed, folder) values (:subject, :message, :from_id, :to_id, unix_timestamp(now()), 0, "inbox")', ['subject' => $title, 'message' => $content, 'from_id' => $userROW['id'], 'to_id' => $torow['id']]);
         msg(['text' => $lang['msgo_sent']]);
     } else {
         msg(['type' => 'error', 'text' => $lang['msge_nouser'], 'info' => $lang['msgi_nouser']]);
@@ -51,7 +51,7 @@ function pm_list()
         'token'     => genUToken('pm.token'),
     ];
     $db = NGEngine::getInstance()->getDB();
-    foreach ($db->query('select pm.*, u.id as uid, u.name as uname from ' . prefix . '_pm pm left join ' . uprefix . '_users u on pm.from_id=u.id where pm.to_id = :id order by id desc limit 0, 30', ['id' => $userROW['id']]) as $row) {
+    foreach ($db->query('select pm.*, u.id as uid, u.name as uname from ' . $config['prefix'] . '_pm pm left join ' . $config['uprefix'] . '_users u on pm.from_id=u.id where pm.to_id = :id order by id desc limit 0, 30', ['id' => $userROW['id']]) as $row) {
         $senderProfileURL = '';
         $senderName = $lang['messaging'];
         if ($row['from_id'] && $row['uid']) {
@@ -87,16 +87,16 @@ function pm_read()
         return;
     }
     $db = NGEngine::getInstance()->getDB();
-    if ($row = $db->record('select * from ' . uprefix . '_users_pm where pmid = :pmid and (to_id = :to_id or from_id= :from_id)', ['pmid' => $_REQUEST['pmid'], 'to_id' => $userROW['id'], 'from_id' => $userROW['id']])) {
+    if ($row = $db->record('select * from ' . $config['prefix'] . '_pm where id = :pmid and (to_id = :to_id or from_id= :from_id)', ['pmid' => $_REQUEST['pmid'], 'to_id' => $userROW['id'], 'from_id' => $userROW['id']])) {
         $tVars = [
-            'id'        => $row['pmid'],
+            'id'        => $row['id'],
             'token'     => genUToken('pm.token'),
-            'title'     => $row['title'],
+            'title'     => $row['subject'],
             'fromID'    => $row['from_id'],
             'toID'      => $row['to_id'],
             'fromName'  => $lang['messaging'],
             'toName'    => $lang['messaging'],
-            'content'   => $parse->htmlformatter($parse->smilies($parse->bbcodes($row['content']))),
+            'content'   => $parse->htmlformatter($parse->smilies($parse->bbcodes($row['message']))),
         ];
         if ($row['from_id'] > 0) {
             $r = locateUserById($row['from_id']);
@@ -109,7 +109,7 @@ function pm_read()
         if ((!$row['viewed']) && ($row['to_id'] == $userROW['id'])) {
             // Mark as read ONLY if token is correct
             if (isset($_REQUEST['token']) && ($_REQUEST['token'] == genUToken('pm.token'))) {
-                $db->exec('update ' . uprefix . '_users_pm set viewed = 1 WHERE pmid = :pmid', ['pmid' => $row['pmid']]);
+                $db->exec('update ' . $config['prefix'] . '_pm set viewed = 1 WHERE id = :pmid', ['pmid' => $row['id']]);
             } else {
                 msg(['type' => 'error', 'text' => $lang['error.security.token']]);
             }
@@ -128,17 +128,17 @@ function pm_reply()
         return;
     }
     $db = NGEngine::getInstance()->getDB();
-    if ($row = $db->record('select * from ' . uprefix . '_users_pm where pmid = :pmid and (to_id = :to_id or from_id= :from_id)', ['pmid' => $_REQUEST['pmid'], 'to_id' => $userROW['id'], 'from_id' => $userROW['id']])) {
+    if ($row = $db->record('select * from ' . $config['prefix'] . '_pm where id = :pmid and (to_id = :to_id or from_id= :from_id)', ['pmid' => $_REQUEST['pmid'], 'to_id' => $userROW['id'], 'from_id' => $userROW['id']])) {
         if (!is_array($row)) {
             msg(['type' => 'error', 'text' => $lang['msge_reply']]);
             return;
         }
-        $reTitle = 'Re:' . $row['title'];
+        $reTitle = 'Re:' . $row['subject'];
         if (mb_strlen($reTitle) > 50) {
             $reTitle = mb_substr($reTitle, 0, 50);
         }
         $tVars = [
-            'id'        => $row['pmid'],
+            'id'        => $row['id'],
             'title'     => $reTitle,
             'token'     => genUToken('pm.token'),
             'quicktags' => QuickTags('', 'pmmes'),
@@ -175,7 +175,7 @@ function pm_write()
 }
 function pm_delete()
 {
-    global $lang, $userROW;
+    global $lang, $userROW, $config;
     if (!isset($_REQUEST['token']) || ($_REQUEST['token'] != genUToken('pm.token'))) {
         msg(['type' => 'error', 'text' => $lang['error.security.token']]);
         return;
@@ -187,7 +187,7 @@ function pm_delete()
     }
     $db = NGEngine::getInstance()->getDB();
     foreach ($selected_pm as $id) {
-        $db->exec('delete from ' . uprefix . '_users_pm where pmid = :pmid and (from_id= :from_id or to_id= :to_id)', ['pmid' => $id, 'from_id' => $userROW['id'], 'to_id' => $userROW['id']]);
+        $db->exec('delete from ' . $config['prefix'] . '_pm where id = :pmid and (from_id= :from_id or to_id= :to_id)', ['pmid' => $id, 'from_id' => $userROW['id'], 'to_id' => $userROW['id']]);
     }
     msg(['text' => $lang['msgo_deleted']]);
 }
