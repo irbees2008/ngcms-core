@@ -198,12 +198,10 @@ if (!$mod) {
 if ($_GET['plugin'] && $_GET['handler']) {
     $plugin = preg_replace('/[^a-zA-Z0-9_-]/', '', $_GET['plugin']);
     $handler = preg_replace('/[^a-zA-Z0-9_-]/', '', $_GET['handler']);
-
     // Load plugin file
     $pluginFile = root . '/plugins/' . $plugin . '/' . $plugin . '.php';
     if (file_exists($pluginFile)) {
         include_once $pluginFile;
-
         // Call plugin function
         $function_name = 'plugin_' . $plugin . '_' . $handler;
         if (function_exists($function_name)) {
@@ -241,7 +239,9 @@ if (is_array($userROW)) {
     $newpm = '';
     $unapp1 = '';
     $unapp2 = '';
-    $newpm = $mysql->result("SELECT count(pmid) FROM " . prefix . "_users_pm WHERE to_id = " . db_squote($userROW['id']) . " AND viewed = '0'");
+    // Since PM plugin is not installed yet, set newpm to 0
+    // When PM plugin is installed, it will handle PM counting through its own mechanisms
+    $newpm = 0;
     $newpmText = ($newpm != "0") ? $newpm . ' ' . Padeg($newpm, $lang['head_pm_skl']) : $lang['head_pm_no'];
     // Calculate number of un-approved news
     if ($userROW['status'] == 1 || $userROW['status'] == 2) {

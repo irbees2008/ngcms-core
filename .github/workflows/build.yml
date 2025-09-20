@@ -1,65 +1,54 @@
 name: Build source code
-
 on:
   push:
-    branches: [ master ]
+    branches: [master]
   pull_request:
-    branches: [ master ]
-
+    branches: [master]
 jobs:
   build:
     name: Build
     runs-on: ubuntu-24.04
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
-
       - name: Set up PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: '8.3'
+          php-version: "8.3"
           extensions: mbstring, intl, xml, curl, zip, pdo, pdo_mysql, gd, json
           coverage: none
-
       - name: Install dependencies
         run: |
           sudo apt-get update && sudo apt-get install -y git
           composer install --no-dev --prefer-dist
-
       - name: Download source code
         run: |
           mkdir -p ~/build
           git clone --depth=1 https://github.com/irbees2008/ngcms-core ~/build/
           git clone --depth=1 https://github.com/irbees2008/ngcms-plugins ~/build/engine/plugins/
-
       - name: Install libraries via composer
         run: |
           cd ~/build
           composer install --no-dev --prefer-dist
           echo ${{ github.sha }} > engine/cache/build
-
       - name: Cleanup and prepare
         run: |
           cd ~/build
           rm -rf .git .github engine/plugins/.git
-          
           # Определяем имя для папки
           if [ "${{ github.event_name }}" == "pull_request" ]; then
             FOLDER_NAME="ngcms-build-pr-${{ github.event.number }}"
           else
             FOLDER_NAME="ngcms-build-${GITHUB_SHA:0:7}"
           fi
-          
           # Переименовываем папку build
           cd ~
           mv build "$FOLDER_NAME"
-          
           # Сохраняем имя папки для следующего шага
           echo "FOLDER_NAME=$FOLDER_NAME" >> $GITHUB_ENV
-
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: ${{ env.FOLDER_NAME }}
           path: ~/${{ env.FOLDER_NAME }}/
+          include-hidden-files: true
