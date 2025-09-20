@@ -202,7 +202,7 @@
 									Документация</a>
 							</li>
 							<li>
-								<a href="https://forum.ngcms.org/" target="_blank">
+								<a href="https://forum.ngcms.org" target="_blank">
 									<i class="fa fa-comments-o" aria-hidden="true"></i>
 									Форум поддержки</a>
 							</li>
@@ -248,7 +248,11 @@
 						{{ unapproved3 }}
 						<a class="dropdown-item" href="{{ php_self }}?mod=pm" title="{{ lang['pm_t'] }}">
 							<i class="fa fa-envelope-o"></i>
-							{{ newpmText }}</a>
+							{{ newpmText }}
+							{% if newpm > 0 %}
+								<span class="badge badge-danger ml-2">{{ newpm }}</span>
+							{% endif %}
+						</a>
 					</div>
 				</div>
 			</div>
@@ -354,7 +358,9 @@ skins_url: '{{ skins_url }}'
 $('#menu-content .sub-menu').on('show.bs.collapse', function () {
 $('#menu-content .sub-menu.show').not(this).removeClass('show');
 });
-$(document).ready(function () { // Функция для определения ширины скроллбара
+			</script>
+			<script>
+				$(document).ready(function () { // Функция для определения ширины скроллбара
 function getScrollbarWidth() {
 var outer = document.createElement("div");
 outer.style.visibility = "hidden";
@@ -400,12 +406,6 @@ $('body').css('margin-right', '0');
 }
 }).trigger('resize');
 });
-// Auto reload after configuration save
-if (window.location.search.includes('mod=configuration')) {
-	$(document).on('submit', 'form', function() {
-		setTimeout(function() { location.reload(); }, 1500);
-	});
-}
 			</script>
 		</body>
 	</body>

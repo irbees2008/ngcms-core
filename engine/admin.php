@@ -239,10 +239,32 @@ if (is_array($userROW)) {
     $newpm = '';
     $unapp1 = '';
     $unapp2 = '';
-    // Since PM plugin is not installed yet, set newpm to 0
-    // When PM plugin is installed, it will handle PM counting through its own mechanisms
+    // Check if PM plugin is active and get new messages count
     $newpm = 0;
-    $newpmText = ($newpm != "0") ? $newpm . ' ' . Padeg($newpm, $lang['head_pm_skl']) : $lang['head_pm_no'];
+    $newpmText = $lang['head_pm_no'];
+    // Load PM plugin if it exists and is active
+    if (is_file(root . '/engine/plugins/pm/pm.php')) {
+        @include_once(root . '/engine/plugins/pm/pm.php');
+    }
+    if (function_exists('new_pm')) {
+        // PM plugin is active, get actual count
+        $newpmText = new_pm();
+        // Extract number from the text for counting
+        if (isset($GLOBALS['template']['vars']['newpm'])) {
+            $newpm = $GLOBALS['template']['vars']['newpm'];
+        }
+    } else {
+        // Fallback: get count directly from database if PM table exists
+        try {
+            $result = $mysql->query("SHOW TABLES LIKE '" . $config['prefix'] . "_pm'");
+            if ($mysql->num_rows($result) > 0 && is_array($userROW) && $userROW['id']) {
+                $newpm = intval($mysql->result("SELECT COUNT(*) FROM " . $config['prefix'] . "_pm WHERE to_id = " . intval($userROW['id']) . " AND folder='inbox' AND viewed = '0'"));
+                $newpmText = ($newpm > 0) ? $newpm . ' новых сообщений' : $lang['head_pm_no'];
+            }
+        } catch (Exception $e) {
+            // PM table doesn't exist, keep default values
+        }
+    }
     // Calculate number of un-approved news
     if ($userROW['status'] == 1 || $userROW['status'] == 2) {
         $unapp1 = $mysql->result("SELECT count(id) FROM " . prefix . "_news WHERE approve = '-1'");

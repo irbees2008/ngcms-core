@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="{{ lang['langcode'] }}">
-
 	<head>
 		<meta charset="{{ lang['encoding'] }}"/>
 		<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no"/>
@@ -17,7 +16,6 @@
 			}
 		</style>
 	</head>
-
 	<body>
 		<div id="loading-layer" class="col-md-3 alert alert-dark" role="alert">
 			<i class="fa fa-spinner fa-pulse mr-2"></i>
@@ -30,7 +28,6 @@
 			<button class="navbar-toggler position-absolute d-md-none collapsed" type="button" data-toggle="collapse" data-target="#menu-content" aria-controls="sidebarMenu" aria-expanded="false" aria-label="Toggle navigation">
 				<span class="navbar-toggler-icon"></span>
 			</button>
-
 			<div class="btn-group ml-auto mr-2 py-1" role="group" aria-label="Button group with nested dropdown">
 				<ul class="navbar-nav ml-auto">
 					<li
@@ -57,12 +54,10 @@
 					</li>
 				</ul>
 			</div>
-
 		</nav>
 		<div class="container-fluid">
 			<div class="row">
 				<div class="nav-side-menu">
-
 					<div class="menu-list">
 						<ul id="menu-content" class="menu-content collapse out">
 							<li>
@@ -70,7 +65,6 @@
 									<i class="fa fa-external-link"></i>
 									{{ lang['mainpage'] }}</a>
 							</li>
-
 							{%
 								set showContent = global.mod == 'news'
 									or global.mod == 'categories'
@@ -78,7 +72,6 @@
 									or global.mod == 'images'
 									or global.mod == 'files'
 							%}
-
 							<li data-toggle="collapse" data-target="#nav-content" class="collapsed {{ h_active_options ? 'active' : '' }} ">
 								<a href="#">
 									<i class="fa fa-newspaper-o"></i>
@@ -119,14 +112,12 @@
 									</li>
 								{% endif %}
 							</ul>
-
 							{%
 								set showUsers = global.mod == 'users'
 									or global.mod == 'ipban'
 									or global.mod == 'ugroup'
 									or global.mod == 'perm'
 							%}
-
 							<li data-toggle="collapse" data-target="#nav-users" class="collapsed {{ h_active_userman ? 'active' : '' }}">
 								<a href="#">
 									<i class="fa fa-users"></i>
@@ -152,7 +143,6 @@
 									<a href="{{ php_self }}?mod=perm">{{ lang['uperm'] }}</a>
 								</li>
 							</ul>
-
 							{%
 								set showService = global.mod == 'configuration'
 									or global.mod == 'dbo'
@@ -160,7 +150,6 @@
 									or global.mod == 'cron'
 									or global.mod == 'statistics'
 							%}
-
 							<li data-toggle="collapse" data-target="#nav-service" class="collapsed {{ h_active_system ? 'active' : '' }}">
 								<a href="#">
 									<i class="fa fa-cog"></i>
@@ -194,7 +183,6 @@
 									</a>
 								</li>
 							</ul>
-
 							<li class="{{ h_active_extras ? 'active' : '' }} ">
 								<a href="{{ php_self }}?mod=extras">
 									<i class="fa fa-puzzle-piece"></i>
@@ -207,7 +195,6 @@
 										{{ lang['templates_m'] }}</a>
 								</li>
 							{% endif %}
-
 							<hr>
 							<li>
 								<a href="{{ php_self }}?mod=docs">
@@ -225,7 +212,7 @@
 									Официальный сайт</a>
 							</li>
 							<li>
-								<a href="https://github.com/vponomarev/ngcms-core" target="_blank">
+								<a href="https://github.com/irbees2008/ngcms-core" target="_blank">
 									<i class="fa fa-github"></i>
 									Github</a>
 							</li>
@@ -242,7 +229,6 @@
 					©
 					<a href="http://ngcms.org" target="_blank">Next Generation CMS</a>
 				</p>
-
 			</footer>
 		</div>
 		<!-- Модальное окно для уведомлений -->
@@ -262,12 +248,15 @@
 						{{ unapproved3 }}
 						<a class="dropdown-item" href="{{ php_self }}?mod=pm" title="{{ lang['pm_t'] }}">
 							<i class="fa fa-envelope-o"></i>
-							{{ newpmText }}</a>
+							{{ newpmText }}
+							{% if newpm > 0 %}
+								<span class="badge badge-danger ml-2">{{ newpm }}</span>
+							{% endif %}
+						</a>
 					</div>
 				</div>
 			</div>
 		</div>
-
 		<!-- Модальное окно для добавления контента -->
 		<div class="modal fade" id="addContentModal" tabindex="-1" role="dialog" aria-labelledby="addContentModalLabel" aria-hidden="true">
 			<div class="modal-dialog" role="document">
@@ -313,15 +302,12 @@
 				</div>
 			</div>
 		</div>
-
 		<!-- Модальное окно для профиля пользователя -->
 		<div class="modal fade" id="userProfileModal" tabindex="-1" role="dialog" aria-labelledby="userProfileModalLabel" aria-hidden="true">
 			<div class="modal-dialog modal-dialog-centered" role="document">
 				<div class="modal-content">
-
 					<div
 						class="modal-body card card-widget widget-user">
-
 						<!-- Add the bg color to the header using any of the bg-* classes -->
 						<div class="widget-user-header bg-info text-right">
 							<h3 class="widget-user-username">{{ user.name }}</h3>
@@ -355,13 +341,10 @@
 							</div>
 							<!-- /.row -->
 						</div>
-
 						<!-- /.widget-user -->
-
 					</div>
 				</div>
 			</div>
-
 			<script type="text/javascript">
 {% set encode_lang = lang | json_encode(constant('JSON_PRETTY_PRINT') b-or constant('JSON_UNESCAPED_UNICODE')) %}
 window.NGCMS = {
@@ -383,29 +366,21 @@ var outer = document.createElement("div");
 outer.style.visibility = "hidden";
 outer.style.width = "100px";
 outer.style.msOverflowStyle = "scrollbar"; // needed for WinJS apps
-
 document.body.appendChild(outer);
-
 var widthNoScroll = outer.offsetWidth;
 // force scrollbars
 outer.style.overflow = "scroll";
-
 // add inner div
 var inner = document.createElement("div");
 inner.style.width = "100%";
 outer.appendChild(inner);
-
 var widthWithScroll = inner.offsetWidth;
-
 // remove divs
 outer.parentNode.removeChild(outer);
-
 return widthNoScroll - widthWithScroll;
 }
-
 // Сохраняем ширину скроллбара в переменную
 var scrollbarWidth = getScrollbarWidth();
-
 // При открытии модального окна
 $('.modal').on('show.bs.modal', function () {
 if ($('body').height() > $(window).height()) {
@@ -413,13 +388,11 @@ $('body').addClass('modal-scrollbar-compensate');
 }
 $('body').addClass('modal-open-no-scroll');
 });
-
 // При закрытии модального окна
 $('.modal').on('hidden.bs.modal', function () {
 $('body').removeClass('modal-scrollbar-compensate');
 $('body').removeClass('modal-open-no-scroll');
 });
-
 // Добавляем компенсацию ширины скроллбара
 $(window).on('resize', function () {
 if ($('body').hasClass('modal-scrollbar-compensate')) {
@@ -432,7 +405,6 @@ $('body').css('margin-right', '17px'); // Задаём стандартное з
 $('body').css('margin-right', '0');
 }
 }).trigger('resize');
-
 });
 			</script>
 		</body>
