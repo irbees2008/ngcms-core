@@ -362,7 +362,21 @@ function userList()
     $queryFilter = count($whereRules) ? 'where ' . implode(' and ', $whereRules) : '';
     $sql = 'select * from ' . uprefix . '_users ' . $queryFilter . ' order by ' . $sortValue . ' ' . 'limit ' . (($pageNo - 1) * $fRPP) . ', ' . $fRPP;
     $tEntries = [];
+    // Try to load avatar helper if available
+    if (!function_exists('userGetAvatar')) {
+        @include_once(extras_dir . '/uprofile/lib/uprofile.lib.php');
+    }
     foreach ($mysql->select($sql) as $row) {
+        // Build avatar URL if helper exists
+        $avatarURL = '';
+        if (function_exists('userGetAvatar')) {
+            try {
+                $av = userGetAvatar($row);
+                $avatarURL = is_array($av) ? $av[1] : '';
+            } catch (Throwable $e) {
+                $avatarURL = '';
+            }
+        }
         $status = isset($UGROUP[$row['status']]) ? $UGROUP[$row['status']]['name'] : ('Unknown [' . $row['status'] . ']');
         $tEntry = [
             'id'          => $row['id'],
@@ -373,6 +387,7 @@ function userList()
             'cntComments' => $row['com'],
             'regdate'     => LangDate('j Q Y - H:i', $row['reg']),
             'lastdate'    => (empty($row['last'])) ? $lang['no_last'] : LangDate('j Q Y - H:i', $row['last']),
+            'avatar'      => $avatarURL,
             'flags'       => [
                 'isActive' => (!$row['activation'] || $row['activation'] == '') ? 1 : 0,
             ],
