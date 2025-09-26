@@ -3,7 +3,6 @@ function ChangeOption(selectedOption) {
 	document.getElementById('list').style.display		= "none";
 	document.getElementById('adduser').style.display	= "none";
 	document.getElementById('addbutton').style.display	= "none";
-
 	if (selectedOption == 'list') 	 {
 		document.getElementById('list').style.display		= "";
 		document.getElementById('addbutton').style.display	= "none";
@@ -13,12 +12,9 @@ function ChangeOption(selectedOption) {
 		document.getElementById('addbutton').style.display	= "";
 	}
 }
-
 var fInitStatus = false;
-
 function updateAction() {
 	mode = document.forms['form_users'].action.value;
-
 	if (mode == 'massSetStatus') {
 		if (!fInitStatus) {
 			document.forms['form_users'].newstatus.value = '4';
@@ -29,25 +25,19 @@ function updateAction() {
 		document.forms['form_users'].newstatus.disabled = true;
 	}
 }
-
 function validateAction() {
 	mode = document.forms['form_users'].action.value;
-
 	if (mode == '') {
 		alert('Необходимо выбрать действие!');
 		return;
 	}
-
 	if ((mode == 'massSetStatus')&&(document.forms['form_users'].newstatus.value < 1)) {
 		alert('{l_msge_setstatus}');
 		return;
 	}
-
 	document.forms['form_users'].submit();
 }
 </script>
-
-
 <table border="0" width="100%" cellpadding="0" cellspacing="0">
 <tr>
 <td width=100% colspan="5" class="contentHead"><img src="{{ skins_url }}/images/nav.gif" hspace="8"><a href="?mod=users">{{ lang['users_title'] }}</a></td>
@@ -121,7 +111,6 @@ function validateAction() {
 <td class="contentEntry1">{% if flags.canModify %}{% if flags.canMassAction %}<input name="selected_users[]" value="{{ entry.id }}" class="check" type="checkbox" />{% endif %}{% endif %}</td>
 </tr>
 {% endfor %}
-
 <tr>
 <td width="100%" colspan="8">&nbsp;</td>
 </tr>
@@ -163,8 +152,6 @@ function validateAction() {
 </td>
 </tr>
 </table>
-
-
 {% if flags.canModify %}<form method="post" action="{{ php_self }}?mod=users">
 <input type="hidden" name="action" value="add" />
 <input type="hidden" name="token" value="{{ token }}"/>

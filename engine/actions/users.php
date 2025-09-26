@@ -42,6 +42,20 @@ function userEditForm()
     foreach ($UGROUP as $ugID => $ugData) {
         $status .= ' <option value="' . $ugID . '"' . (($row['status'] == $ugID) ? ' selected' : '') . '>' . $ugID . ' (' . $ugData['name'] . ')</option>';
     }
+    // Build avatar URL if helper exists
+    $avatarURL = '';
+    if (function_exists('userGetAvatar')) {
+        try {
+            $av = userGetAvatar($row);
+            $avatarURL = is_array($av) ? $av[1] : '';
+            $hasAvatar = is_array($av) ? (int)$av[0] : 0;
+        } catch (Throwable $e) {
+            $avatarURL = '';
+            $hasAvatar = 0;
+        }
+    } else {
+        $hasAvatar = ($row['avatar'] != '') ? 1 : 0;
+    }
     //	Обрабатываем необходимые переменные для шаблона
     $tVars = [
         'php_self'   => $PHP_SELF,
@@ -57,8 +71,14 @@ function userEditForm()
         'last'       => (empty($row['last'])) ? $lang['no_last'] : LangDate('l, j Q Y - H:i', $row['last']),
         'ip'         => $row['ip'],
         'token'      => genUToken('admin.users'),
+        'avatar'     => $avatarURL,
+        'avatar_hint' => ($config['use_avatars'] ? (sprintf($lang['avatar_hint'], (intval($config['avatar_wh']) ? ($config['avatar_wh'] . 'x' . $config['avatar_wh']) : '—'), (intval($config['avatar_max_size']) ? intval($config['avatar_max_size']) : '—'))) : ''),
         'perm'       => [
             'modify' => $perm['modify'] ? 1 : 0,
+        ],
+        'flags'      => [
+            'avatarAllowed' => $config['use_avatars'] ? 1 : 0,
+            'hasAvatar'     => ($config['use_avatars'] ? $hasAvatar : 0),
         ],
     ];
     if (is_array($PFILTERS['plugin.uprofile'])) {
@@ -74,7 +94,9 @@ function userEditForm()
 // Edit user's profile
 function userEdit()
 {
-    global $mysql, $lang, $mod;
+    global $mysql, $lang, $mod, $config, $PFILTERS, $DSlist;
+    // Load required library for file/image management
+    @include_once root . 'includes/classes/upload.class.php';
     // Check for permissions
     if (!checkPermission(['plugin' => '#admin', 'item' => 'users'], null, 'modify')) {
         msg(['type' => 'error', 'text' => $lang['perm.denied']], 1, 1);
@@ -95,6 +117,55 @@ function userEdit()
         return;
     }
     $pass = ($_REQUEST['password']) ? EncodePassword($_REQUEST['password']) : '';
+    // Prepare avatar update fields
+    $avatar = $row['avatar'];
+    // Allow avatar ops only if enabled in config
+    if ($config['use_avatars']) {
+        // Delete avatar if requested
+        if (isset($_REQUEST['delavatar']) && $_REQUEST['delavatar']) {
+            // Try to delete avatar record/file (by analogy with uprofile)
+            // Search for avatar record in images table
+            if (is_array($imageRow = $mysql->record('select * from ' . prefix . "_images where owner_id = " . intval($row['id']) . ' and category = 1'))) {
+                $fmanager = new file_managment();
+                $fmanager->file_delete(['type' => 'avatar', 'id' => $imageRow['id']]);
+            } else if ($row['avatar']) {
+                @unlink($config['avatars_dir'] . $row['avatar']);
+            }
+            $avatar = '';
+        }
+        // Upload new avatar if provided
+        if (isset($_FILES['newavatar']) && !empty($_FILES['newavatar']['name'])) {
+            // Delete old avatar first
+            if ($row['avatar']) {
+                if (is_array($imageRow = $mysql->record('select * from ' . prefix . "_images where owner_id = " . intval($row['id']) . ' and category = 1'))) {
+                    $fmanager = new file_managment();
+                    $fmanager->file_delete(['type' => 'avatar', 'id' => $imageRow['id']]);
+                } else {
+                    @unlink($config['avatars_dir'] . $row['avatar']);
+                }
+            }
+            $fmanage = new file_managment();
+            $imanage = new image_managment();
+            $manualName = $row['id'] . '.' . strtolower($_FILES['newavatar']['name']);
+            $up = $fmanage->file_upload(['type' => 'avatar', 'http_var' => 'newavatar', 'replace' => 1, 'manualfile' => $manualName]);
+            if (is_array($up)) {
+                if (is_array($sz = $imanage->get_size($config['avatars_dir'] . $up[1]))) {
+                    $fmanage->get_limits('avatar');
+                    $lwh = intval($config['avatar_wh']);
+                    if ($lwh && (($sz[1] > $lwh) || ($sz[2] > $lwh))) {
+                        msg(['type' => 'error', 'text' => $lang['msge_avatar_size'], 'info' => sprintf($lang['msgi_avatar_size'], $lwh . 'x' . $lwh)]);
+                        $fmanage->file_delete(['type' => 'avatar', 'id' => $up[0]]);
+                    } else {
+                        // Сохраняем только имя файла аватара
+                        $avatar = $up[1];
+                    }
+                } else {
+                    msg(['type' => 'error', 'text' => $lang['msge_avatar_damaged']]);
+                    $fmanage->file_delete(['type' => 'avatar', 'id' => $up[0]]);
+                }
+            }
+        }
+    }
     // Prepare a list of changed params
     $cList = [];
     foreach (['level', 'where_from', 'info', 'mail'] as $k) {
@@ -106,7 +177,7 @@ function userEdit()
         $cList['pass'] = ['****', '****'];
     }
     ngSYSLOG(['plugin' => '#admin', 'item' => 'users', 'ds_id' => $id], ['action' => 'editForm', 'list' => $cList], null, [1]);
-    $mysql->query('update ' . uprefix . '_users set `status`=' . db_squote($_REQUEST['status']) . ', `where_from`=' . db_squote($_REQUEST['where_from']) . ', `info`=' . db_squote($_REQUEST['info']) . ', `mail`=' . db_squote($_REQUEST['mail']) . ($pass ? ', `pass`=' . db_squote($pass) : '') . ' where id=' . db_squote($row['id']));
+    $mysql->query('update ' . uprefix . '_users set `status`=' . db_squote($_REQUEST['status']) . ', `where_from`=' . db_squote($_REQUEST['where_from']) . ', `info`=' . db_squote($_REQUEST['info']) . ', `mail`=' . db_squote($_REQUEST['mail']) . ($pass ? ', `pass`=' . db_squote($pass) : '') . ($config['use_avatars'] ? ', `avatar`=' . db_squote($avatar) : '') . ' where id=' . db_squote($row['id']));
     msg(['text' => $lang['msgo_edituser']]);
 }
 //
