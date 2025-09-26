@@ -140,6 +140,10 @@ function news_showone($newsID, $alt_name, $callingParams = [])
         if ($v['linked_id'] == $row['id']) {
             $callingParams['linkedFiles']['ids'][] = $v['id'];
             $callingParams['linkedFiles']['data'][] = $v;
+            // Calculate file size
+            $fname = ($v['storage'] ? $config['attach_dir'] : $config['files_dir']) . $v['folder'] . '/' . $v['name'];
+            $sizeBytes = (is_readable($fname) && ($fs = @filesize($fname))) ? $fs : 0;
+            $sizeHuman = $sizeBytes ? Formatsize($sizeBytes) : '';
             $tvars['vars']['_files'][] = [
                 'plugin'      => $v['plugin'],
                 'pidentity'   => $v['pidentity'],
@@ -147,6 +151,8 @@ function news_showone($newsID, $alt_name, $callingParams = [])
                 'name'        => $v['name'],
                 'origName'    => secure_html($v['orig_name']),
                 'description' => secure_html($v['description']),
+                'size'        => $sizeBytes,
+                'filesize'    => $sizeHuman,
             ];
         }
     }
@@ -650,6 +656,10 @@ function news_showlist($filterConditions = [], $paginationParams = [], $callingP
                 if ($v['linked_id'] == $row['id']) {
                     $callingParams['linkedFiles']['ids'][] = $v['id'];
                     $callingParams['linkedFiles']['data'][] = $v;
+                    // Calculate file size
+                    $fname = ($v['storage'] ? $config['attach_dir'] : $config['files_dir']) . $v['folder'] . '/' . $v['name'];
+                    $sizeBytes = (is_readable($fname) && ($fs = @filesize($fname))) ? $fs : 0;
+                    $sizeHuman = $sizeBytes ? Formatsize($sizeBytes) : '';
                     $tvars['vars']['_files'][] = [
                         'plugin'      => $v['plugin'],
                         'pidentity'   => $v['pidentity'],
@@ -657,6 +667,8 @@ function news_showlist($filterConditions = [], $paginationParams = [], $callingP
                         'name'        => $v['name'],
                         'origName'    => secure_html($v['orig_name']),
                         'description' => secure_html($v['description']),
+                        'size'        => $sizeBytes,
+                        'filesize'    => $sizeHuman,
                     ];
                 }
             }
