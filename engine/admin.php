@@ -313,6 +313,8 @@ $tVars = [
     'unapproved3'           => $unapproved3,
     'unnAppText'            => $unnAppText,
     'unnAppLabel'           => $unnAppLabel,
+    // Глобальный токен для RPC admin.statistics.* (нужен для кнопки очистки кэша в топбаре)
+    'token_statistics'      => genUToken('admin.statistics'),
     'user' => array(
         'id' => $userROW['id'],
         'name' => $userROW['name'],
@@ -336,6 +338,7 @@ $tVars = [
         'templates'     => checkPermission(['plugin' => '#admin', 'item' => 'templates'], null, 'details'),
         'ipban'         => checkPermission(['plugin' => '#admin', 'item' => 'ipban'], null, 'view'),
         'users'         => checkPermission(['plugin' => '#admin', 'item' => 'users'], null, 'view'),
+        'cache'         => checkPermission(['plugin' => '#admin', 'item' => 'cache'], null, 'modify'),
     ],
 ];
 // Register global vars

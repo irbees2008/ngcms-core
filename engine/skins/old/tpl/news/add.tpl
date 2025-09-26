@@ -4,7 +4,6 @@
 //
 // Global variable: ID of current active input area
 {% if (flags.edit_split) %}var currentInputAreaID = 'ng_news_content_short';{% else %}var currentInputAreaID = 'ng_news_content';{% endif %}
-
 // Fix for insertext function
 function getCurrentTextArea() {
     var elem = document.getElementById(currentInputAreaID);
@@ -23,28 +22,23 @@ function ChangeOption(optn) {
 	document.getElementById('additional').style.display	= (optn == 'additional')?"block":"none";
 	document.getElementById('attaches').style.display	= (optn == 'attaches')?"block":"none";
 }
-
 function approveMode(mode) {
 	document.getElementById('approve').value = mode;
 	return true;
 }
-
 function preview(){
  var form = document.getElementById("postForm");
  if (form.ng_news_content{% if (flags.edit_split) %}_short{% endif %}.value == '' || form.title.value == '') {
   alert('{{ lang.addnews['msge_preview'] }}');
   return false;
  }
-
  form['mod'].value = "preview";
  form.target = "_blank";
  form.submit();
-
  form['mod'].value = "news";
  form.target = "_self";
  return true;
 }
-
 function changeActive(name) {
  if (name == 'full') {
 	document.getElementById('container.content.full').className  = 'contentActive';
@@ -59,7 +53,6 @@ function changeActive(name) {
  getCurrentTextArea();
 }
 </script>
-
 <form name="DATA_tmp_storage" action="" id="DATA_tmp_storage">
 <input type="hidden" name="area" value="" />
 </form>
@@ -70,16 +63,13 @@ function changeActive(name) {
 </td>
 </tr>
 </table>
-
 <!-- Main content form -->
 <form id="postForm" name="form" ENCTYPE="multipart/form-data" method="post" action="{{ php_self }}" target="_self">
 <input type="hidden" name="token" value="{{ token }}"/>
-
 <table width="100%" border="0" cellspacing="0" cellpadding="0" class="content" align="center">
 <tr>
 <td valign="top" >
  <!-- Left edit column -->
-
 <table border="0" cellspacing="1" cellpadding="0" width="100%">
 <tr>
 <td class="contentNav" align="center">
@@ -89,7 +79,6 @@ function changeActive(name) {
 </td>
 </tr>
 <tr><td>
-
 <!-- MAIN CONTENT -->
 <div id="maincontent" style="display: block;">
 <table width="100%" cellspacing="1" cellpadding="0" border="0">
@@ -109,7 +98,6 @@ function changeActive(name) {
 {% endif %}
 	</td>
 </tr>
-
 {% if not flags['altname.disabled'] %}
   <tr>
    <td><img src="{{ skins_url }}/images/nav.png" hspace="8" alt="" /></td>
@@ -138,8 +126,6 @@ function changeActive(name) {
 </div>
 </td></tr>
 </table>
-
-
 <!-- ADDITIONAL -->
 <div id="additional" style="display: none;">
 <table border="0" cellspacing="1" cellpadding="0" width="100%">
@@ -165,7 +151,6 @@ function changeActive(name) {
 <script language="javascript" type="text/javascript">
 $("#cdate").datetimepicker( { currentText: "DD.MM.YYYY HH:MM", dateFormat: "dd.mm.yy", timeFormat: 'HH:mm' });
 </script>
-
 <!-- ATTACHES -->
 <div id="attaches" style="display: none;">
 <br/>
@@ -180,7 +165,6 @@ $("#cdate").datetimepicker( { currentText: "DD.MM.YYYY HH:MM", dateFormat: "dd.m
 </table>
 </div>
 </td>
-
 <td id="rightBar" width="300" valign="top">
  <!-- Right edit column -->
  <table width="100%" cellspacing="0" cellpadding="0" border="0">
@@ -222,7 +206,6 @@ $("#cdate").datetimepicker( { currentText: "DD.MM.YYYY HH:MM", dateFormat: "dd.m
   <label><input type="checkbox" name="pinned" value="1" class="check" id="pinned" {% if (flags.pinned) %}checked="checked" {% endif %}{% if flags['pinned.disabled'] %}disabled {% endif %}  /> {{ lang.addnews['add_pinned'] }}</label><br />
   <label><input type="checkbox" name="catpinned" value="1" class="check" id="catpinned" {% if (flags.catpinned) %}checked="checked" {% endif %}{% if flags['catpinned.disabled'] %}disabled {% endif %}  /> {{ lang.addnews['add_catpinned'] }}</label><br />
   <label><input type="checkbox" name="favorite" value="1" class="check" id="favorite" {% if (flags.favorite) %}checked="checked" {% endif %}{% if flags['favorite.disabled'] %}disabled {% endif %}  /> {{ lang.addnews['add_favorite'] }}</label><br />
-
   <label><input name="flag_HTML" type="checkbox" class="check" id="flag_HTML" value="1" {% if (flags['html.disabled']) %}disabled {% endif %} {% if (flags['html']) %}checked="checked"{% endif %}/> {{ lang.addnews['flag_html'] }}</label><br />
   <label><input type="checkbox" name="flag_RAW" value="1" class="check" id="flag_RAW" {% if (flags['html.disabled']) %}disabled {% endif %} {% if (flags['raw']) %}checked="checked"{% endif %}/> {{ lang.addnews['flag_raw'] }}</label><br />
    {% if (pluginIsActive('comments')) %}<hr/>{{ lang['comments:mode.header'] }}:
@@ -236,18 +219,14 @@ $("#cdate").datetimepicker( { currentText: "DD.MM.YYYY HH:MM", dateFormat: "dd.m
   </td>
   </tr>
  </table>
-
 </td>
 </tr>
 </table>
-
-
 <br />
 <input type="hidden" name="mod" value="news" />
 <input type="hidden" name="action" value="add" />
 <input type="hidden" name="subaction" value="submit" />
 <input type="hidden" name="approve" id="approve" value="0"/>
-
 <table width="100%" border="0" cellspacing="0" cellpadding="0">
 <tr align="center">
 <td width="30%" class="contentEditW" align="center" valign="top">
@@ -262,15 +241,12 @@ $("#cdate").datetimepicker( { currentText: "DD.MM.YYYY HH:MM", dateFormat: "dd.m
 </td>
 </tr>
 </table>
-
 {% if (pluginIsActive('xfields')) %}
 <!-- XFields [GENERAL] -->
 {{ plugin.xfields.general }}
 <!-- /XFields [GENERAL] -->
 {% endif %}
 </form>
-
-
 <script language="javascript" type="text/javascript">
 // Restore variables if needed
 var jev = {{ JEV }};
@@ -293,29 +269,23 @@ for (i in jev) {
  }
 }
 </script>
-
 <script language="javascript" type="text/javascript">
 <!--
 function attachAddRow() {
 	var tbl = document.getElementById('attachFilelist');
 	var lastRow = tbl.rows.length;
 	var row = tbl.insertRow(lastRow - 1);
-
 	// Add cells
 	row.insertCell(0).innerHTML = '*';
 	row.insertCell(1).innerHTML = '{{ lang.editnews['attach.new_file'] }}';
-
 	// Add file input
 	var el = document.createElement('input');
 	el.setAttribute('type', 'file');
 	el.setAttribute('name', 'userfile[' + (++attachAbsoluteRowID) + ']');
 	el.setAttribute('size', '80');
-
 	var xCell = row.insertCell(2);
 	xCell.colSpan = 2;
 	xCell.appendChild(el);
-
-
 	el = document.createElement('input');
 	el.setAttribute('type', 'button');
 	el.setAttribute('onclick', 'document.getElementById("attachFilelist").deleteRow(this.parentNode.parentNode.rowIndex);');
@@ -325,26 +295,10 @@ function attachAddRow() {
 // Add first row
 var attachAbsoluteRowID = 0;
 attachAddRow();
-
-// Global function for functions.js compatibility
+// Глобальная совместимость с functions.js
 window.getCurrentInputArea = function() {
-    return getCurrentTextArea();
+  return getCurrentTextArea();
 };
-
-// Override currentInputAreaID getter
-Object.defineProperty(window, 'currentInputAreaID', {
-    get: function() {
-        var elem = getCurrentTextArea();
-        return elem ? (elem.id || elem.name) : 'ng_news_content';
-    },
-    set: function(value) {
-        // Allow setting but ensure element exists
-        if (document.getElementById(value)) {
-            window._currentInputAreaID = value;
-        }
-    }
-});
 -->
 </script>
-
 {{ includ_bb }}

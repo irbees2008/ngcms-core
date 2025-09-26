@@ -30,6 +30,15 @@
 			</button>
 			<div class="btn-group ml-auto mr-2 py-1" role="group" aria-label="Button group with nested dropdown">
 				<ul class="navbar-nav ml-auto">
+					{% if perm.cache %}
+						<li
+							class="nav-item">
+							<!-- Очистка кэша (браузер + сервер) -->
+							<a type="button" class="nav-link" id="btn-clear-cache" title="{{ lang['cache.clean']|default('Очистить кеш') }}">
+								<i class="fa fa-refresh fa-lg"></i>
+							</a>
+						</li>
+					{% endif %}
 					<li
 						class="nav-item">
 						<!-- Иконка уведомлений -->
@@ -202,7 +211,7 @@
 									Документация</a>
 							</li>
 							<li>
-								<a href="https://forum.ngcms.org" target="_blank">
+								<a href="https://forum.ngcms.org/" target="_blank">
 									<i class="fa fa-comments-o" aria-hidden="true"></i>
 									Форум поддержки</a>
 							</li>
@@ -248,11 +257,7 @@
 						{{ unapproved3 }}
 						<a class="dropdown-item" href="{{ php_self }}?mod=pm" title="{{ lang['pm_t'] }}">
 							<i class="fa fa-envelope-o"></i>
-							{{ newpmText }}
-							{% if newpm > 0 %}
-								<span class="badge badge-danger ml-2">{{ newpm }}</span>
-							{% endif %}
-						</a>
+							{{ newpmText }}</a>
 					</div>
 				</div>
 			</div>
@@ -346,7 +351,7 @@
 				</div>
 			</div>
 			<script type="text/javascript">
-{% set encode_lang = lang | json_encode(constant('JSON_PRETTY_PRINT') b-or constant('JSON_UNESCAPED_UNICODE')) %}
+				{% set encode_lang = lang | json_encode(constant('JSON_PRETTY_PRINT') b-or constant('JSON_UNESCAPED_UNICODE')) %}
 window.NGCMS = {
 admin_url: '{{ admin_url }}',
 home: '{{ home }}',
@@ -358,9 +363,75 @@ skins_url: '{{ skins_url }}'
 $('#menu-content .sub-menu').on('show.bs.collapse', function () {
 $('#menu-content .sub-menu.show').not(this).removeClass('show');
 });
-			</script>
-			<script>
-				$(document).ready(function () { // Функция для определения ширины скроллбара
+// Очистка кэшей браузера: localStorage, sessionStorage, Cache Storage
+async function clearBrowserCaches() {
+try {
+try {
+window.localStorage && window.localStorage.clear();
+} catch (e) {}
+try {
+window.sessionStorage && window.sessionStorage.clear();
+} catch (e) {}
+if (window.caches && caches.keys) {
+const keys = await caches.keys();
+await Promise.all(keys.map((k) => caches.delete(k)));
+}
+return true;
+} catch (e) {
+return false;
+}
+}
+// Хендлер кнопки очистки кэша
+async function handleTopbarClearCacheClick(ev) {
+ev && ev.preventDefault && ev.preventDefault();
+const browserOk = await clearBrowserCaches();
+// Вызов RPC admin.statistics.cleanCache
+try {
+const resp = await $.ajax({
+method: 'POST',
+url: NGCMS.admin_url + '/rpc.php',
+dataType: 'json',
+data: {
+json: 1,
+methodName: 'admin.statistics.cleanCache',
+params: JSON.stringify(
+{token: '{{ token_statistics|e('js') }}'}
+)
+}
+});
+if (resp && resp.status) {
+$.notify({
+message: '{{ lang['notify.cache.server_ok']|e('js') }}'
+}, {type: 'success'});
+} else {
+$.notify({
+message: '{{ lang['notify.cache.server_fail']|e('js') }}'
+}, {type: 'danger'});
+}
+} catch (e) {
+$.notify({
+message: '{{ lang['notify.cache.server_fail']|e('js') }}'
+}, {type: 'danger'});
+}
+// Браузер
+if (browserOk) {
+$.notify({
+message: '{{ lang['notify.cache.browser_ok']|e('js') }}'
+}, {type: 'success'});
+} else {
+$.notify({
+message: '{{ lang['notify.cache.browser_fail']|e('js') }}'
+}, {type: 'warning'});
+}
+return false;
+}
+document.addEventListener('DOMContentLoaded', function () {
+var btn = document.getElementById('btn-clear-cache');
+if (btn) {
+btn.addEventListener('click', handleTopbarClearCacheClick);
+}
+});
+$(document).ready(function () { // Функция для определения ширины скроллбара
 function getScrollbarWidth() {
 var outer = document.createElement("div");
 outer.style.visibility = "hidden";
@@ -406,6 +477,14 @@ $('body').css('margin-right', '0');
 }
 }).trigger('resize');
 });
+// Auto reload after configuration save
+if (window.location.search.includes('mod=configuration')) {
+$(document).on('submit', 'form', function () {
+setTimeout(function () {
+location.reload();
+}, 1500);
+});
+}
 			</script>
 		</body>
 	</body>

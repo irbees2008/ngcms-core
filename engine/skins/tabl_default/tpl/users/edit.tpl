@@ -26,15 +26,18 @@
 	<!-- /.row -->
 </div>
 <!-- /.container-fluid -->
+
 <form action="{{ php_self }}?mod=users" method="post" enctype="multipart/form-data">
 	<input type="hidden" name="token" value="{{ token }}"/>
 	<input type="hidden" name="action" value="edit"/>
 	<input type="hidden" name="id" value="{{ id }}"/>
+
 	<div
 		class="row">
 		<!-- Left edit column -->
 		<div
 			class="col-lg-8">
+
 			<!-- MAIN CONTENT -->
 			<div id="maincontent" class="card mb-4">
 				<div class="card-body">
@@ -46,6 +49,7 @@
 							</select>
 						</div>
 					</div>
+
 					<div class="form-row mb-3">
 						<label class="col-lg-3 col-form-label">{{ lang['new_pass'] }}</label>
 						<div class="col-lg-9">
@@ -53,30 +57,35 @@
 							<small class="form-text text-muted">{{ lang['pass_left'] }}</small>
 						</div>
 					</div>
+
 					<div class="form-row mb-3">
 						<label class="col-lg-3 col-form-label">{{ lang['email'] }}</label>
 						<div class="col-lg-9">
 							<input type="email" name="mail" value="{{ mail }}" class="form-control"/>
 						</div>
 					</div>
+
 					<div class="form-row mb-3">
 						<label class="col-lg-3 col-form-label">{{ lang['site'] }}</label>
 						<div class="col-lg-9">
 							<input type="text" name="site" value="{{ site }}" class="form-control"/>
 						</div>
 					</div>
+
 					<div class="form-row mb-3">
 						<label class="col-lg-3 col-form-label">{{ lang['from'] }}</label>
 						<div class="col-lg-9">
 							<input type="text" name="where_from" value="{{ where_from }}" class="form-control" maxlength="60"/>
 						</div>
 					</div>
+
 					<div class="form-row mb-3">
 						<label class="col-lg-3 col-form-label">{{ lang['about'] }}</label>
 						<div class="col-lg-9">
 							<textarea name="info" class="form-control" rows="7" cols="60">{{ info }}</textarea>
 						</div>
 					</div>
+
 					{# Аватар пользователя #}
 					<div class="form-row mb-3">
 						<label class="col-lg-3 col-form-label">{{ lang['avatar'] }}</label>
@@ -100,6 +109,7 @@
 				</div>
 			</div>
 		</div>
+
 		<!-- Right edit column -->
 		<div id="rightBar" class="col col-lg-4">
 			<div class="card mb-4">
@@ -126,6 +136,7 @@
 			</div>
 		</div>
 	</div>
+
 	<div class="row">
 		<div class="col col-lg-8">
 			<div class="row">
@@ -135,6 +146,7 @@
 							{{ lang['cancel'] }}
 						</button>
 					</div>
+
 					<div class="col-md-6 mb-4 text-right">
 						<button type="submit" class="btn btn-outline-success">
 							<span class="d-xl-none">
@@ -148,11 +160,13 @@
 		</div>
 	</div>
 </form>
+
 {% if (pluginIsActive('xfields')) %}
 	<div class="row my-5">
 		<div class="col-lg-8">
 			<div class="card">
 				<div class="card-header">Доп. поля в профиле пользователя (только просмотр)</div>
+
 				<table class="table table-sm">
 					<thead>
 						<tr>
