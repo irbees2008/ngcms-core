@@ -7,7 +7,6 @@
 //
 // Protect against hack attempts
 use PHPMailer\PHPMailer\PHPMailer;
-
 if (!defined('NGCMS')) {
     exit('HAL');
 }
@@ -412,7 +411,52 @@ function msg($params, $mode = 0, $disp = -1)
             $isHtml
         );
     }
-    // Choose working mode
+    // SITE mode: render as stickers similar to admin's notify, except when caller explicitly requests return (disp=2)
+    if ($mode !== 1) {
+        // For disp=2 keep old behavior: return inline HTML fragment
+        if ($disp === 2) {
+            // Choose working mode for legacy inline message
+            $type = 'msg.common';
+            switch (getIsSet($params['type'])) {
+                case 'error':
+                    $type = 'msg.error' . (isset($params['info']) ? '_info' : '');
+                    break;
+                case 'info':
+                    $type = 'msg.info';
+                    break;
+                default:
+                    $type = 'msg.common' . (isset($params['info']) ? '_info' : '');
+                    break;
+            }
+            $tmvars = [
+                'vars' => [
+                    'text' => isset($params['text']) ? $params['text'] : '',
+                    'info' => isset($params['info']) ? $params['info'] : '',
+                ],
+            ];
+            return $tpl->vars($TemplateCache['site']['#variables']['messages'][$type], $tmvars, ['inline' => true]);
+        }
+        // Otherwise produce site sticker notification
+        $stickerText = '';
+        $stickerType = '';
+        $isHtml = false;
+        if (isset($params['text']) && !empty($params['text'])) {
+            $stickerText = $params['text'];
+            if (isset($params['info']) && !empty($params['info'])) {
+                $stickerText .= '<br>' . $params['info'];
+                $isHtml = true;
+            }
+        } elseif (isset($params['info']) && !empty($params['info'])) {
+            $stickerText = $params['info'];
+            $isHtml = true;
+        }
+        if (isset($params['type']) && in_array($params['type'], ['error', 'info'])) {
+            $stickerType = $params['type'];
+        }
+        return msgStickerSite($stickerText, $stickerType, $disp, $isHtml);
+    }
+    // ADMIN mode legacy (non-sticker) is not used; admin path handled above by msgSticker()
+    // Keep fallback for completeness, though it shouldn't be hit due to early return in admin branch.
     $type = 'msg.common';
     switch (getIsSet($params['type'])) {
         case 'error':
@@ -431,24 +475,11 @@ function msg($params, $mode = 0, $disp = -1)
             'info' => isset($params['info']) ? $params['info'] : '',
         ],
     ];
-    $message = $tpl->vars($TemplateCache[$mode ? 'admin' : 'site']['#variables']['messages'][$type], $tmvars, ['inline' => true]);
-    switch ($disp) {
-        case 0:
-            $template['vars']['mainblock'] .= $message;
-            break;
-        case 1:
-            print $message;
-            break;
-        case 2:
-            return $message;
-        default:
-            if ($PHP_SELF == 'admin.php') {
-                $notify .= $message;
-            } else {
-                $template['vars']['mainblock'] .= $message;
-            }
-            break;
+    $message = $tpl->vars($TemplateCache['admin']['#variables']['messages'][$type], $tmvars, ['inline' => true]);
+    if ($disp === 2) {
+        return $message;
     }
+    $notify .= $message;
 }
 // Generate popup sticker with information block
 // $msg - Message to display
@@ -483,6 +514,36 @@ function msgSticker($msg, $type = '', $disp = -1)
         'message' => $message,
         'type'    => $type,
     ]);
+}
+// Generate site popup sticker (frontend) with information block, similar to admin notify
+// $msg - text or array like in msgSticker
+// $type - '' | 'error' | 'info'
+// $disp - ignored here; kept for signature compatibility
+function msgStickerSite($msg, $type = '', $disp = -1)
+{
+    global $notify;
+    $lines = [];
+    $isHtml = false;
+    $args = func_get_args();
+    if (isset($args[3])) {
+        $isHtml = $args[3];
+    }
+    if (is_array($msg)) {
+        foreach ($msg as $x) {
+            $txt = (isset($x[2]) && ($x[2])) ? $x[0] : htmlspecialchars($x[0], ENT_COMPAT | ENT_HTML401, 'UTF-8');
+            $lines[] = (isset($x[1]) && ($x[1] == 'title')) ? ('<b>' . $txt . '</b>') : $txt;
+        }
+        $message = implode('<br/>', $lines);
+    } else {
+        $message = $isHtml ? $msg : htmlspecialchars($msg, ENT_COMPAT | ENT_HTML401, 'UTF-8');
+    }
+    // Minimal styling independent from Bootstrap
+    $bg = ($type === 'error') ? '#f8d7da' : '#d1ecf1';
+    $border = ($type === 'error') ? '#f5c6cb' : '#bee5eb';
+    $color = ($type === 'error') ? '#721c24' : '#0c5460';
+    $timeout = ($type === 'error') ? 8000 : 5000;
+    $notify .= '\n<noscript>\n<div style="background:' . $bg . ';color:' . $color . ';border:1px solid ' . $border . ';padding:10px;margin:10px;border-radius:4px;">' . $message . '</div>\n</noscript>\n'
+        . '<script>(function(){function add(){var c=document.getElementById("ng-stickers");if(!c){c=document.createElement("div");c.id="ng-stickers";c.style.position="fixed";c.style.top="12px";c.style.right="12px";c.style.zIndex=2147483647;document.body.appendChild(c);}var b=document.createElement("div");b.setAttribute("role","alert");b.style.background="' . $bg . '";b.style.border="1px solid ' . $border . '";b.style.color="' . $color . '";b.style.padding="10px 14px";b.style.marginTop="10px";b.style.borderRadius="4px";b.style.boxShadow="0 2px 8px rgba(0,0,0,.1)";b.style.maxWidth="420px";b.style.minWidth="260px";b.style.fontSize="14px";b.style.lineHeight="1.4";var close=document.createElement("button");close.innerHTML="&times";close.setAttribute("aria-label","Close");close.style.marginLeft="10px";close.style.float="right";close.style.fontSize="18px";close.style.lineHeight="1";close.style.border="0";close.style.background="transparent";close.style.color="' . $color . '";close.style.cursor="pointer";close.addEventListener("click",function(){b.remove();});b.innerHTML="' . str_replace(['\n', '\r', '"'], [' ', ' ', '\\"'], $message) . '";b.appendChild(close);c.appendChild(b);if(' . ($type === 'error' ? 'false' : 'true') . '){setTimeout(function(){if(b&&b.parentNode){b.parentNode.removeChild(b)}},' . $timeout . ');} } if(document.readyState==="loading"){document.addEventListener("DOMContentLoaded",add);}else{add();}})();</script>';
 }
 function TwigEngineMSG($type, $text, $info = '')
 {
@@ -2155,26 +2216,22 @@ function ngExceptionHandler($exception)
 {
 ?>
     <html>
-
     <head>
         <title>NGCMS Runtime exception: <?php echo get_class($exception); ?></title>
         <style>
             body {
                 font: 1em Georgia, "Times New Roman", serif;
             }
-
             .dmsg {
                 border: 1px #EEEEEE solid;
                 padding: 10px;
                 background-color: yellow;
             }
-
             .dtrace TBODY TD {
                 padding: 3px;
                 /*border: 1px #EEEEEE solid;*/
                 background-color: #EEEEEE;
             }
-
             .dtrace THEAD TD {
                 padding: 3px;
                 background-color: #EEEEEE;
@@ -2182,7 +2239,6 @@ function ngExceptionHandler($exception)
             }
         </style>
     </head>
-
     <body>
         <?php
         echo '<h1>NGCMS Runtime exception: ' . get_class($exception) . "</h1>\n";
@@ -2232,26 +2288,22 @@ function ngExceptionHandler($exception)
             return true;
         } ?>
         <html>
-
         <head>
             <title>NGCMS Runtime error: <?php echo $lastError['message']; ?></title>
             <style type="text/css">
                 body {
                     font: 1em Georgia, "Times New Roman", serif;
                 }
-
                 .dmsg {
                     border: 1px #EEEEEE solid;
                     padding: 10px;
                     background-color: yellow;
                 }
-
                 .dtrace TBODY TD {
                     padding: 3px;
                     /*border: 1px #EEEEEE solid;*/
                     background-color: #EEEEEE;
                 }
-
                 .dtrace THEAD TD {
                     padding: 3px;
                     background-color: #EEEEEE;
@@ -2259,7 +2311,6 @@ function ngExceptionHandler($exception)
                 }
             </style>
         </head>
-
         <body>
             <?php
             echo '<div id="ngErrorInformer">';
@@ -2303,26 +2354,22 @@ function ngExceptionHandler($exception)
     {
         ?>
             <html>
-
             <head>
                 <title>NGCMS Runtime error: <?php echo $title; ?></title>
                 <style type="text/css">
                     body {
                         font: 1em Georgia, "Times New Roman", serif;
                     }
-
                     .dmsg {
                         border: 1px #EEEEEE solid;
                         padding: 10px;
                         background-color: yellow;
                     }
-
                     .dtrace TBODY TD {
                         padding: 3px;
                         /*border: 1px #EEEEEE solid;*/
                         background-color: #EEEEEE;
                     }
-
                     .dtrace THEAD TD {
                         padding: 3px;
                         background-color: #EEEEEE;
@@ -2330,7 +2377,6 @@ function ngExceptionHandler($exception)
                     }
                 </style>
             </head>
-
             <body>
                 <div id="hdrSpanItem"></div>
                 <script language="Javascript">
