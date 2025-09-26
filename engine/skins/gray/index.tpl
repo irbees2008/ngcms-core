@@ -14,12 +14,54 @@
 			body {
 				font-weight: 300;
 			}
+			/* Глобальный оверлей загрузки: фиксированный, не влияет на поток */
+			#loading-layer {
+				position: fixed;
+				top: 0;
+				left: 0;
+				right: 0;
+				bottom: 0;
+				z-index: 20000;
+				display: none;
+				background: rgba(255, 255, 255, 0.65);
+				backdrop-filter: blur(1px);
+			}
+			#loading-layer .loading-content {
+				position: absolute;
+				top: 50%;
+				left: 50%;
+				transform: translate(-50%, -50%);
+				padding: 0.75rem 1rem;
+				border-radius: 0.5rem;
+				background: rgba(255, 255, 255, .95);
+				color: #333;
+				box-shadow: 0 6px 18px rgba(0, 0, 0, .12);
+				display: inline-flex;
+				align-items: center;
+				gap: 0.5rem;
+				font-weight: 500;
+			}
+			#loading-layer .spinner {
+				width: 1.25rem;
+				height: 1.25rem;
+				border: 2px solid rgba(0, 0, 0, .2);
+				border-top-color: rgba(0, 0, 0, .6);
+				border-radius: 50%;
+				animation: v-spin 0.8s linear infinite;
+			}
+			@keyframes v-spin {
+				to {
+					transform: rotate(360deg);
+				}
+			}
 		</style>
 	</head>
 	<body>
-		<div id="loading-layer" class="col-md-3 alert alert-dark" role="alert">
-			<i class="fa fa-spinner fa-pulse mr-2"></i>
-			{{ lang['loading'] }}
+		<div id="loading-layer" style="display:none">
+			<div class="loading-content">
+				<span class="spinner" aria-hidden="true"></span>
+				<span>{{ lang['loading'] }}</span>
+			</div>
 		</div>
 		<nav class="navbar navbar-dark sticky-top bg-dark flex-md-nowrap p-0 shadow">
 			<a href="{{ php_self }}" class="navbar-brand col-md-3 col-lg-2 mr-0 px-3 admin">
@@ -30,6 +72,14 @@
 			</button>
 			<div class="btn-group ml-auto mr-2 py-1" role="group" aria-label="Button group with nested dropdown">
 				<ul class="navbar-nav ml-auto">
+					<li
+						class="nav-item">
+						<!-- Иконка уведомлений -->
+						<a type="button" class="nav-link" data-toggle="modal" data-target="#notificationsModal">
+							<i class="fa fa-bell-o fa-lg"></i>
+							<span class="badge badge-notife badge-danger">{{ unnAppLabel }}</span>
+						</a>
+					</li>
 					{% if perm.cache %}
 						<li
 							class="nav-item">
@@ -39,14 +89,6 @@
 							</a>
 						</li>
 					{% endif %}
-					<li
-						class="nav-item">
-						<!-- Иконка уведомлений -->
-						<a type="button" class="nav-link" data-toggle="modal" data-target="#notificationsModal">
-							<i class="fa fa-bell-o fa-lg"></i>
-							<span class="badge badge-notife badge-danger">{{ unnAppLabel }}</span>
-						</a>
-					</li>
 					<li
 						class="nav-item">
 						<!-- Иконка добавления контента -->
@@ -221,7 +263,7 @@
 									Официальный сайт</a>
 							</li>
 							<li>
-								<a href="https://github.com/irbees2008/ngcms-core" target="_blank">
+								<a href="https://github.com/vponomarev/ngcms-core" target="_blank">
 									<i class="fa fa-github"></i>
 									Github</a>
 							</li>
@@ -257,7 +299,11 @@
 						{{ unapproved3 }}
 						<a class="dropdown-item" href="{{ php_self }}?mod=pm" title="{{ lang['pm_t'] }}">
 							<i class="fa fa-envelope-o"></i>
-							{{ newpmText }}</a>
+							{{ newpmText }}
+							{% if newpm > 0 %}
+								<span class="badge badge-danger ml-2">{{ newpm }}</span>
+							{% endif %}
+						</a>
 					</div>
 				</div>
 			</div>
@@ -351,7 +397,7 @@
 				</div>
 			</div>
 			<script type="text/javascript">
-{% set encode_lang = lang | json_encode(constant('JSON_PRETTY_PRINT') b-or constant('JSON_UNESCAPED_UNICODE')) %}
+				{% set encode_lang = lang | json_encode(constant('JSON_PRETTY_PRINT') b-or constant('JSON_UNESCAPED_UNICODE')) %}
 window.NGCMS = {
 admin_url: '{{ admin_url }}',
 home: '{{ home }}',
@@ -382,6 +428,34 @@ return false;
 }
 }
 // Хендлер кнопки очистки кэша
+// Универсальный показ уведомлений: $.notify -> ngNotifySticker -> alert
+function showNotify(message, type) {
+try {
+if (window.$ && typeof $.notify === 'function') {
+$.notify({
+message: String(message)
+}, {
+type: type || 'info'
+});
+return;
+}
+} catch (e) {}
+try {
+if (typeof ngNotifySticker === 'function') {
+var cls = 'alert-' + (
+type || 'info'
+);
+ngNotifySticker(String(message), {
+className: cls,
+closeBTN: true
+});
+return;
+}
+} catch (e) {}
+try {
+alert(String(message));
+} catch (e) {}
+}
 async function handleTopbarClearCacheClick(ev) {
 ev && ev.preventDefault && ev.preventDefault();
 const browserOk = await clearBrowserCaches();
@@ -400,28 +474,18 @@ params: JSON.stringify(
 }
 });
 if (resp && resp.status) {
-$.notify({
-message: '{{ lang['notify.cache.server_ok']|e('js') }}'
-}, {type: 'success'});
+showNotify('{{ lang['notify.cache.server_ok']|e('js') }}', 'success');
 } else {
-$.notify({
-message: '{{ lang['notify.cache.server_fail']|e('js') }}'
-}, {type: 'danger'});
+showNotify('{{ lang['notify.cache.server_fail']|e('js') }}', 'danger');
 }
 } catch (e) {
-$.notify({
-message: '{{ lang['notify.cache.server_fail']|e('js') }}'
-}, {type: 'danger'});
+showNotify('{{ lang['notify.cache.server_fail']|e('js') }}', 'danger');
 }
 // Браузер
 if (browserOk) {
-$.notify({
-message: '{{ lang['notify.cache.browser_ok']|e('js') }}'
-}, {type: 'success'});
+showNotify('{{ lang['notify.cache.browser_ok']|e('js') }}', 'success');
 } else {
-$.notify({
-message: '{{ lang['notify.cache.browser_fail']|e('js') }}'
-}, {type: 'warning'});
+showNotify('{{ lang['notify.cache.browser_fail']|e('js') }}', 'warning');
 }
 return false;
 }
