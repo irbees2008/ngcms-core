@@ -27,13 +27,13 @@ function admTemplatesWalkPTemplates($dir)
         if (strpos($dir, '/') < 1) {
             // print "strange dir: [$dir]";
             // Return nothing if plugin is not identified
-            return [$ldirs, $lfiles];
+            return [$lDirs, $lFiles];
         }
         $pluginID = substr($dir, 0, strpos($dir, '/'));
         $pluginPath = substr($dir, strpos($dir, '/'));
         if (!is_dir($dirBase . '/' . $pluginID) || !is_dir($dirBase . '/' . $pluginID . '/tpl/')) {
             // Return nothing if plugin doesn't have [tpl/] directory or doesn't have target directory
-            return [$ldirs, $lfiles];
+            return [$lDirs, $lFiles];
         }
         $dirBase = $dirBase . '/' . $pluginID . '/tpl/' . $pluginPath;
     }
@@ -181,6 +181,7 @@ function admTemplatesGetFile($params)
 }
 function admTemplatesUpdateFile($params)
 {
+    global $lang;
     // Check for permissions
     if (!checkPermission(['plugin' => '#admin', 'item' => 'templates'], null, 'modify')) {
         // ACCESS DENIED
@@ -226,7 +227,9 @@ function admTemplatesUpdateFile($params)
     if (($fp = @fopen($resultFileName, 'wb+')) !== false) {
         fwrite($fp, $newData);
         fclose($fp);
-        return ['status' => 1, 'errorCode' => 0, 'content' => 'Update complete [' . $resultFileName . ']'];
+        // Локализуем и показываем только название файла в уведомлении после сохранения
+        $okMsg = isset($lang['msg.save.ok']) ? $lang['msg.save.ok'] : 'Update complete';
+        return ['status' => 1, 'errorCode' => 0, 'content' => $okMsg . ' ' . basename($resultFileName)];
     }
     return ['status' => 0, 'errorCode' => 9, 'errorText' => 'Error writing into file [' . $resultFileName . ']'];
 }
