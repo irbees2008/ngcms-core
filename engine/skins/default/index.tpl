@@ -33,9 +33,9 @@
 				transform: translate(-50%, -50%);
 				padding: 0.75rem 1rem;
 				border-radius: 0.5rem;
-				background: rgba(255, 255, 255, .95);
+				background: rgba(255, 255, 255, 0.95);
 				color: #333;
-				box-shadow: 0 6px 18px rgba(0, 0, 0, .12);
+				box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
 				display: inline-flex;
 				align-items: center;
 				gap: 0.5rem;
@@ -44,8 +44,8 @@
 			#loading-layer .spinner {
 				width: 1.25rem;
 				height: 1.25rem;
-				border: 2px solid rgba(0, 0, 0, .2);
-				border-top-color: rgba(0, 0, 0, .6);
+				border: 2px solid rgba(0, 0, 0, 0.2);
+				border-top-color: rgba(0, 0, 0, 0.6);
 				border-radius: 50%;
 				animation: v-spin 0.8s linear infinite;
 			}
@@ -271,7 +271,7 @@
 					</div>
 				</div>
 				<main role="main" class="col-md-9 ml-sm-auto col-lg-10 px-md-4 my-4">
-					{{ notify }}
+					<div id="legacy-notify" style="display:none">{{ notify }}</div>
 					{{ main_admin }}
 				</main>
 			</div>
@@ -428,32 +428,100 @@ return false;
 }
 }
 // Хендлер кнопки очистки кэша
-// Универсальный показ уведомлений: $.notify -> ngNotifySticker -> alert
+// Универсальный показ уведомлений: используем новые toasts (ngNotifySticker), при отсутствии — создаём их на лету
 function showNotify(message, type) {
+message = String(message);
+var reqType = String(type || 'info');
+// Bootstrapper: всегда переопределяем глобальные toasts на современные
+(function ensureNgToasts() {
 try {
-if (window.$ && typeof $.notify === 'function') {
-$.notify({
-message: String(message)
-}, {
-type: type || 'info'
-});
+if (!document.getElementById('ng-toast-styles')) {
+var style = document.createElement('style');
+style.id = 'ng-toast-styles';
+style.type = 'text/css';
+style.textContent = '' + '#ng-toast-container{position:fixed;top:16px;right:16px;display:flex;flex-direction:column;gap:12px;z-index:2147483647}' + '.ng-toast{display:grid;grid-template-columns:auto 1fr auto;align-items:start;column-gap:10px;row-gap:4px;padding:12px 14px;min-width:260px;max-width:420px;background:#fff;color:#2c3e50;border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,.12),0 2px 6px rgba(0,0,0,.08);border-left:4px solid transparent;opacity:0;transform:translateX(120%);animation:ng-toast-in .35s ease-out forwards}' + '.ng-toast__icon{width:20px;height:20px;margin-top:2px}' + '.ng-toast__content{font-size:14px;line-height:1.35;word-break:break-word}' + '.ng-toast__close{appearance:none;border:0;background:transparent;color:#6c7a89;font-size:18px;line-height:1;padding:2px 4px;border-radius:4px;cursor:pointer}' + '.ng-toast__close:hover{color:#1f2d3d;background:rgba(0,0,0,.06)}' + '.ng-toast--info{border-left-color:#3498db}.ng-toast--success{border-left-color:#2ecc71}.ng-toast--warning{border-left-color:#f39c12}.ng-toast--error{border-left-color:#e74c3c}' + '.ng-toast--info .ng-toast__icon svg{color:#3498db}.ng-toast--success .ng-toast__icon svg{color:#2ecc71}.ng-toast--warning .ng-toast__icon svg{color:#f39c12}.ng-toast--error .ng-toast__icon svg{color:#e74c3c}' + '@keyframes ng-toast-in{from{opacity:0;transform:translateX(120%)}to{opacity:1;transform:translateX(0) }}@keyframes ng-toast-out{from{opacity:1;transform:translateX(0)}to{opacity:0;transform:translateX(120%) }}';
+document.head.appendChild(style);
+}
+var container = document.getElementById('ng-toast-container');
+if (! container) {
+container = document.createElement('div');
+container.id = 'ng-toast-container';
+container.setAttribute('aria-live', 'polite');
+container.setAttribute('aria-atomic', 'true');
+document.body.appendChild(container);
+}
+function normalizeType(v) {
+var c = String(v || '').toLowerCase();
+if (c.indexOf('danger') !== -1 || c.indexOf('error') !== -1 || c.indexOf('fail') !== -1)
+return 'error';
+if (c.indexOf('success') !== -1 || c.indexOf('ok') !== -1)
+return 'success';
+if (c.indexOf('warn') !== -1)
+return 'warning';
+if (c.indexOf('primary') !== -1 || c.indexOf('info') !== -1)
+return 'info';
+return 'info';
+}
+if (typeof window.__ngRenderToast !== 'function') {
+window.__ngRenderToast = function (msg, typeName, sticky) {
+typeName = normalizeType(typeName);
+var toast = document.createElement('div');
+toast.className = 'ng-toast ng-toast--' + typeName;
+var iconWrap = document.createElement('div');
+iconWrap.className = 'ng-toast__icon';
+var icons = {
+info: '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12" y2="8"></line></svg>',
+success: '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>',
+warning: '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12" y2="17"></line></svg>',
+error: '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>'
+};
+iconWrap.innerHTML = icons[typeName] || '';
+var content = document.createElement('div');
+content.className = 'ng-toast__content';
+content.innerHTML = String(msg);
+var closer = document.createElement('button');
+closer.className = 'ng-toast__close';
+closer.type = 'button';
+closer.setAttribute('aria-label', 'Close');
+closer.innerHTML = '&times;';
+toast.appendChild(iconWrap);
+toast.appendChild(content);
+toast.appendChild(closer);
+container.appendChild(toast);
+var removed = false;
+function remove() {
+if (removed)
+return;
+removed = true;
+toast.style.animation = 'ng-toast-out .25s ease-in forwards';
+toast.addEventListener('animationend', function () {
+if (toast && toast.parentNode)
+toast.parentNode.removeChild(toast);
+}, {once: true});
+}
+closer.addEventListener('click', remove);
+if (! sticky) {
+var ttl = Math.max(2500, Math.min(10000, String(msg).length * 60));
+setTimeout(remove, ttl);
+}
+};
+}
+// Всегда переопределяем глобальную функцию на современную реализацию
+window.ngNotifySticker = function (msg, opts) {
+opts = opts || {};
+var typeName = opts.type || opts.className || 'info';
+var sticky = !! opts.sticked;
+window.__ngRenderToast(msg, typeName, sticky);
+};
+window.ngNotifySticker.__modern = true;
+} catch (e) {}
+})();
+if (typeof window.__ngRenderToast === 'function') {
+window.__ngRenderToast(message, reqType, false);
 return;
 }
-} catch (e) {}
 try {
-if (typeof ngNotifySticker === 'function') {
-var cls = 'alert-' + (
-type || 'info'
-);
-ngNotifySticker(String(message), {
-className: cls,
-closeBTN: true
-});
-return;
-}
-} catch (e) {}
-try {
-alert(String(message));
+alert(message);
 } catch (e) {}
 }
 async function handleTopbarClearCacheClick(ev) {
@@ -494,6 +562,128 @@ var btn = document.getElementById('btn-clear-cache');
 if (btn) {
 btn.addEventListener('click', handleTopbarClearCacheClick);
 }
+// Миграция старых серверных уведомлений из {{ notify }} в новые тосты
+try {
+var legacy = document.getElementById('legacy-notify');
+if (legacy) {
+var html = legacy.innerHTML || '';
+if (html && html.replace(/\s+/g, '').length) { // Попробуем найти bootstrap-алерты
+var tmp = document.createElement('div');
+tmp.innerHTML = html;
+var alerts = tmp.querySelectorAll('.alert, .notification, .ng-msg, .nSys_notice');
+if (alerts.length) {
+alerts.forEach(function (a) {
+var cls = a.className || '';
+var type = 'info';
+if (/alert\-(success|info|warning|danger|primary)/.test(cls)) {
+type = (cls.match(/alert\-(success|info|warning|danger|primary)/) || [])[0] || 'alert-info';
+type = type.replace('alert-', '');
+} else if (/success|ok/.test(cls)) {
+type = 'success';
+} else if (/warn|warning/.test(cls)) {
+type = 'warning';
+} else if (/error|danger|fail/.test(cls)) {
+type = 'danger';
+}
+var msg = a.textContent && a.textContent.trim() ? a.textContent.trim() : a.innerHTML;
+showNotify(msg, type);
+});
+} else { // Если структуру не распознали — покажем весь html как info
+if (html) {
+showNotify(html, 'info');
+}
+}
+}
+// Очистим контейнер, чтобы не занимал место
+legacy.innerHTML = '';
+}
+} catch (e) {}
+// Шим для старых вызовов уведомлений ($.notify, ngNotify и пр.)
+try {
+function _mapType(opts) {
+var t = (opts && (opts.type || opts.className)) || '';
+t = String(t).toLowerCase();
+if (t.indexOf('danger') !== -1 || t.indexOf('error') !== -1 || t.indexOf('fail') !== -1)
+return 'danger';
+if (t.indexOf('success') !== -1 || t.indexOf('ok') !== -1)
+return 'success';
+if (t.indexOf('warn') !== -1)
+return 'warning';
+if (t.indexOf('primary') !== -1 || t.indexOf('info') !== -1)
+return 'info';
+return 'info';
+}
+if (window.jQuery) {
+var $ = window.jQuery;
+// Перенаправим $.notify, если используется где-то в коде
+if (! $.notify || typeof $.notify !== 'function' || ! $.notify.__bridged) {
+var oldNotifyFn = $.notify;
+var bridged = function (message, opts) {
+try {
+showNotify(message, _mapType(opts));
+} catch (e) {
+if (typeof oldNotifyFn === 'function')
+oldNotifyFn.call($, message, opts);
+}
+};
+bridged.__bridged = true;
+$.notify = bridged;
+}
+}
+} catch (e) {}
+// Автоконвертация bootstrap-алертов в основной области в тосты
+try {
+var mainRoot = document.querySelector('main[role="main"]') || document.body;
+function convertAlerts(root) {
+var nodes = root.querySelectorAll('.alert');
+nodes.forEach(function (el) {
+if (! el || el.__ngToastConverted)
+return;
+// Игнорируем наши собственные контейнеры, если вдруг
+if (el.closest('#ng-toast-container'))
+return;
+var cls = el.className || '';
+var type = 'info';
+var m = cls.match(/alert\-(success|info|warning|danger|primary)/);
+if (m)
+type = m[1] === 'primary' ? 'info' : m[1];
+ else if (/success|ok/.test(cls))
+type = 'success';
+ else if (/warn|warning/.test(cls))
+type = 'warning';
+ else if (/error|danger|fail/.test(cls))
+type = 'danger';
+var msg = el.innerHTML && el.innerHTML.trim() ? el.innerHTML : (el.textContent || '');
+if (msg) {
+showNotify(msg, type);
+}
+el.__ngToastConverted = true;
+// Удалим элемент из DOM, чтобы не дублировать
+try {
+el.parentNode && el.parentNode.removeChild(el);
+} catch (e) {}
+});
+}
+// Первичный проход
+convertAlerts(mainRoot);
+// Наблюдатель для динамических вставок
+var mo = new MutationObserver(function (muts) {
+muts.forEach(function (m) {
+m.addedNodes && m.addedNodes.forEach(function (n) {
+if (n.nodeType === 1) {
+if (n.matches && n.matches('.alert'))
+convertAlerts(n.parentNode || mainRoot);
+ else
+convertAlerts(n);
+}
+});
+});
+});
+mo.observe(mainRoot, {
+childList: true,
+subtree: true
+});
+} catch (e) {}
 });
 			</script>
 			<script>

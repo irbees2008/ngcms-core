@@ -10,6 +10,7 @@
 		<link rel="stylesheet" href="{{ home }}/lib/jqueryui/core/themes/cupertino/jquery-ui.min.css" type="text/css"/>
 		<link rel="stylesheet" href="{{ home }}/lib/jqueryui/core/themes/cupertino/jquery-ui.theme.min.css" type="text/css"/>
 		<link rel="stylesheet" href="{{ home }}/lib/jqueryui/plugins/jquery-ui-timepicker-addon/dist/jquery-ui-timepicker-addon.min.css" type="text/css"/>
+		<link rel="stylesheet" href="{{ home }}/lib/ng-toasts.css" type="text/css"/>
 		<script type="text/javascript" src="{{ home }}/lib/jq/jquery.min.js"></script>
 		<script type="text/javascript" src="{{ home }}/lib/jqueryui/core/jquery-ui.min.js"></script>
 		<script type="text/javascript" src="{{ home }}/lib/jqueryui/plugins/jquery-ui-timepicker-addon/dist/jquery-ui-timepicker-addon.min.js"></script>

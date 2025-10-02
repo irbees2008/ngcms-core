@@ -60,7 +60,7 @@ if (!is_array($userROW)) {
         'php_self'   => $PHP_SELF,
         'redirect'   => htmlspecialchars($_SERVER['REQUEST_URI'] ?? '', ENT_QUOTES),
         'year'       => date('Y'),
-        'home_title' => home_title,
+        'home_title' => $config['home_title'] ?? '',
         'error'      => ($SYSTEM_FLAGS['auth_fail']) ? $lang['msge_login'] : '',
         'is_error'   => ($SYSTEM_FLAGS['auth_fail']) ? '$1' : '',
     ];
@@ -71,7 +71,7 @@ if (!is_array($userROW)) {
 // Check if visitor has permissions to view admin panel
 if (!checkPermission(['plugin' => '#admin', 'item' => 'system'], null, 'admpanel.view')) {
     ngSYSLOG(['plugin' => '#admin', 'item' => 'system'], ['action' => 'admpanel.view'], null, [0, 'SECURITY.PERM']);
-    header('Location: ' . home);
+    header('Location: ' . ($config['home_url'] ?? '/'));
     exit;
 }
 // Only admins can reach this location

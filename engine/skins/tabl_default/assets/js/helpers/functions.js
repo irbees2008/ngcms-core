@@ -43,69 +43,53 @@ export function ngHideLoading() {
  * @param  {object}  params
  */
 export function ngNotifySticker(message, params = {}) {
-    // настройки по умолчанию
     params = $.extend({
-        time: 5000, // количество мс, которое отображается сообщение
-        speed: 'slow', // скорость исчезания
-        className: 'alert-info', // класс, добавляемый к сообщению
-        sticked: false, // не закреплять сообщение
-        closeBTN: false, // выводить кнопку закрытия окна
-        // позиция по умолчанию - справа сверху
-        position: {
-            top: 0,
-            right: 0
-        }
+        time: 5000,
+        speed: 'slow',
+        className: 'alert-info',
+        sticked: false,
+        closeBTN: false,
+        position: { top: 16, right: 16 }
     }, params);
 
-    // начинаем работу с главным элементом
-    // если его ещё не существует
-    if (!$('#ng-stickers').length) {
-        // добавляем его
-        $('body').prepend('<div id="ng-stickers"></div>');
+    let container = document.getElementById('ng-toast-container');
+    if (!container) {
+        container = document.createElement('div');
+        container.id = 'ng-toast-container';
+        container.setAttribute('aria-live', 'polite');
+        container.setAttribute('aria-atomic', 'true');
+        document.body.appendChild(container);
     }
+    const pos = params.position || {};
+    container.style.top = (pos.top != null ? pos.top : 16) + 'px';
+    container.style.right = (pos.right != null ? pos.right : 16) + 'px';
+    container.style.bottom = (pos.bottom != null ? pos.bottom : 'auto');
+    container.style.left = (pos.left != null ? pos.left : 'auto');
 
-    const stickers = $('#ng-stickers');
-
-    // позиционируем
-    stickers.css('position', 'fixed')
-        .css({
-            right: 'auto',
-            left: 'auto',
-            top: 'auto',
-            bottom: 'auto'
-        })
-        .css(params.position);
-
-    // создаём стикер
-    const stick = $('<div class="alert alert-dismissible fade"></div>')
-        .html(message);
-
-    // добавляем его к родительскому элементу
-    stickers.append(stick);
-
-    // если необходимо, добавляем класс
-    if (params.className) {
-        stick.addClass(params.className);
-    }
-
-    // Вывод кнопки закрытия
-    if (params.sticked || params.closeBTN) {
-        // создаём кнопку выхода
-        const exit = $('<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>');
-
-        // вставляем её перед сообщением
-        stick.prepend(exit);
-    }
-
-    // Автоматическое закрытие окна, если сообщение не закреплено.
-    if (!params.sticked) {
-        // Устанавливаем таймер на необходимое время.
-        setTimeout(function() {
-            stick.alert('close');
-        }, params.time);
-    }
-
-    stick.addClass('show');
+    const type = /danger|error/i.test(params.className) ? 'error' : /success/i.test(params.className) ? 'success' : /warn/i.test(params.className) ? 'warning' : 'info';
+    const toast = document.createElement('div');
+    toast.className = 'ng-toast ng-toast--' + type;
+    const icon = document.createElement('div');
+    icon.className = 'ng-toast__icon';
+    const svg = { info:'<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12" y2="8"></line></svg>', success:'<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>', warning:'<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12" y2="17"></line></svg>', error:'<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>' }[type];
+    icon.innerHTML = svg;
+    const content = document.createElement('div');
+    content.className = 'ng-toast__content';
+    content.innerHTML = message;
+    const close = document.createElement('button');
+    close.className = 'ng-toast__close';
+    close.type = 'button';
+    close.setAttribute('aria-label', 'Close');
+    close.innerHTML = '&times;';
+    if (!params.sticked && !params.closeBTN) close.style.display = 'none';
+    toast.appendChild(icon);
+    toast.appendChild(content);
+    toast.appendChild(close);
+    container.appendChild(toast);
+    let removed = false;
+    function removeToast(){ if (removed) return; removed = true; toast.style.animation = 'ng-toast-out .25s ease-in forwards'; toast.addEventListener('animationend', ()=> toast.remove(), { once:true }); }
+    close.addEventListener('click', removeToast);
+    if (!params.sticked) { const ttl = Math.max(2500, Math.min(10000, String(message).length * 60)); setTimeout(removeToast, ttl); }
 }
 
 /**

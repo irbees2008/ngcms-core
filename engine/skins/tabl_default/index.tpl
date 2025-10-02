@@ -7,6 +7,7 @@
 			-
 			{{ lang['admin_panel'] }}</title>
 		<link href="{{ skins_url }}/public/css/app.css" rel="stylesheet"/>
+		<link href="{{ home }}/lib/ng-toasts.css" rel="stylesheet"/>
 		<script src="{{ skins_url }}/public/js/manifest.js" type="text/javascript"></script>
 		<script src="{{ skins_url }}/public/js/vendor.js" type="text/javascript"></script>
 		<script src="{{ skins_url }}/public/js/app.js" type="text/javascript"></script>
@@ -404,7 +405,8 @@ home: '{{ home }}',
 lang: {{ encode_lang ?: '{}' }},
 langcode: '{{ lang['langcode'] }}',
 php_self: '{{ php_self }}',
-skins_url: '{{ skins_url }}'
+skins_url: '{{ skins_url }}',
+toast_position: '{{ config['toast_position']|default('top-right') }}'
 };
 $('#menu-content .sub-menu').on('show.bs.collapse', function () {
 $('#menu-content .sub-menu.show').not(this).removeClass('show');

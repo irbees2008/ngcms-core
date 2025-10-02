@@ -282,6 +282,14 @@
 					<td colspan="2" class="h3 font-weight-light">{{ lang['syst'] }}</td>
 				</tr>
 				<tr>
+					<td width="50%">{{ lang['toast_position'] }}
+						<small class="form-text text-muted">{{ lang['toast_position#desc'] }}</small>
+					</td>
+					<td width="50%">
+						{{ mkSelect({'name' : 'save_con[toast_position]', 'value' : (config['toast_position']|default('top-right')), 'values' : { 'top-right' : lang['toast_position.top_right'], 'top-left' : lang['toast_position.top_left'], 'bottom-right' : lang['toast_position.bottom_right'], 'bottom-left' : lang['toast_position.bottom_left'] } }) }}
+					</td>
+				</tr>
+				<tr>
 					<td width="50%">{{ lang['home_url'] }}
 						<small class="form-text text-muted">{{ lang['example'] }}
 							http://server.com</small>
