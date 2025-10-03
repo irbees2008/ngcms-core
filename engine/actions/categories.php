@@ -37,16 +37,13 @@ function admCategoryAddForm()
         msg(['type' => 'error', 'text' => $lang['perm.denied']]);
         return;
     }
-    // Defaults for add form
-    $row = ['tpl' => '', 'flags' => '000'];
-
     $tpl_list = '<option value="">* ' . $lang['cat_tpldefault'] . " *</option>\n";
     foreach (listSubdirs(tpl_site . 'ncustom/') as $k) {
         $tpl_list .= '<option value="' . secure_html($k) . '"' . (($row['tpl'] == $k) ? ' selected="selected"' : '') . '>' . secure_html($k) . "</option>\n";
     }
     $templateMode = '';
     foreach (['0', '1', '2'] as $k => $v) {
-        $templateMode .= '<option value="' . $k . '"' . (($k == intval(substr((string)($row['flags'] ?? ''), 2, 1))) ? ' selected="selected"' : '') . '>' . $lang['template_mode.' . $v] . '</option>';
+        $templateMode .= '<option value="' . $k . '"' . (($k == intval(substr(getIsSet($row['flags']), 2, 1))) ? ' selected="selected"' : '') . '>' . $lang['template_mode.' . $v] . '</option>';
     }
     $tVars = [
         'php_self'      => $PHP_SELF,
@@ -129,8 +126,6 @@ function admCategoryAdd()
         $SQL['keywords'] = secure_html(trim($_REQUEST['keywords']));
     }
     $pluginNoError = 1;
-    // Context for plugin filters
-    $tvars = [];
     if (is_array($AFILTERS['categories'])) {
         foreach ($AFILTERS['categories'] as $k => $v) {
             if (!($pluginNoError = $v->addCategory($tvars, $SQL))) {
@@ -357,8 +352,6 @@ function admCategoryEdit()
         }
     }
     $pluginNoError = 1;
-    // Context for plugin filters
-    $tvars = [];
     if (is_array($AFILTERS['categories'])) {
         foreach ($AFILTERS['categories'] as $k => $v) {
             if (!($pluginNoError = $v->editCategory($catid, $SQLold, $SQL, $tvars))) {

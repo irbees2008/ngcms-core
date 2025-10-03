@@ -77,20 +77,25 @@
 					<td>{{ entry.url }}</td>
 					<td>{{ entry.type }}</td>
 					<td>{{ entry.version }}</td>
-					<td nowrap><a href="{{ entry.readme }}" title="Документация">	<i class="fa fa-file-word-o" aria-hidden="true"></i></a>|	<a href="{{ entry.history }}" title="История">
-							<i class="fa fa-history" aria-hidden="true"></i></a>
+					<td nowrap>
+						<a href="{{ entry.readme }}" title="Документация">
+							<i class="fa fa-file-word-o" aria-hidden="true"></i>
+						</a>|
+						<a href="{{ entry.history }}" title="История">
+							<i class="fa fa-history" aria-hidden="true"></i>
+						</a>
 					</td>
-			<td>{{ entry.description }}</td>
-			<td>{{ entry.author_url }}</td>
-			<td nowrap>{{ entry.link }}	{{ entry.install }}</td>
+					<td>{{ entry.description }}</td>
+					<td>{{ entry.author_url }}</td>
+					<td nowrap>{{ entry.link }}
+						{{ entry.install }}</td>
+				</tr>
+			{% endfor %}
 		</tbody>
-	</tr>
-{% endfor %}
-</tbody>
-</table>
+	</table>
 </div>
 <script>
-document.addEventListener('DOMContentLoaded', function () { // Обработчик для README
+	document.addEventListener('DOMContentLoaded', function () { // Обработчик для README
 const readmeLinks = document.querySelectorAll('.open-modal[data-bs-target="#readmeModal"]');
 readmeLinks.forEach(link => {
 link.addEventListener('click', function () {
@@ -107,62 +112,70 @@ document.getElementById('historyContent').src = url;
 });
 });
 // --- Фильтр вкладок ---
-const filterButtons = document.querySelectorAll('.nav-pills .nav-link');
-const pluginCards = document.querySelectorAll('.plugin-card');
+const filterButtons = document.querySelectorAll('.nav-tabs .nav-link');
+const pluginRows = document.querySelectorAll('#entryList tr');
+const LS_KEY = 'extrasSelectedFilter';
+let currentFilter = 'pluginEntryActive';
+let currentQuery = '';
 function saveSelectedFilter(filter) {
-localStorage.setItem('selectedFilter', filter);
+try {
+localStorage.setItem(LS_KEY, filter);
+} catch (_) {}
 }
 function getSavedFilter() {
-return localStorage.getItem('selectedFilter') || 'pluginEntryActive';
+try {
+return localStorage.getItem(LS_KEY) || 'pluginEntryActive';
+} catch (_) {
+return 'pluginEntryActive';
 }
-// Сначала убрать active у всех вкладок
+}
+function applyFilters() {
+pluginRows.forEach(row => {
+if (!(row && row.classList)) 
+return;
+
+const matchFilter = (currentFilter === 'all') || row.classList.contains(currentFilter);
+let matchQuery = true;
+if (currentQuery) {
+const titleCell = row.cells && row.cells[2] ? row.cells[2] : row.querySelector('td:nth-child(3)');
+const text = (titleCell ? titleCell.textContent : row.textContent) || '';
+matchQuery = text.toLowerCase().includes(currentQuery);
+}
+row.style.display = (matchFilter && matchQuery) ? '' : 'none';
+});
+}
+// Инициализация активной вкладки
 filterButtons.forEach(btn => btn.classList.remove('active'));
-// Применяем сохраненный фильтр при загрузке страницы
 const savedFilter = getSavedFilter();
-const activeButton = document.querySelector(`.nav-pills .nav-link[data-filter="${savedFilter}"]`);
+const activeButton = document.querySelector(`.nav-tabs .nav-link[data-filter="${savedFilter}"]`);
 if (activeButton) {
 activeButton.classList.add('active');
-filterCards(savedFilter);
-} else { // Если сохраненного фильтра нет, активируем первую вкладку по умолчанию
-const defaultButton = document.querySelector('.nav-pills .nav-link[data-filter="pluginEntryActive"]');
-if (defaultButton) {
+currentFilter = savedFilter;
+} else {
+const defaultButton = document.querySelector('.nav-tabs .nav-link[data-filter="pluginEntryActive"]');
+if (defaultButton) 
 defaultButton.classList.add('active');
-filterCards('pluginEntryActive');
-}
-}
+
+currentFilter = 'pluginEntryActive';
+} applyFilters();
 // Обработчик кликов по вкладкам
 filterButtons.forEach(button => {
 button.addEventListener('click', function (e) {
 e.preventDefault();
 filterButtons.forEach(btn => btn.classList.remove('active'));
 this.classList.add('active');
-const filter = this.dataset.filter;
-saveSelectedFilter(filter);
-filterCards(filter);
+currentFilter = this.dataset.filter;
+saveSelectedFilter(currentFilter);
+applyFilters();
 });
 });
-function filterCards(filter) {
-pluginCards.forEach(card => {
-if (filter === 'all' || card.classList.contains(filter)) {
-card.style.display = 'block';
-} else {
-card.style.display = 'none';
-}
-});
-}
-// Поиск по названию плагина
+// Поиск по названию плагина (3-й столбец)
 const searchInput = document.getElementById('searchInput');
 if (searchInput) {
 searchInput.addEventListener('input', function () {
-const query = this.value.toLowerCase();
-pluginCards.forEach(card => {
-const title = card.querySelector('.card-title').textContent.toLowerCase();
-if (title.includes(query)) {
-card.style.display = 'block';
-} else {
-card.style.display = 'none';
-}
-});
+currentQuery = (this.value || '').toLowerCase();
+applyFilters();
 });
 }
-});</script>
+});
+</script>

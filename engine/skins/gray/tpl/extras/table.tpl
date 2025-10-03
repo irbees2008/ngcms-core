@@ -141,7 +141,7 @@
 </div>
 <script>
 	document.addEventListener('DOMContentLoaded', function () { // Обработчик для README
-const readmeLinks = document.querySelectorAll('.open-modal[data-bs-target="#readmeModal"]');
+const readmeLinks = document.querySelectorAll('.open-modal[data-target="#readmeModal"]');
 readmeLinks.forEach(link => {
 link.addEventListener('click', function () {
 const url = this.getAttribute('data-url');
@@ -149,71 +149,81 @@ document.getElementById('readmeContent').src = url;
 });
 });
 // Обработчик для истории
-const historyLinks = document.querySelectorAll('.open-modal[data-bs-target="#historyModal"]');
+const historyLinks = document.querySelectorAll('.open-modal[data-target="#historyModal"]');
 historyLinks.forEach(link => {
 link.addEventListener('click', function () {
 const url = this.getAttribute('data-url');
 document.getElementById('historyContent').src = url;
 });
 });
-// --- Фильтр вкладок ---
-const filterButtons = document.querySelectorAll('.nav-pills .nav-link');
-const pluginCards = document.querySelectorAll('.plugin-card');
-function saveSelectedFilter(filter) {
-localStorage.setItem('selectedFilter', filter);
+// --- Фильтр вкладок + Поиск ---
+const filterButtons = document.querySelectorAll('.nav-tabs .nav-link');
+const pluginCards = document.querySelectorAll('#plugin-list .plugin-card');
+const LS_KEY = 'extrasCardsSelectedFilter';
+
+let currentFilter = 'pluginEntryActive';
+let currentQuery = '';
+
+function saveSelectedFilter(filter) { try { localStorage.setItem(LS_KEY, filter); } catch(_){} }
+function getSavedFilter() { try { return localStorage.getItem(LS_KEY) || 'pluginEntryActive'; } catch(_) { return 'pluginEntryActive'; } }
+
+function mapFilterToStatus(filter) {
+	const map = { pluginEntryActive: 'active', pluginEntryInactive: 'inactive', pluginEntryUninstalled: 'uninstalled' };
+	return map[filter] || null;
 }
-function getSavedFilter() {
-return localStorage.getItem('selectedFilter') || 'pluginEntryActive';
+
+function applyFilters() {
+	const targetStatus = mapFilterToStatus(currentFilter);
+	pluginCards.forEach(card => {
+		if (!card) return;
+		const byClass = (currentFilter === 'all') || card.classList.contains(currentFilter);
+		const status = (card.dataset.status || '').toLowerCase();
+		const byStatus = (currentFilter === 'all') || (targetStatus && status === targetStatus);
+
+		let byQuery = true;
+		if (currentQuery) {
+			const titleEl = card.querySelector('.card-title');
+			const text = (titleEl ? titleEl.textContent : card.textContent) || '';
+			byQuery = text.toLowerCase().includes(currentQuery);
+		}
+
+		card.style.display = (byQuery && (byClass || byStatus)) ? '' : 'none';
+	});
 }
-// Сначала убрать active у всех вкладок
+
+// Инициализация активной вкладки
 filterButtons.forEach(btn => btn.classList.remove('active'));
-// Применяем сохраненный фильтр при загрузке страницы
 const savedFilter = getSavedFilter();
-const activeButton = document.querySelector(`.nav-pills .nav-link[data-filter="${savedFilter}"]`);
+const activeButton = document.querySelector(`.nav-tabs .nav-link[data-filter="${savedFilter}"]`);
 if (activeButton) {
-activeButton.classList.add('active');
-filterCards(savedFilter);
-} else { // Если сохраненного фильтра нет, активируем первую вкладку по умолчанию
-const defaultButton = document.querySelector('.nav-pills .nav-link[data-filter="pluginEntryActive"]');
-if (defaultButton) {
-defaultButton.classList.add('active');
-filterCards('pluginEntryActive');
+	activeButton.classList.add('active');
+	currentFilter = savedFilter;
+} else {
+	const defaultButton = document.querySelector('.nav-tabs .nav-link[data-filter="pluginEntryActive"]');
+	if (defaultButton) defaultButton.classList.add('active');
+	currentFilter = 'pluginEntryActive';
 }
-}
+applyFilters();
+
 // Обработчик кликов по вкладкам
 filterButtons.forEach(button => {
-button.addEventListener('click', function (e) {
-e.preventDefault();
-filterButtons.forEach(btn => btn.classList.remove('active'));
-this.classList.add('active');
-const filter = this.dataset.filter;
-saveSelectedFilter(filter);
-filterCards(filter);
+	button.addEventListener('click', function (e) {
+		e.preventDefault();
+		filterButtons.forEach(btn => btn.classList.remove('active'));
+		this.classList.add('active');
+		currentFilter = this.dataset.filter;
+		saveSelectedFilter(currentFilter);
+		applyFilters();
+	});
 });
-});
-function filterCards(filter) {
-pluginCards.forEach(card => {
-if (filter === 'all' || card.classList.contains(filter)) {
-card.style.display = 'block';
-} else {
-card.style.display = 'none';
-}
-});
-}
+
 // Поиск по названию плагина
 const searchInput = document.getElementById('searchInput');
 if (searchInput) {
-searchInput.addEventListener('input', function () {
-const query = this.value.toLowerCase();
-pluginCards.forEach(card => {
-const title = card.querySelector('.card-title').textContent.toLowerCase();
-if (title.includes(query)) {
-card.style.display = 'block';
-} else {
-card.style.display = 'none';
-}
-});
-});
+	searchInput.addEventListener('input', function () {
+		currentQuery = (this.value || '').toLowerCase();
+		applyFilters();
+	});
 }
 });
 </script>

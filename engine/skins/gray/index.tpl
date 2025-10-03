@@ -7,55 +7,10 @@
 			-
 			{{ lang['admin_panel'] }}</title>
 		<link href="{{ skins_url }}/public/css/app.css" rel="stylesheet"/>
-		<link href="{{ home }}/lib/ng-toasts.css" rel="stylesheet"/>
 		<script src="{{ skins_url }}/public/js/manifest.js" type="text/javascript"></script>
 		<script src="{{ skins_url }}/public/js/vendor.js" type="text/javascript"></script>
 		<script src="{{ skins_url }}/public/js/app.js" type="text/javascript"></script>
-		<style>
-			body {
-				font-weight: 300;
-			}
-			/* Глобальный оверлей загрузки: фиксированный, не влияет на поток */
-			#loading-layer {
-				position: fixed;
-				top: 0;
-				left: 0;
-				right: 0;
-				bottom: 0;
-				z-index: 20000;
-				display: none;
-				background: rgba(255, 255, 255, 0.65);
-				backdrop-filter: blur(1px);
-			}
-			#loading-layer .loading-content {
-				position: absolute;
-				top: 50%;
-				left: 50%;
-				transform: translate(-50%, -50%);
-				padding: 0.75rem 1rem;
-				border-radius: 0.5rem;
-				background: rgba(255, 255, 255, .95);
-				color: #333;
-				box-shadow: 0 6px 18px rgba(0, 0, 0, .12);
-				display: inline-flex;
-				align-items: center;
-				gap: 0.5rem;
-				font-weight: 500;
-			}
-			#loading-layer .spinner {
-				width: 1.25rem;
-				height: 1.25rem;
-				border: 2px solid rgba(0, 0, 0, .2);
-				border-top-color: rgba(0, 0, 0, .6);
-				border-radius: 50%;
-				animation: v-spin 0.8s linear infinite;
-			}
-			@keyframes v-spin {
-				to {
-					transform: rotate(360deg);
-				}
-			}
-		</style>
+		<script src="{{ skins_url }}/public/js/notify.js" type="text/javascript"></script>
 	</head>
 	<body>
 		<div id="loading-layer" style="display:none">
@@ -264,7 +219,7 @@
 									Официальный сайт</a>
 							</li>
 							<li>
-								<a href="https://github.com/vponomarev/ngcms-core" target="_blank">
+								<a href="https://github.com/irbees2008/ngcms-core" target="_blank">
 									<i class="fa fa-github"></i>
 									Github</a>
 							</li>
@@ -405,8 +360,7 @@ home: '{{ home }}',
 lang: {{ encode_lang ?: '{}' }},
 langcode: '{{ lang['langcode'] }}',
 php_self: '{{ php_self }}',
-skins_url: '{{ skins_url }}',
-toast_position: '{{ config['toast_position']|default('top-right') }}'
+skins_url: '{{ skins_url }}'
 };
 $('#menu-content .sub-menu').on('show.bs.collapse', function () {
 $('#menu-content .sub-menu.show').not(this).removeClass('show');
@@ -430,8 +384,33 @@ return false;
 }
 }
 // Хендлер кнопки очистки кэша
-// Универсальный показ уведомлений: $.notify -> ngNotifySticker -> alert
-function showNotify(message, type) {
+// Универсальный показ уведомлений: showToast -> $.notify -> ngNotifySticker -> alert
+function showNotify(message, type) { // 1) Предпочитаем наши тосты (vanilla, без зависимостей)
+try {
+if (typeof window.showToast === 'function') {
+var map = {
+danger: 'error',
+error: 'error',
+warning: 'warning',
+success: 'success',
+info: 'info'
+};
+var t = map[(type || 'info')] || 'info';
+var titles = {
+error: 'Ошибка',
+warning: 'Внимание',
+success: 'Готово',
+info: 'Info'
+};
+window.showToast(String(message), {
+type: t,
+title: titles[t] || '',
+sticked: t === 'error'
+});
+return;
+}
+} catch (e) {}
+// 2) Fallback на bootstrap-notify (если подключён)
 try {
 if (window.$ && typeof $.notify === 'function') {
 $.notify({
@@ -442,6 +421,7 @@ type: type || 'info'
 return;
 }
 } catch (e) {}
+// 3) Fallback на старый ngNotifySticker
 try {
 if (typeof ngNotifySticker === 'function') {
 var cls = 'alert-' + (
@@ -454,6 +434,7 @@ closeBTN: true
 return;
 }
 } catch (e) {}
+// 4) Самый простой fallback
 try {
 alert(String(message));
 } catch (e) {}
