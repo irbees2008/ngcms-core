@@ -228,18 +228,36 @@ function updateConfig()
         }
     }
     $execResult = saveUserPermissions();
-    $xt = $twig->loadTemplate('skins/' . $config['admin_skin'] . '/tpl/perm/result.tpl');
-    return $xt->render([
-        'updateList' => $updateList,
-        'GRP'        => $grp,
-        'execResult' => $execResult,
-    ]);
+    // Всегда возвращаем JSON (упрощение: убран путь result.tpl)
+    $changes = [];
+    foreach ($updateList as $row) {
+        $changes[] = [
+            'id'         => $row['id'],
+            'group'      => $row['group'],
+            'groupTitle' => isset($grp[$row['group']]['title']) ? $grp[$row['group']]['title'] : $row['group'],
+            'title'      => $row['title'],
+            'type'       => $row['type'],
+            'old'        => $row['old'],
+            'new'        => $row['new'],
+            'displayOld' => $row['displayOld'],
+            'displayNew' => $row['displayNew'],
+            'formName'   => str_replace('.', ':', preg_replace('# \&#8594; #', '|', str_replace(' &#8594; ', '|', $row['id']))) . '|' . $row['group'],
+        ];
+    }
+    header('Content-Type: application/json; charset=utf-8');
+    echo json_encode([
+        'status'  => $execResult ? 'ok' : 'fail',
+        'success' => (bool)$execResult,
+        'updated' => count($changes),
+        'changes' => $changes,
+    ], JSON_UNESCAPED_UNICODE);
+    exit;
 }
 //
 //
 if (($_SERVER['REQUEST_METHOD'] == 'POST') && isset($_POST['save']) && ($_POST['save'] == 1)) {
-    $main_admin = updateConfig();
+    // POST всегда возвращает JSON и завершает выполнение внутри updateConfig()
+    updateConfig();
 } else {
     $main_admin = showList($grp);
-    //	showList(array('1' => array('id' => 1, 'title' => 'Администратор')));
 }

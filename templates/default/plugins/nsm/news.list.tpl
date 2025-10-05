@@ -1,4 +1,22 @@
 <div class="block-title">{{ lang.nsm['list.news'] }}</div>
+<script type="text/javascript">
+	// Простейшие уведомления для списка (можно расширить под AJAX в будущем)
+function nsmNotify(msg, type) {
+if (type === 'error' && typeof show_error === 'function') {
+show_error(msg);
+return;
+}
+if (typeof show_info === 'function') {
+show_info(msg);
+return;
+}
+if (type === 'error') {
+alert(msg);
+} else {
+console.log(msg);
+}
+}
+</script>
 <table class="table table-striped table-bordered">
 	<tr>
 		<th colspan="4">

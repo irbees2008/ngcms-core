@@ -1,28 +1,43 @@
 <script language="javascript" type="text/javascript">
-
-	//
-// Global variable: ID of current active input area
+	// === Глобальные переменные ===
 {% if (flags.edit_split) %}
 var currentInputAreaID = 'ng_news_content_short';
 {% else %}
-var currentInputAreaID = 'ng_news_content';{% endif %}function preview() {
-var form = document.getElementById("postForm");
-if (form.ng_news_content{% if (flags.edit_split) %}_short{% endif %}.value == '' || form.title.value == '') {
-alert('{{ lang.nsm['err.preview'] }}');
-return false;
+var currentInputAreaID = 'ng_news_content';{% endif %}
+
+function notify(type, text) {
+if (type === 'error' && typeof show_error === 'function') {
+show_error(text);
+return;
+}
+if (typeof show_info === 'function') {
+show_info(text);
+return;
+}
+if (type === 'error') {
+alert(text);
+} else {
+console.log(text);
+}
 }
 
-form['mod'].value = "preview";
-form.target = "_blank";
+function preview() {
+var form = document.getElementById('postForm');
+var contentField = form['ng_news_content{% if (flags.edit_split) %}_short{% endif %}'];
+if (! contentField || contentField.value.trim() === '' || form.title.value.trim() === '') {
+notify('error', '{{ lang.nsm['err.preview'] }}');
+return false;
+}
+form['mod'].value = 'preview';
+form.target = '_blank';
 form.submit();
-
-form['mod'].value = "news";
-form.target = "_self";
+form['mod'].value = 'news';
+form.target = '_self';
 return true;
 }
 
 function changeActive(name) {
-if (name == 'full') {
+if (name === 'full') {
 document.getElementById('container.content.full').className = 'contentActive';
 document.getElementById('container.content.short').className = 'contentInactive';
 currentInputAreaID = 'ng_news_content_full';
@@ -32,6 +47,40 @@ document.getElementById('container.content.full').className = 'contentInactive';
 currentInputAreaID = 'ng_news_content_short';
 }
 }
+
+function validateEditForm() {
+var form = document.getElementById('postForm');
+if (! form) 
+return true;
+
+var title = form.title ? form.title.value.trim() : '';
+var bodyShort = form.ng_news_content_short ? form.ng_news_content_short.value.trim() : '';
+var bodyFull = form.ng_news_content_full ? form.ng_news_content_full.value.trim() : '';
+var bodySingle = form.ng_news_content ? form.ng_news_content.value.trim() : '';
+var hasContent = (bodyShort || bodyFull || bodySingle);
+if (! title) {
+notify('error', 'Введите заголовок');
+return false;
+}
+if (! hasContent) {
+notify('error', 'Введите текст новости');
+return false;
+}
+return true;
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+var form = document.getElementById('postForm');
+if (! form) 
+return;
+
+form.addEventListener('submit', function (e) {
+if (! validateEditForm()) {
+e.preventDefault();
+return false;
+}
+});
+});
 </script>
 
 <form name="DATA_tmp_storage" action="" id="DATA_tmp_storage">
@@ -215,13 +264,13 @@ currentInputAreaID = 'ng_news_content_short';
 					<option value="1" {% if (approve == 1) %} selected="selected" {% endif %}>{{ lang['state.published'] }}</option>
 				{% endif %}
 			</select>
-<input class="button" type="submit" onclick="return approveMode(-1);" value="{{ lang['news.edit.save'] }}"/>
+			<input class="button" type="submit" onclick="return approveMode(-1);" value="{{ lang['news.edit.save'] }}"/>
 
 		{% endif %}
-<input class="button" type="button" onclick="preview()" value="{{ lang['preview'] }}"/>
+		<input class="button" type="button" onclick="preview()" value="{{ lang['preview'] }}"/>
 
 		{% if flags.deleteable %}
-<input class="button" type="button" onclick="confirmit('{{ deleteURL }}', '{{ lang['sure_del'] }}')" value="{{ lang['news.del'] }}"/>
+			<input class="button" type="button" onclick="confirmit('{{ deleteURL }}', '{{ lang['sure_del'] }}')" value="{{ lang['news.del'] }}"/>
 
 		{% endif %}
 	</div>
