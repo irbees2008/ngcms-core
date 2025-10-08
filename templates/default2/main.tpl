@@ -2,24 +2,32 @@
 <!-- {% apply spaceless %}-->
 <html lang="{{ lang['langcode'] }}">
 	<head>
-		<title>{{ titles }}</title>
+		<title>{{ titles }}
+			{% if pagination_total and pagination_current and pagination_current > 1 %}
+				- Страница
+				{{ pagination_current }}
+			{% endif %}
+		</title>
 		<meta charset="{{ lang['encoding'] }}"/>
 		<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 		<meta name="generator" content="{{ what }} {{ version }}"/>
 		<meta name="document-state" content="dynamic"/>
+		{{ metatags }}
+		{{ canonical }}
 		{{ htmlvars }}
 		<!-- Bootstrap Core CSS -->
-		<link	href="{{ tpl_url }}/css/bootstrap.css" rel="stylesheet">
+		<link
+		href="{{ tpl_url }}/css/bootstrap.css" rel="stylesheet">
 		<!-- Additional fonts for this theme -->
 		<link href="https://fonts.googleapis.com/css?family=Roboto:300" rel="stylesheet">
-		<link	href="{{ tpl_url }}/css/fontawesome-4.7.0/fontawesome.css" rel="stylesheet">
+		<link
+		href="{{ tpl_url }}/css/fontawesome-4.7.0/fontawesome.css" rel="stylesheet">
 		<!-- Custom styles for this theme -->
-		<link href="{{ tpl_url }}/css/style.css" rel="stylesheet">
-		<!--[if lt IE 9]>
-						        <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
-						        <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
-						        <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
-				 <![endif]-->
+		<link href="{{ tpl_url }}/css/style.css" rel="stylesheet"><!--[if lt IE 9]>
+									        <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+									        <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+									        <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+							 <![endif]-->
 		<!-- jQuery first, then Tether, then Popper, then Bootstrap JS. --><script src="{{ tpl_url }}/js/jquery-3.2.1.js"> </script>
 		<script src="{{ tpl_url }}/js/tether-1.4.0.js"></script>
 		<script src="{{ tpl_url }}/js/popper-1.11.0.js"></script>

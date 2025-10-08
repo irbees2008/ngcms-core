@@ -1657,9 +1657,19 @@ function GetMetatags()
     if (isset($SYSTEM_FLAGS['meta']['keywords']) && ($SYSTEM_FLAGS['meta']['keywords'] != '')) {
         $meta['keywords'] = $SYSTEM_FLAGS['meta']['keywords'];
     }
-    $result = ($meta['description'] != '') ? '<meta name="description" content="' . secure_html($meta['description']) . "\" />\r\n" : '';
-    $result .= ($meta['keywords'] != '') ? '<meta name="keywords" content="' . secure_html($meta['keywords']) . "\" />\r\n" : '';
-    return $result;
+    $lines = [];
+    if ($meta['description'] != '') {
+        $lines[] = '<meta name="description" content="' . secure_html($meta['description']) . '" />';
+    }
+    if ($meta['keywords'] != '') {
+        $lines[] = '<meta name="keywords" content="' . secure_html($meta['keywords']) . '" />';
+    }
+    // Support for dynamic robots meta (e.g. pagination pages > 1)
+    if (isset($SYSTEM_FLAGS['meta']['robots']) && $SYSTEM_FLAGS['meta']['robots'] !== '') {
+        $lines[] = '<meta name="robots" content="' . secure_html($SYSTEM_FLAGS['meta']['robots']) . '" />';
+    }
+    // Возвращаем с обычными LF или без завершающего перевода в конце
+    return implode("\n", $lines) . (count($lines) ? "\n" : '');
 }
 // Generate pagination block
 function generatePaginationBlock($current, $start, $end, $paginationParams, $navigations, $intlink = false)
@@ -1723,12 +1733,21 @@ function ngSitePagination(
     int $navigationsCount = 0,
     bool $flagIntLink = false
 ): string {
-    global $config, $lang, $TemplateCache, $twig;
+    global $config, $lang, $TemplateCache, $twig, $SYSTEM_FLAGS;
     if ($totalPages < 2) {
         return '';
     }
     templateLoadVariables(true);
     $navigations = $TemplateCache['site']['#variables']['navigation'];
+    // Always expose pagination info when pagination is used
+    $SYSTEM_FLAGS['pagination']['current'] = $currentPage;
+    $SYSTEM_FLAGS['pagination']['total'] = $totalPages;
+    // If this is a paginated listing and page > 1 -> set meta robots noindex,follow (can be overridden earlier by plugins)
+    if ($currentPage > 1) {
+        if (!isset($SYSTEM_FLAGS['meta']['robots'])) {
+            $SYSTEM_FLAGS['meta']['robots'] = 'noindex,follow';
+        }
+    }
     // Prev page link
     $tvars['flags']['previous_page'] = false;
     $previousPage = 0;
