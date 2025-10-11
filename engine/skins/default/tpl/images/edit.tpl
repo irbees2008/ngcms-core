@@ -16,6 +16,7 @@
 	<input type="hidden" name="mod" value="images"/>
 	<input type="hidden" name="subaction" value="editApply"/>
 	<input type="hidden" name="id" value="{id}"/>
+	<input type="hidden" name="back" value="{link_back}"/>
 	<div class="card mb-5">
 		<div class="card-header">{l_edit_title}</div>
 		<div class="card-body">

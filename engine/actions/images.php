@@ -62,5 +62,9 @@ switch ($subaction) {
 }
 
 if (($subaction != 'editForm') && ($subaction != 'editApply')) {
+    // Показ сообщения об успешном редактировании после редиректа
+    if (isset($_REQUEST['iedited']) && $_REQUEST['iedited'] == '1') {
+        msg(['text' => $lang['image_edited'] ? $lang['image_edited'] : 'Изображение отредактировано']);
+    }
     $main_admin = manage_showlist('image');
 }
