@@ -363,9 +363,10 @@ function manage_showlist($type)
         'maxSize'        => intval($config[($type == 'image' ? 'images' : 'files') . '_max_size'] * 1024),
         'area'           => (isset($area) && $area) ? $area : '',
         'stamp_mode'     => $config['stamp_mode'] ? 'disabled' : '',
-        'thumb_mode'     => '',
+        // Always create thumbnails by default: disable UI switch and set checked
+        'thumb_mode'     => 'disabled',
         'stamp_checked'  => ($config['stamp_mode'] == 2) ? ' checked' : '',
-        'thumb_checked'  => '',
+        'thumb_checked'  => ' checked',
         'box_preview'    => (isset($_COOKIE['img_preview']) && $_COOKIE['img_preview'] ? ' checked="checked"' : ''),
     ];
     $tvars['regx']['#\[preview\](.+?)\[/preview\]#is'] = (isset($_COOKIE['img_preview']) && $_COOKIE['img_preview']) ? '$1' : '';
