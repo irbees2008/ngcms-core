@@ -8,9 +8,7 @@
 if (!defined('NGCMS')) {
     exit('HAL');
 }
-
 use Michelf\MarkdownExtra;
-
 /**
  * Determine if a given string ends with a given substring.
  *

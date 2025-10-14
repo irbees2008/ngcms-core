@@ -1,19 +1,14 @@
 <?php
-
 @include_once '..\core.php';
-
 // Protect against hack attempts
 if (!defined('NGCMS')) {
     exit('HAL');
 }
-
 include_once '../includes/classes/uhandler.class.php';
 $ULIB = new urlLibrary();
 $ULIB->loadConfig();
-
 $UHANDLER = new urlHandler();
 $UHANDLER->loadConfig();
-
 $ULIB->registerCommand(
     'news',
     'all',
@@ -24,8 +19,6 @@ $ULIB->registerCommand(
         'descr' => ['russian' => 'Лента новостей'],
     ]
 );
-
-
 $ULIB->registerCommand('core', 'plugin',
         array ('vars' =>
                     array(	'plugin' => array('matchRegex' => '.+?', 'descr' => array('russian' => 'ID плагина')),
@@ -34,43 +27,35 @@ $ULIB->registerCommand('core', 'plugin',
                 'descr'	=> array ('russian' => 'Страница плагина'),
         )
 );
-
 $ULIB->registerCommand('core', 'registration',
         array ('vars' => array(),
                 'descr'	=> array ('russian' => 'Регистрация нового пользователя'),
         )
 );
-
 $ULIB->registerCommand('core', 'activation',
         array ('vars' => array(		'userid' => array('matchRegex' => '\d+', 'descr' => array('russian' => 'ID пользователя')),
                         'code'	=> array('matchRegex' => '.+?', 'descr' => array( 'russian' => 'Код активации')),
-
                 ),
                 'descr'	=> array ('russian' => 'Активация нового пользователя'),
         )
 );
-
 $ULIB->registerCommand('core', 'lostpassword',
         array ('vars' => array(		'userid' => array('matchRegex' => '\d+', 'descr' => array('russian' => 'ID пользователя')),
                         'code'	=> array('matchRegex' => '.+?', 'descr' => array( 'russian' => 'Код активации')),
-
                 ),
                 'descr'	=> array ('russian' => 'Восстановление потерянного пароля'),
         )
 );
-
 $ULIB->registerCommand('core', 'login',
         array ('vars' => array(),
                 'descr'	=> array ('russian' => 'Вход на сайт (авторизация)'),
         )
 );
-
 $ULIB->registerCommand('core', 'logout',
         array ('vars' => array(),
                 'descr'	=> array ('russian' => 'Выход с сайта'),
         )
 );
-
 $ULIB->registerCommand('news', 'main',
         array ('vars' =>
                     array(	'page' => array('matchRegex' => '\d+', 'descr' => array('russian' => 'Страница')),
@@ -78,7 +63,6 @@ $ULIB->registerCommand('news', 'main',
                 'descr'	=> array ('russian' => 'Главная новостная страница'),
         )
 );
-
 $ULIB->registerCommand('news', 'by.category',
         array ('vars' =>
                     array(	'category' => array('matchRegex' => '.+?', 'descr' => array('russian' => 'Альт. имя категории')),
@@ -88,7 +72,6 @@ $ULIB->registerCommand('news', 'by.category',
                 'descr'	=> array ('russian' => 'Новости из заданной категории'),
         )
 );
-
 $ULIB->registerCommand('news', 'news',
         array ('vars' =>
                     array(	'category' => array('matchRegex' => '.+?', 'descr' => array('russian' => 'Альт. имя категории')),
@@ -104,7 +87,6 @@ $ULIB->registerCommand('news', 'news',
                 'descr'	=> array ('russian' => 'Отображение полной новости'),
         )
 );
-
 $ULIB->registerCommand('news', 'print',
     array ('vars' =>
     array(	'category' => array('matchRegex' => '.+?', 'descr' => array('russian' => 'Альт. имя категории')),
@@ -120,7 +102,6 @@ $ULIB->registerCommand('news', 'print',
     'descr'	=> array ('russian' => 'Страница для печати полной новости'),
     )
 );
-
 $ULIB->registerCommand('news', 'by.year',
         array ('vars' =>
                     array(	'year' => array('matchRegex' => '\d{4}', 'descr' => array('russian' => 'Год')),
@@ -129,8 +110,6 @@ $ULIB->registerCommand('news', 'by.year',
                 'descr'	=> array ('russian' => 'Новости за год'),
         )
 );
-
-
 $ULIB->registerCommand('news', 'by.month',
         array ( 'vars' =>
             array(	'year' => array('matchRegex' => '\d{4}', 'descr' => array ('russian' => 'Год')),
@@ -140,7 +119,6 @@ $ULIB->registerCommand('news', 'by.month',
         'descr'	=> array ('russian' => 'Новости за месяц'),
     )
 );
-
 $ULIB->registerCommand('news', 'by.day',
         array ( 'vars' =>
             array(	'year' => array('matchRegex' => '\d{4}', 'descr' => array ('russian' => 'Год')),
@@ -151,14 +129,11 @@ $ULIB->registerCommand('news', 'by.day',
         'descr'	=> array ('russian' => 'Новости за день'),
     )
 );
-
-
 $ULIB->registerCommand('rss_export', 'main',
         array ('vars' => array(),
         'descr'	=> array ('russian' => 'Основной RSS поток'),
     )
 );
-
 $ULIB->registerCommand('rss_export', 'category',
         array ('vars' =>
             array(	'category' => array('matchRegex' => '.+?', 'descr' => array('russian' => 'Альт. имя категории')),
@@ -167,14 +142,12 @@ $ULIB->registerCommand('rss_export', 'category',
         'descr'	=> array ('russian' => 'RSS поток указанной категории'),
     )
 );
-
 $ULIB->registerCommand('uprofile', 'edit',
         array ('vars' =>
                     array(),
                 'descr'	=> array ('russian' => 'Редактирование собственного профиля'),
         )
 );
-
 $ULIB->registerCommand('uprofile', 'show',
         array ('vars' =>
             array(	'name' => array('matchRegex' => '.+?', 'descr' => array('russian' => 'Логин пользователя')),
@@ -183,8 +156,6 @@ $ULIB->registerCommand('uprofile', 'show',
                 'descr'	=> array ('russian' => 'Показать профиль конкретного пользователя'),
         )
 );
-
-
 $ULIB->registerCommand('static', '',
         array ('vars' =>
                     array(		'altname' => array('matchRegex' => '.+?', 'descr' => array('russian' => 'Альт. имя статической страницы')),
@@ -193,13 +164,11 @@ $ULIB->registerCommand('static', '',
                 'descr'	=> array ('russian' => 'Отображение статической страницы'),
         )
 );
-
 $ULIB->registerCommand('search', '',
         array ('vars' =>        array(),
                 'descr'	=> array ('russian' => 'Страница поиска'),
         )
 );
-
 // ---------------------------------
 /*
 $UHANDLER->registerHandler(0,
@@ -231,7 +200,6 @@ $UHANDLER->registerHandler(0,
         ),
     )
 );
-
 $UHANDLER->registerHandler(0,
     array(
         'pluginName'		=> 'news',
@@ -258,7 +226,6 @@ $UHANDLER->registerHandler(0,
         ),
     )
 );
-
 $UHANDLER->registerHandler(0,
     array(
         'pluginName'		=> 'news',
@@ -285,7 +252,6 @@ $UHANDLER->registerHandler(0,
         ),
     )
 );
-
 $UHANDLER->registerHandler(0,
     array(
         'pluginName'		=> 'news',
@@ -315,7 +281,6 @@ $UHANDLER->registerHandler(0,
         ),
     )
 );
-
 $UHANDLER->registerHandler(0,
     array(
         'pluginName'		=> 'news',
@@ -348,9 +313,7 @@ $UHANDLER->registerHandler(0,
         ),
     )
 );
-
 */
 // --------
-
 $ULIB->saveConfig();
 //$UHANDLER->saveConfig();

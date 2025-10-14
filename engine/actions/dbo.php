@@ -1,6 +1,6 @@
 <?php
 //
-// Copyright (C) 2006-2017 Next Generation CMS (http://ngcms.ru/)
+// Copyright (C) 2006-2017 Next Generation CMS (http://ngcms.org/)
 // Name: dbo.php
 // Description: Database managment
 // Author: Vitaly Ponomarev, Alexey Zinchenko

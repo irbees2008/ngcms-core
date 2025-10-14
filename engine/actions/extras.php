@@ -1,38 +1,30 @@
 <?php
-
 //
 // Copyright (C) 2006-2014 Next Generation CMS (http://ngcms.org/)
 // Name: extras.php
 // Description: List plugins
 // Author: Vitaly Ponomarev
 //
-
 // Protect against hack attempts
 if (!defined('NGCMS')) {
     exit('HAL');
 }
-
 // ==============================================================
 //  Module functions
 // ==============================================================
 @include_once root . 'includes/inc/extraconf.inc.php';
 @include_once root . 'includes/inc/httpget.inc.php';
-
 // ==========================================================
 // Functions
 // ==========================================================
-
 //
 // Generate list of plugins
 function admGeneratePluginList()
 {
     global $lang, $twig, $repoPluginInfo, $PHP_SELF;
-
     $extras = pluginsGetList();
     ksort($extras);
-
     $pCount = [0 => 0, 1 => 0, 2 => 0, 3 => 0];
-
     $tEntries = [];
     foreach ($extras as $id => $extra) {
         if (!isset($extra['author_uri'])) {
@@ -41,7 +33,6 @@ function admGeneratePluginList()
         if (!isset($extra['author'])) {
             $extra['author'] = 'Unknown';
         }
-
         $tEntry = [
             'title'       => $extra['name'],
             'icons'       => $extra['icons'],
@@ -57,15 +48,12 @@ function admGeneratePluginList()
                 'isCompatible'  => $extra['isCompatible'],
             ],
         ];
-
         if (isset($repoPluginInfo[$extra['id']]) && ($repoPluginInfo[$extra['id']][1] > $extra['version'])) {
             $tEntry['new'] = '<a href="http://ngcms.org/sync/plugins.php?action=jump&amp;id=' . $extra['id'] . '.html" title="' . $repoPluginInfo[$extra['id']][1] . '"target="_blank"><img src="' . skins_url . '/images/new.png" width=30 height=15/></a>';
         } else {
             $tEntry['new'] = '';
         }
-
         $tEntry['type'] = in_array($extra['type'], ['plugin', 'module', 'filter', 'auth', 'widget', 'maintanance']) ? $lang[$extra['type']] : 'Undefined';
-
         //
         // Check for permanent modules
         //
@@ -78,7 +66,6 @@ function admGeneratePluginList()
                 $notify = msg(['text' => 'ERROR: ' . sprintf($lang['msgo_is_on'], $extra['name'])]);
             }
         }
-
         $needinstall = 0;
         $tEntry['install'] = '';
         if (getPluginStatusInstalled($extra['id'])) {
@@ -91,9 +78,7 @@ function admGeneratePluginList()
                 $needinstall = 1;
             }
         }
-
         $tEntry['url'] = '';
-
         // Проверяем условия для отображения ссылки "Настройки"
         if (
             isset($extra['config']) &&
@@ -104,7 +89,6 @@ function admGeneratePluginList()
             $tEntry['url'] = '<a href="' . $PHP_SELF . '?mod=extra-config&amp;plugin=' . $extra['id'] . '" class="btn btn-outline-primary btn-sm">' . $lang['settings'] . '</a>';
         }
         $tEntry['link'] = (getPluginStatusActive($id) ? '<a href="' . $PHP_SELF . '?mod=extras&amp;&amp;token=' . genUToken('admin.extras') . '&amp;disable=' . $id . '"class="btn btn-outline-success btn-sm">' . $lang['switch_off'] . '</a>' : '<a href="' . $PHP_SELF . '?mod=extras&amp;&amp;token=' . genUToken('admin.extras') . '&amp;enable=' . $id . '"class="btn btn-outline-success btn-sm">' . $lang['switch_on'] . '</a>');
-
         if ($needinstall) {
             $tEntry['link'] = '';
             $tEntry['style'] = 'pluginEntryUninstalled';
@@ -113,10 +97,8 @@ function admGeneratePluginList()
             $pCount[1 + (!getPluginStatusActive($id))]++;
         }
         $pCount[0]++;
-
         $tEntries[] = $tEntry;
     }
-
     $tVars = [
         'entries'        => $tEntries,
         'token'          => genUToken('admin.extras'),
@@ -126,33 +108,26 @@ function admGeneratePluginList()
         'cntUninstalled' => $pCount[3],
     ];
     $xt = $twig->loadTemplate(tpl_actions . 'extras/table.tpl');
-
     return $xt->render($tVars);
 }
-
 function repoSync()
 {
     global $extras, $config;
-
     // Проверяем кэш
     if (($vms = cacheRetrieveFile('plugversion.dat', 86400)) === false) {
         // URL для запроса к GitHub API
         $repoOwner = 'irbees2008';          // Владелец репозитория
         $repoName = 'ngcms-plugins';       // Название репозитория
         $url = "https://api.github.com/repos/$repoOwner/$repoName/contents";
-
         // Создаем HTTP-запрос
         $req = new http_get();
         $response = $req->get($url, 3, 1);
-
         // Сохраняем ответ в кэш
         cacheStoreFile('plugversion.dat', $response);
         $vms = $response;
     }
-
     // Декодируем JSON-ответ
     $rps = json_decode($vms, true);
-
     // Обрабатываем данные
     $plugins = [];
     if (is_array($rps)) {
@@ -164,7 +139,6 @@ function repoSync()
                     'version' => 'unknown',     // Версия пока неизвестна
                     'description' => 'No description available', // Описание по умолчанию
                 ];
-
                 // Получаем содержимое version.ini
                 $versionUrl = $item['url'] . '/version.ini';
                 $versionReq = new http_get();
@@ -173,7 +147,6 @@ function repoSync()
                     $versionData = parse_ini_string($versionResponse);
                     $plugins[$pluginName]['version'] = $versionData['version'] ?? 'unknown';
                 }
-
                 // Получаем содержимое readme.ini
                 $readmeUrl = $item['url'] . '/readme.ini';
                 $readmeReq = new http_get();
@@ -186,30 +159,24 @@ function repoSync()
             }
         }
     }
-
     return $plugins;
 }
-
 // ==============================================================
 //  Main module code
 // ==============================================================
-
 $lang = LoadLang('extras', 'admin');
 $extras = pluginsGetList();
 ksort($extras);
-
 // ==============================================================
 // Load a list of updated plugins from central repository
 // ==============================================================
 $repoPluginInfo = repoSync();
-
 // ==============================================================
 // Process enable request
 // ==============================================================
 $enable = isset($_REQUEST['enable']) ? $_REQUEST['enable'] : '';
 $disable = isset($_REQUEST['disable']) ? $_REQUEST['disable'] : '';
 $manage = (isset($_REQUEST['manageConfig']) && $_REQUEST['manageConfig'] && isset($_REQUEST['action']) && ($_REQUEST['action'] == 'commit')) ? true : false;
-
 // Check for security token
 if ($enable || $disable || $manage) {
     if ((!isset($_REQUEST['token'])) || ($_REQUEST['token'] != genUToken('admin.extras'))) {
@@ -218,27 +185,21 @@ if ($enable || $disable || $manage) {
         exit;
     }
 }
-
 if (isset($_REQUEST['manageConfig']) && $_REQUEST['manageConfig']) {
     pluginsLoadConfig();
-
     if (isset($_REQUEST['action']) && ($_REQUEST['action'] == 'commit')) {
         echo 'TRY COMMIT';
     }
     $confLine = json_encode($PLUGINS['config']);
     $confLine = jsonFormatter($confLine);
-
     $tVars = [
         'config' => $confLine,
         'token'  => genUToken('admin.extras'),
     ];
     $xt = $twig->loadTemplate('skins/' . $config['admin_skin'] . '/tpl/extras/manage_config.tpl');
-
     return $xt->render($tVars);
-
     exit;
 }
-
 if ($enable) {
     if (pluginSwitch($enable, 'on')) {
         ngSYSLOG(['plugin' => '#admin', 'item' => 'extras'], ['action' => 'switch_on', 'list' => ['plugin' => $enable]], null, [1, '']);
@@ -249,7 +210,6 @@ if ($enable) {
         $notify = msg(['text' => 'ERROR: ' . sprintf($lang['msgo_is_on'], $extras[$id]['name'])]);
     }
 }
-
 if ($disable) {
     if ($extras[$disable]['permanent']) {
         ngSYSLOG(['plugin' => '#admin', 'item' => 'extras'], ['action' => 'switch_off', 'list' => ['plugin' => $disable]], null, [0, 'ERROR: PLUGIN is permanent ' . $disable]);
@@ -268,5 +228,4 @@ if ($disable) {
         }
     }
 }
-
 $main_admin = admGeneratePluginList();

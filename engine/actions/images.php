@@ -1,38 +1,30 @@
 <?php
-
 //
 // Copyright (C) 2006-2010 Next Generation CMS (http://ngcms.org/)
 // Name: images.php
 // Description: Images managment
 // Author: Vitaly Ponomarev
 //
-
 // Protect against hack attempts
 if (!defined('NGCMS')) {
     exit('HAL');
 }
-
 $lang = LoadLang('images', 'admin');
 @include_once root . 'includes/classes/upload.class.php';
 @include_once root . 'includes/inc/file_managment.php';
-
 // =======================================
 // BODY
 // =======================================
-
 // Init file managment class
 $fmanager = new file_managment();
-
 // Check perms
 $perms = checkPermission(['plugin' => '#admin', 'item' => 'images'], null, [
     'modify',
     'details',
 ]);
-
 if (!$perms['modify'] && !$perms['details']) {
     msg(['type' => 'error', 'text' => $lang['msge_mod']]);
 }
-
 switch ($subaction) {
     case 'newcat':
         $main_admin = $fmanager->category_create('image', $_REQUEST['newfolder']);
@@ -60,7 +52,6 @@ switch ($subaction) {
         $main_admin = manage_editApply('image', $_POST['id']);
         break;
 }
-
 if (($subaction != 'editForm') && ($subaction != 'editApply')) {
     // Показ сообщения об успешном редактировании после редиректа
     if (isset($_REQUEST['iedited']) && $_REQUEST['iedited'] == '1') {

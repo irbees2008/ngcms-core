@@ -2828,8 +2828,28 @@ function ngExceptionHandler($exception)
                 }
             }
             if (!isset($TWIGFUNC[$funcName])) {
-                echo "ERROR :: callPlugin - no function [$funcName]<br/>\n";
-                return;
+                // План Б: Попробуем подгрузить основной файл плагина напрямую через version,
+                // если мэппинг действия 'twig' ещё не попал в конфиг активных плагинов.
+                if (preg_match("#^(.+?)\.(.+?)$#", $funcName, $m)) {
+                    $pluginId = $m[1];
+                    // Пройдёмся по version-файлам, найдём нужный плагин и подключим его основной файл
+                    $plist = function_exists('pluginsGetList') ? pluginsGetList() : [];
+                    if (isset($plist[$pluginId]) && is_array($plist[$pluginId])) {
+                        $pver = $plist[$pluginId];
+                        $pdir = isset($pver['dir']) ? $pver['dir'] : $pluginId;
+                        $pfile = isset($pver['file']) ? $pver['file'] : ($pluginId . '.php');
+                        $fullPath = extras_dir . '/' . $pdir . '/' . $pfile;
+                        if (is_file($fullPath)) {
+                            include_once $fullPath;
+                        }
+                    }
+                }
+                // Проверим ещё раз
+                if (!isset($TWIGFUNC[$funcName])) {
+                    // Функция плагина не найдена: возвратим null без вывода ошибки,
+                    // чтобы Twig-условия просто были ложными и не засоряли вывод
+                    return null;
+                }
             }
             return call_user_func($TWIGFUNC[$funcName], $params);
         }
