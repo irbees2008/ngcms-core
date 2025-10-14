@@ -9,16 +9,21 @@
 			<div class="profile-block">
 				<div class="title">{{ lang.profile }}</div>
 				<ul>
-					[if-have-perm]
-					<li>
-						<a href="{{ admin_url }}/" target="_blank">
-							<b>{{ lang.admin_panel }}</b>
-						</a>
-					</li>
-					<li>
-						<a href="{{ addnews_link }}">{{ lang.add_news }}</a>
-					</li>
-					[/if-have-perm]
+					{% if (global.flags.isLogged and (global.user['status'] <= 3)) %}
+						<li>
+							<a href="{{ admin_url }}/" target="_blank">
+								<b>{{ lang.admin_panel }}</b>
+							</a>
+						</li>
+						<li>
+							<a href="{{ addnews_link }}">{{ lang.add_news }}</a>
+						</li>
+						{% if pluginIsActive('complain') %}
+							<li>
+								<a href="{{ p.complain.link|default(home ~ '/plugin/complain/?ajax=1') }}" class="complain-open" data-modal="true">Жалобы ({{ p.complain.new_count|default(0) }})</a>
+							</li>
+						{% endif %}
+					{% endif %}
 					{% if pluginIsActive('uprofile') %}
 						<li>
 							<a href="{{ profile_link }}">{{ lang.edit_profile }}</a>
