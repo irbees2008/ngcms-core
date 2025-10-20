@@ -18,15 +18,18 @@ function pm_send()
     $content = $_REQUEST['content'];
     if (!$title || mb_strlen($title) > 50) {
         msg(['type' => 'error', 'text' => $lang['msge_title'], 'info' => $lang['msgi_title']]);
-        return;
+        // Show write form again
+        return pm_write();
     }
     if (!$content || mb_strlen($content) > 3000) {
         msg(['type' => 'error', 'text' => $lang['msge_content'], 'info' => $lang['msgi_content']]);
-        return;
+        // Show write form again
+        return pm_write();
     }
     if (!isset($_REQUEST['token']) || ($_REQUEST['token'] != genUToken('pm.token'))) {
         msg(['type' => 'error', 'text' => $lang['error.security.token']]);
-        return;
+        // Show write form again
+        return pm_write();
     }
     $db = NGEngine::getInstance()->getDB();
     $query = 'select * from ' . uprefix . '_users where name = :name';
@@ -39,8 +42,12 @@ function pm_send()
         $content = secure_html(trim($content));
         $db->exec('insert into ' . $config['prefix'] . '_pm (subject, message, from_id, to_id, date, viewed, folder) values (:subject, :message, :from_id, :to_id, unix_timestamp(now()), 0, "inbox")', ['subject' => $title, 'message' => $content, 'from_id' => $userROW['id'], 'to_id' => $torow['id']]);
         msg(['text' => $lang['msgo_sent']]);
+        // After successful send show list
+        return pm_list();
     } else {
         msg(['type' => 'error', 'text' => $lang['msge_nouser'], 'info' => $lang['msgi_nouser']]);
+        // Show write form again
+        return pm_write();
     }
 }
 function pm_list()
@@ -178,18 +185,22 @@ function pm_delete()
     global $lang, $userROW, $config;
     if (!isset($_REQUEST['token']) || ($_REQUEST['token'] != genUToken('pm.token'))) {
         msg(['type' => 'error', 'text' => $lang['error.security.token']]);
-        return;
+        // Back to list on error
+        return pm_list();
     }
     $selected_pm = getIsSet($_REQUEST['selected_pm']);
     if (!$selected_pm || !is_array($selected_pm)) {
         msg(['type' => 'error', 'text' => $lang['msge_select']]);
-        return;
+        // Back to list on error
+        return pm_list();
     }
     $db = NGEngine::getInstance()->getDB();
     foreach ($selected_pm as $id) {
         $db->exec('delete from ' . $config['prefix'] . '_pm where id = :pmid and (from_id= :from_id or to_id= :to_id)', ['pmid' => $id, 'from_id' => $userROW['id'], 'to_id' => $userROW['id']]);
     }
     msg(['text' => $lang['msgo_deleted']]);
+    // Show list after delete
+    return pm_list();
 }
 switch ($action) {
     case 'read':

@@ -38,72 +38,72 @@
 			<i class="fa fa-smile-o"></i>
 		</button>
 	</div>
-	[isplugin code_highlight]
-	<div class="btn-group btn-group-sm mr-2">
-		<button type="button" class="btn dropdown-toggle" title="Вставить код" data-bs-toggle="dropdown" aria-expanded="false">
-			<i class="fa fa-code"></i>
-		</button>
-		<ul class="dropdown-menu">
-			<li>
-				<a href="#" class="dropdown-item" onclick="insertCodeBrush('php', {{ area }}); return false;">PHP</a>
-			</li>
-			<li>
-				<a href="#" class="dropdown-item" onclick="insertCodeBrush('js', {{ area }}); return false;">JavaScript</a>
-			</li>
-			<li>
-				<a href="#" class="dropdown-item" onclick="insertCodeBrush('sql', {{ area }}); return false;">SQL</a>
-			</li>
-			<li>
-				<a href="#" class="dropdown-item" onclick="insertCodeBrush('xml', {{ area }}); return false;">XML / HTML</a>
-			</li>
-			<li>
-				<a href="#" class="dropdown-item" onclick="insertCodeBrush('css', {{ area }}); return false;">CSS</a>
-			</li>
-			<li>
-				<a href="#" class="dropdown-item" onclick="insertCodeBrush('bash', {{ area }}); return false;">Bash</a>
-			</li>
-			<li>
-				<a href="#" class="dropdown-item" onclick="insertCodeBrush('python', {{ area }}); return false;">Python</a>
-			</li>
-			<li>
-				<a href="#" class="dropdown-item" onclick="insertCodeBrush('java', {{ area }}); return false;">Java</a>
-			</li>
-			<li>
-				<a href="#" class="dropdown-item" onclick="insertCodeBrush('csharp', {{ area }}); return false;">C#</a>
-			</li>
-			<li>
-				<a href="#" class="dropdown-item" onclick="insertCodeBrush('cpp', {{ area }}); return false;">C / C++</a>
-			</li>
-			<li>
-				<a href="#" class="dropdown-item" onclick="insertCodeBrush('delphi', {{ area }}); return false;">Delphi</a>
-			</li>
-			<li>
-				<a href="#" class="dropdown-item" onclick="insertCodeBrush('diff', {{ area }}); return false;">Diff</a>
-			</li>
-			<li>
-				<a href="#" class="dropdown-item" onclick="insertCodeBrush('ruby', {{ area }}); return false;">Ruby</a>
-			</li>
-			<li>
-				<a href="#" class="dropdown-item" onclick="insertCodeBrush('perl', {{ area }}); return false;">Perl</a>
-			</li>
-			<li>
-				<a href="#" class="dropdown-item" onclick="insertCodeBrush('vb', {{ area }}); return false;">Visual Basic</a>
-			</li>
-			<li>
-				<a href="#" class="dropdown-item" onclick="insertCodeBrush('powershell', {{ area }}); return false;">PowerShell</a>
-			</li>
-			<li>
-				<a href="#" class="dropdown-item" onclick="insertCodeBrush('scala', {{ area }}); return false;">Scala</a>
-			</li>
-			<li>
-				<a href="#" class="dropdown-item" onclick="insertCodeBrush('groovy', {{ area }}); return false;">Groovy</a>
-			</li>
-			<li>
-				<a href="#" class="dropdown-item" onclick="insertCodeBrush('plain', {{ area }}); return false;">Plain text</a>
-			</li>
-		</ul>
-	</div>
-	[/isplugin]
+	{% if pluginIsActive('code_highlight') %}
+		<div class="btn-group btn-group-sm mr-2">
+			<button type="button" class="btn dropdown-toggle" title="Вставить код" data-bs-toggle="dropdown" aria-expanded="false">
+				<i class="fa fa-code"></i>
+			</button>
+			<ul class="dropdown-menu">
+				<li>
+					<a href="#" class="dropdown-item" onclick="insertCodeBrush('php', {{ area }}); return false;">PHP</a>
+				</li>
+				<li>
+					<a href="#" class="dropdown-item" onclick="insertCodeBrush('js', {{ area }}); return false;">JavaScript</a>
+				</li>
+				<li>
+					<a href="#" class="dropdown-item" onclick="insertCodeBrush('sql', {{ area }}); return false;">SQL</a>
+				</li>
+				<li>
+					<a href="#" class="dropdown-item" onclick="insertCodeBrush('xml', {{ area }}); return false;">XML / HTML</a>
+				</li>
+				<li>
+					<a href="#" class="dropdown-item" onclick="insertCodeBrush('css', {{ area }}); return false;">CSS</a>
+				</li>
+				<li>
+					<a href="#" class="dropdown-item" onclick="insertCodeBrush('bash', {{ area }}); return false;">Bash</a>
+				</li>
+				<li>
+					<a href="#" class="dropdown-item" onclick="insertCodeBrush('python', {{ area }}); return false;">Python</a>
+				</li>
+				<li>
+					<a href="#" class="dropdown-item" onclick="insertCodeBrush('java', {{ area }}); return false;">Java</a>
+				</li>
+				<li>
+					<a href="#" class="dropdown-item" onclick="insertCodeBrush('csharp', {{ area }}); return false;">C#</a>
+				</li>
+				<li>
+					<a href="#" class="dropdown-item" onclick="insertCodeBrush('cpp', {{ area }}); return false;">C / C++</a>
+				</li>
+				<li>
+					<a href="#" class="dropdown-item" onclick="insertCodeBrush('delphi', {{ area }}); return false;">Delphi</a>
+				</li>
+				<li>
+					<a href="#" class="dropdown-item" onclick="insertCodeBrush('diff', {{ area }}); return false;">Diff</a>
+				</li>
+				<li>
+					<a href="#" class="dropdown-item" onclick="insertCodeBrush('ruby', {{ area }}); return false;">Ruby</a>
+				</li>
+				<li>
+					<a href="#" class="dropdown-item" onclick="insertCodeBrush('perl', {{ area }}); return false;">Perl</a>
+				</li>
+				<li>
+					<a href="#" class="dropdown-item" onclick="insertCodeBrush('vb', {{ area }}); return false;">Visual Basic</a>
+				</li>
+				<li>
+					<a href="#" class="dropdown-item" onclick="insertCodeBrush('powershell', {{ area }}); return false;">PowerShell</a>
+				</li>
+				<li>
+					<a href="#" class="dropdown-item" onclick="insertCodeBrush('scala', {{ area }}); return false;">Scala</a>
+				</li>
+				<li>
+					<a href="#" class="dropdown-item" onclick="insertCodeBrush('groovy', {{ area }}); return false;">Groovy</a>
+				</li>
+				<li>
+					<a href="#" class="dropdown-item" onclick="insertCodeBrush('plain', {{ area }}); return false;">Plain text</a>
+				</li>
+			</ul>
+		</div>
+	{% endif %}
 	<div class="btn-group btn-group-sm mr-2">
 		<button type="button" class="btn" onclick="insertext('[hide]','[/hide]', {{ area }})" title="{{ lang['tags.code'] }}">
 			<i class="fa fa-eye-slash"></i>
@@ -420,7 +420,6 @@ function hideModalById(id) {
 var el = document.getElementById(id);
 if (! el) 
 return;
-
 try {
 var inst = bootstrap.Modal.getInstance(el) || new bootstrap.Modal(el);
 inst.hide();
@@ -441,7 +440,6 @@ return;
 }
 if (!/^([a-z]+:\/\/|\/|#|mailto:)/i.test(href)) 
 href = 'http://' + href;
-
 if (! text) {
 text = href;
 }
@@ -529,7 +527,6 @@ return;
 }
 if (!/^((https?:\/\/|ftp:\/\/)|\/|#)/i.test(href)) 
 href = 'http://' + href;
-
 var attrs = '="' + href.replace(/"/g, '&quot;') + '"';
 if (width) {
 attrs += ' width="' + width.replace(/[^0-9]/g, '') + '"';
@@ -565,7 +562,6 @@ function hideModalBs5(id) {
 var el = document.getElementById(id);
 if (! el) 
 return;
-
 try {
 var inst = bootstrap.Modal.getInstance(el) || new bootstrap.Modal(el);
 inst.hide();
@@ -597,14 +593,12 @@ attrs += ' preview="' + p.replace(/"/g, '&quot;') + '"';
 insertAtCursor(areaId, (attrs ? ('[media' + attrs + ']' + href + '[/media]') : ('[media]' + href + '[/media]')));
 hideModalBs5('modal-insert-media');
 }
-
 // Code highlight helper
 if (typeof insertCodeBrush !== 'function') {
 function insertCodeBrush(alias, areaId) {
 try {
 if (! alias) 
 return;
-
 } catch (e) {}
 var a = String(alias || '').toLowerCase();
 var map = {
