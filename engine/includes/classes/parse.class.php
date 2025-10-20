@@ -13,7 +13,8 @@ class parse
 {
     public function slashes($content)
     {
-        return (get_magic_quotes_gpc()) ? $content : addslashes($content);
+        // Современные версии PHP не используют magic_quotes, поэтому просто экранируем
+        return addslashes($content);
     }
     public function userblocks($content)
     {
@@ -154,19 +155,26 @@ class parse
         if (!$config['use_bbcodes']) {
             return $content;
         }
-        // Special BB tag [code] - blocks all other tags inside
-        while (preg_match("#\[code\](.+?)\[/code\]#isu", $content, $res)) {
-            $content = str_replace($res[0], '<code>' . str_replace(array('[', '<', '{', '/', '"', ']'), array('&#91;', '&lt;', '&#123;', '&#47;', '&#34;', '&#93;'), $res[1]) . '</code>', $content);
+        // [noparse] .. [/noparse] — показать BBCode как текст (не парсить)
+        // Обрабатываем до код-блоков, чтобы литералы вида [/code] внутри не влияли на поиск закрывающих тегов
+        while (preg_match("#\[noparse\](.+?)\[/noparse\]#isu", $content, $res)) {
+            $content = str_replace(
+                $res[0],
+                '<span class="noparse">' . str_replace(array('[', '<', '{', '/', '"', ']'), array('&#91;', '&lt;', '&#123;', '&#47;', '&#34;', '&#93;'), $res[1]) . '</span>',
+                $content
+            );
         }
+        // Экранирование в строке [strong]...[/strong] — делаем ДО обработки code-блоков,
+        // чтобы примеры вида [strong][code=...][/code][/strong] не превращались в реальные блоки кода
         while (preg_match("#\[strong\](.+?)\[/strong\]#isu", $content, $res)) {
             $content = str_replace($res[0], '<strong class="strong">' . str_replace(array('[', '<', '{', '/', '"', ']'), array('&#91;', '&lt;', '&#123;', '&#47;', '&#34;', '&#93;'), $res[1]) . '</strong>', $content);
         }
-        // Special BB tag [ code] - blocks all other tags inside
-        // assd: replaced: [code\] => [code=(.*?)\] | '<pre>' => '<pre class="language-'.$res[1].'">' | $res[1]).'</pre>' => $res[2]).'</pre>'
-        while (preg_match("#\[code=(.*?)\](.+?)\[/code\]#isu", $content, $res)) {
-            $content = str_replace($res[0], '<div class="bbCodeName" style="padding-left:5px;font-weight:bold;font-size:7pt">Код:</div><div class="code_sample"><pre style="border:1px inset;max-height:200px;overflow:auto;" class="brush:' . $res[1] . '">' . str_replace(array('[', '<', '{', '/', '"', ']'), array('&#91;', '&lt;', '&#123;', '&#47;', '&#34;', '&#93;'), $res[2]) . '</pre></div>', $content);
-            $content = str_replace('<br>', "\n", $content);
-        }
+        // Обработка [code] и [code=язык] с поддержкой вложенных/демонстрационных тегов внутри.
+        // Используем стек для поиска корректной парной [/code].
+        $content = $this->processCodeBlocks($content);
+        // Не допускаем вставки <br> в код (совместимость со старым поведением)
+        $content = str_replace('<br>', "\n", $content);
+        // Обработку простого [code] выполнили в processCodeBlocks()
         //$content	=	preg_replace("#\[code\](.+?)\[/code\]#is", "<pre>$1</pre>",$content);
         #Added to prevent adding <br />s in highlighted code
         preg_match_all("#<pre class=\\\"brush: (.*?)\\\">(.+?)</pre>#isu", $content, $ress);
@@ -402,6 +410,96 @@ class parse
         }
         return $content;
     }
+    // Стековый парсер для [code] и [code=язык]
+    private function processCodeBlocks($content)
+    {
+        $pos = 0;
+        $len = mb_strlen($content);
+        while ($pos < $len) {
+            $openPos = mb_stripos($content, '[code', $pos);
+            if ($openPos === false) {
+                break;
+            }
+            // Проверим, что после 'code' идёт '=' или ']'
+            $after = mb_substr($content, $openPos + 5, 1);
+            if ($after !== '=' && $after !== ']') {
+                $pos = $openPos + 5;
+                continue;
+            }
+            // Найти конец открывающего тега ']'
+            $openTagEnd = mb_stripos($content, ']', $openPos);
+            if ($openTagEnd === false) {
+                break;
+            }
+            // Извлечь язык, если указан
+            $lang = '';
+            if ($after === '=') {
+                $lang = trim(mb_substr($content, $openPos + 6, $openTagEnd - ($openPos + 6)));
+            }
+            // Поиск соответствующего закрывающего тега с учётом возможных внутренних [code]
+            $searchPos = $openTagEnd + 1;
+            $depth = 1;
+            $closePos = false;
+            while (true) {
+                $nextOpen = mb_stripos($content, '[code', $searchPos);
+                $nextClose = mb_stripos($content, '[/code]', $searchPos);
+                if ($nextClose === false) {
+                    // Нет закрывающего тега — выходим, чтобы избежать зацикливания
+                    $closePos = false;
+                    break;
+                }
+                // Если закрывающий тег экранирован обратным слешом (\[/code]) — пропускаем его
+                $isEscaped = false;
+                $bkPos = $nextClose - 1;
+                while ($bkPos >= 0 && mb_substr($content, $bkPos, 1) === '\\') {
+                    $isEscaped = !$isEscaped;
+                    $bkPos--;
+                }
+                if ($isEscaped) {
+                    $searchPos = $nextClose + 7; // пропустить экранированную последовательность
+                    continue;
+                }
+                if ($nextOpen !== false && $nextOpen < $nextClose) {
+                    // Вложенное открытие [code...
+                    $depth++;
+                    $searchPos = $nextOpen + 5;
+                    continue;
+                } else {
+                    // Кандидат на закрытие
+                    $depth--;
+                    if ($depth == 0) {
+                        $closePos = $nextClose;
+                        break;
+                    }
+                    $searchPos = $nextClose + 7; // длина '[/code]'
+                }
+            }
+            if ($closePos === false) {
+                // Не нашли парное закрытие — сдвигаем позицию и продолжаем
+                $pos = $openTagEnd + 1;
+                continue;
+            }
+            // Внутреннее содержимое
+            $inner = mb_substr($content, $openTagEnd + 1, $closePos - ($openTagEnd + 1));
+            // Снимем экранирование с символов скобок внутри кода (\[ -> [, \] -> ])
+            $inner = str_replace(['\\[', '\\]'], ['[', ']'], $inner);
+            // Экранируем спецсимволы как и ранее
+            $escaped = str_replace(array('[', '<', '{', '/', '"', ']'), array('&#91;', '&lt;', '&#123;', '&#47;', '&#34;', '&#93;'), $inner);
+            if ($lang !== '') {
+                $replacement = '<div class="bbCodeName" style="padding-left:5px;font-weight:bold;font-size:7pt">Код:</div>' .
+                    '<div class="code_sample"><pre style="border:1px inset;max-height:200px;overflow:auto;" class="brush:' . $lang . '">' . $escaped . '</pre></div>';
+            } else {
+                $replacement = '<code>' . $escaped . '</code>';
+            }
+            // Заменяем весь блок
+            $content = mb_substr($content, 0, $openPos) . $replacement . mb_substr($content, $closePos + 7);
+            // Обновляем длину и позицию продолжения
+            $delta = mb_strlen($replacement);
+            $len = mb_strlen($content);
+            $pos = $openPos + $delta;
+        }
+        return $content;
+    }
     public function validateURL($url)
     {
         // Check for empty url
@@ -509,6 +607,7 @@ class parse
         $position = -1;
         $tagNameStartPos = 0;
         $tagNameEndPos = 0;
+        $tagNameLen = 0; // предотвращаем Notice об использовании неинициализированной переменной
         $openTagList = [];
         // Stateful machine status
         // 0 - scanning text
@@ -588,7 +687,7 @@ class parse
                     }
                     // Action on tag closing
                     if ($char == '>') {
-                        $tagName = mb_substr($text, $tagNameStartPos, $tagNameLen);
+                        $tagName = mb_substr($text, $tagNameStartPos, $position - $tagNameStartPos);
                         //		print "openTag: $tagName\n";
                         // Closing tag
                         if ((count($openTagList)) && ($openTagList[count($openTagList) - 1] == mb_substr($tagName, 1))) {
@@ -625,7 +724,7 @@ class parse
                         break;
                     }
                     if ($char == '>') {
-                        $tagName = mb_substr($text, $tagNameStartPos, $tagNameLen);
+                        $tagName = mb_substr($text, $tagNameStartPos, $position - $tagNameStartPos);
                         //			print "openTag: $tagName\n";
                         // Closing tag
                         if ($tagName[0] != '/') {

@@ -123,6 +123,78 @@
 			<i class="fa fa-smile-o"></i>
 		</button>
 	</div>
+	<!-- Dropdown: вставка [code=язык]...[/code] -->
+	{% if callPlugin('code_highlight.hasAnyEnabled', {}) %}
+		<div class="btn-group btn-group-sm mr-2">
+			<button id="tags-code" type="button" class="btn btn-outline-dark dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" title="Код с подсветкой (выбрать язык)">
+				<i class="fa fa-code"></i>
+			</button>
+			<div class="dropdown-menu dropdown-menu-right" aria-labelledby="tags-code">
+				<h6 class="dropdown-header">Язык подсветки</h6>
+				{% if callPlugin('code_highlight.brushEnabled', {'name':'php'}) %}
+					<a class="dropdown-item" href="#" onclick="insertCodeBrush('php', {{ area }}); return false;">PHP</a>
+				{% endif %}
+				{% if callPlugin('code_highlight.brushEnabled', {'name':'js'}) %}
+					<a class="dropdown-item" href="#" onclick="insertCodeBrush('js', {{ area }}); return false;">JavaScript</a>
+				{% endif %}
+				{% if callPlugin('code_highlight.brushEnabled', {'name':'sql'}) %}
+					<a class="dropdown-item" href="#" onclick="insertCodeBrush('sql', {{ area }}); return false;">SQL</a>
+				{% endif %}
+				{% if callPlugin('code_highlight.brushEnabled', {'name':'xml'}) %}
+					<a class="dropdown-item" href="#" onclick="insertCodeBrush('xml', {{ area }}); return false;">HTML/XML</a>
+				{% endif %}
+				{% if callPlugin('code_highlight.brushEnabled', {'name':'css'}) %}
+					<a class="dropdown-item" href="#" onclick="insertCodeBrush('css', {{ area }}); return false;">CSS</a>
+				{% endif %}
+				<div class="dropdown-divider"></div>
+				{% if callPlugin('code_highlight.brushEnabled', {'name':'bash'}) %}
+					<a class="dropdown-item" href="#" onclick="insertCodeBrush('bash', {{ area }}); return false;">Bash/Shell</a>
+				{% endif %}
+				{% if callPlugin('code_highlight.brushEnabled', {'name':'python'}) %}
+					<a class="dropdown-item" href="#" onclick="insertCodeBrush('python', {{ area }}); return false;">Python</a>
+				{% endif %}
+				{% if callPlugin('code_highlight.brushEnabled', {'name':'java'}) %}
+					<a class="dropdown-item" href="#" onclick="insertCodeBrush('java', {{ area }}); return false;">Java</a>
+				{% endif %}
+				{% if callPlugin('code_highlight.brushEnabled', {'name':'csharp'}) %}
+					<a class="dropdown-item" href="#" onclick="insertCodeBrush('csharp', {{ area }}); return false;">C#</a>
+				{% endif %}
+				{% if callPlugin('code_highlight.brushEnabled', {'name':'cpp'}) %}
+					<a class="dropdown-item" href="#" onclick="insertCodeBrush('cpp', {{ area }}); return false;">C/C++</a>
+				{% endif %}
+				{% if callPlugin('code_highlight.brushEnabled', {'name':'delphi'}) %}
+					<a class="dropdown-item" href="#" onclick="insertCodeBrush('delphi', {{ area }}); return false;">Delphi/Pascal</a>
+				{% endif %}
+				{% if callPlugin('code_highlight.brushEnabled', {'name':'diff'}) %}
+					<a class="dropdown-item" href="#" onclick="insertCodeBrush('diff', {{ area }}); return false;">Diff/Patch</a>
+				{% endif %}
+				{% if callPlugin('code_highlight.brushEnabled', {'name':'ruby'}) %}
+					<a class="dropdown-item" href="#" onclick="insertCodeBrush('ruby', {{ area }}); return false;">Ruby</a>
+				{% endif %}
+				{% if callPlugin('code_highlight.brushEnabled', {'name':'perl'}) %}
+					<a class="dropdown-item" href="#" onclick="insertCodeBrush('perl', {{ area }}); return false;">Perl</a>
+				{% endif %}
+				{% if callPlugin('code_highlight.brushEnabled', {'name':'vb'}) %}
+					<a class="dropdown-item" href="#" onclick="insertCodeBrush('vb', {{ area }}); return false;">VB/VB.Net</a>
+				{% endif %}
+				{% if callPlugin('code_highlight.brushEnabled', {'name':'powershell'}) %}
+					<a class="dropdown-item" href="#" onclick="insertCodeBrush('powershell', {{ area }}); return false;">PowerShell</a>
+				{% endif %}
+				{% if callPlugin('code_highlight.brushEnabled', {'name':'scala'}) %}
+					<a class="dropdown-item" href="#" onclick="insertCodeBrush('scala', {{ area }}); return false;">Scala</a>
+				{% endif %}
+				{% if callPlugin('code_highlight.brushEnabled', {'name':'groovy'}) %}
+					<a class="dropdown-item" href="#" onclick="insertCodeBrush('groovy', {{ area }}); return false;">Groovy</a>
+				{% endif %}
+				<div class="dropdown-divider"></div>
+				{% if callPlugin('code_highlight.brushEnabled', {'name':'plain'}) %}
+					<a class="dropdown-item" href="#" onclick="insertCodeBrush('plain', {{ area }}); return false;">Plain (без языка)</a>
+				{% endif %}
+				<a class="dropdown-item" href="#" onclick="insertext('[code]','[/code]', {{ area }}); return false;">Без параметра [code]</a>
+				<a class="dropdown-item" href="#" onclick="insertext('[strong]','[/strong]', {{ area }}); return false;">экранирование в строке</a>
+			</div>
+		</div>
+	{% endif %}
 </div>
 <!-- Modal: Insert URL -->
 <div id="modal-insert-url" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="url-modal-label" aria-hidden="true">
@@ -577,3 +649,81 @@ modal.style.display = 'none';
 }
 	</script>
 {% endif %}
+<script>
+	// Code highlight helper for toolbar: inserts [code=lang]...[/code]
+if (typeof insertCodeBrush !== 'function') {
+function insertCodeBrush(alias, areaId) {
+try {
+if (! alias)
+return;
+} catch (e) {}
+var a = String(alias || '').toLowerCase();
+var map = {
+'html': 'xml',
+'xhtml': 'xml',
+'xml': 'xml',
+'javascript': 'js',
+'node': 'js',
+'js': 'js',
+'c#': 'csharp',
+'csharp': 'csharp',
+'cs': 'csharp',
+'c++': 'cpp',
+'cpp': 'cpp',
+'c': 'cpp',
+'text': 'plain',
+'plain': 'plain',
+'txt': 'plain',
+'mysql': 'sql',
+'mariadb': 'sql',
+'pgsql': 'sql',
+'postgres': 'sql'
+};
+var lang = (map[a] || a);
+// Попробуем работать с текущим выделением без вложения [code] внутрь [code=...]
+var el = null;
+try {
+el = document.getElementById(areaId);
+} catch (e) {}
+if (! el) {
+insertext('[code=' + lang + ']', '[/code]', areaId);
+return;
+}
+// Получаем выделение
+var start = 0,
+end = 0,
+selected = '';
+if (typeof el.selectionStart === 'number' && typeof el.selectionEnd === 'number') {
+start = el.selectionStart;
+end = el.selectionEnd;
+selected = el.value.substring(start, end);
+} else if (document.selection && document.selection.createRange) {
+el.focus();
+var sel = document.selection.createRange();
+selected = sel.text || '';
+}
+// Нормализуем переносы для регекспов
+var sel = String(selected);
+var reBlock = /^\[code(?:=[^\]]+)?\]([\s\S]*?)\[\/code\]$/i; // весь блок [code]
+if (sel && reBlock.test(sel)) { // если выделен целый блок [code]...[/code] — заменяем заголовок, не создавая вложенности
+var inner = sel.replace(/^\[code(?:=[^\]]+)?\]/i, '').replace(/\[\/code\]$/i, '');
+var replacement = '[code=' + lang + ']' + inner + '[/code]';
+// Замена выделения на месте
+if (document.selection && document.selection.createRange) {
+var r = document.selection.createRange();
+r.text = replacement;
+} else if (typeof el.selectionStart === 'number' && typeof el.selectionEnd === 'number') {
+var scroll = el.scrollTop;
+el.value = el.value.substring(0, start) + replacement + el.value.substring(end);
+el.selectionStart = el.selectionEnd = start + replacement.length;
+el.scrollTop = scroll;
+} else { // fallback
+el.value += replacement;
+}
+return;
+}
+// Иначе просто оборачиваем выделение (или курсор) в [code=lang]...[/code]
+insertext('[code=' + lang + ']', '[/code]', areaId);
+}
+}
+</script>

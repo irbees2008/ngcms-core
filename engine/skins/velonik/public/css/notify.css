@@ -1,0 +1,111 @@
+/* Minimal, consistent toast styles (used by notify.js) */
+.ngt-toast__container {
+    position: fixed;
+    top: 16px;
+    right: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    z-index: 10850;
+    /* above modals/navbar */
+    pointer-events: none;
+    /* clicks pass through except toasts */
+}
+.ngt-toast {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    min-width: 260px;
+    max-width: 420px;
+    padding: 10px 12px 10px 10px;
+    border-radius: 6px;
+    background: #fff;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, .12), 0 2px 8px rgba(0, 0, 0, .08);
+    border-left: 4px solid #2c7bd1;
+    /* default blue */
+    color: #2b2b2b;
+    font: 14px/1.4 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, "Helvetica Neue", Helvetica, sans-serif;
+    opacity: 0;
+    transform: translateY(-6px);
+    transition: opacity .2s ease, transform .2s ease;
+    pointer-events: auto;
+    /* clickable */
+}
+.ngt-toast--show {
+    opacity: 1;
+    transform: translateY(0);
+}
+.ngt-toast--hide {
+    opacity: 0;
+    transform: translateY(-6px);
+}
+.ngt-toast__icon {
+    flex: 0 0 auto;
+    margin-top: 2px;
+}
+.ngt-toast__svg {
+    display: block;
+    width: 20px;
+    height: 20px;
+}
+.ngt-toast__content {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+.ngt-toast__type {
+    margin: 0 0 2px;
+    font-weight: 600;
+    font-size: 13px;
+    color: #111;
+}
+.ngt-toast__message {
+    margin: 0;
+    word-wrap: break-word;
+    word-break: break-word;
+}
+.ngt-toast__close {
+    flex: 0 0 auto;
+    appearance: none;
+    -webkit-appearance: none;
+    border: 0;
+    background: transparent;
+    color: #6b7280;
+    /* gray-500 */
+    cursor: pointer;
+    padding: 2px;
+    margin-left: 6px;
+    border-radius: 4px;
+}
+.ngt-toast__close:hover {
+    color: #111;
+    background: rgba(17, 17, 17, .06);
+}
+.ngt-toast__close svg {
+    display: block;
+    width: 16px;
+    height: 16px;
+}
+/* Variants */
+.ngt-toast--green {
+    border-left-color: #239c58;
+}
+.ngt-toast--red {
+    border-left-color: #c0392b;
+}
+.ngt-toast--orange {
+    border-left-color: #c87f0a;
+}
+.ngt-toast--blue {
+    border-left-color: #2c7bd1;
+}
+@media (max-width: 575.98px) {
+    .ngt-toast__container {
+        left: 12px;
+        right: 12px;
+        top: 12px;
+    }
+    .ngt-toast {
+        width: auto;
+        max-width: none;
+    }
+}

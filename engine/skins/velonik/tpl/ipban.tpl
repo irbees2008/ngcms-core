@@ -1,0 +1,142 @@
+<!-- start page title -->
+<div class="row mb-2">
+	<div class="col-12">
+		<ol class="breadcrumb m-0">
+			<li class="breadcrumb-item">
+				<a href="admin.php">
+					<i class="fa fa-home"></i>
+				</a>
+			</li>
+			<li class="breadcrumb-item active">{{ lang.ipban['page-title'] }}</li>
+		</ol>
+		<h4>{{ lang.ipban['page-title'] }}</h4>
+	</div>
+</div>
+<!-- end page title -->
+<div class="x_panel">
+	<div class="x_title">{{ lang.ipban['hdr.list'] }}</div>
+	<div class="table-responsive x_content">
+		<table class="table table-sm mb-0">
+			<thead>
+				<tr>
+					<th>{{ lang.ipban['hdr.ip'] }}</th>
+					<th>{{ lang.ipban['hdr.counter'] }}</th>
+					<th>{{ lang.ipban['hdr.type'] }}</th>
+					<th>{{ lang.ipban['hdr.reason'] }}</th>
+					<th>&nbsp;</th>
+				</tr>
+			</thead>
+			<tbody>
+				{% for entry in entries %}
+					<tr>
+						<td nowrap>
+							{{ entry.ip }}
+							<a href="http://www.nic.ru/whois/?ip={{ entry.whoisip }}" target="_blank">
+								<i class="ri-external-link-line"></i>
+							</a>
+						</td>
+						<td>{{ entry.hitcount }}</td>
+						<td>{{ entry.type }}</td>
+						<td nowrap>{{ entry.descr }}</td>
+						<td class="text-right">
+							{% if flags.permModify %}
+								<a href="{{ php_self }}?mod=ipban&action=del&id={{ entry.id }}&token={{ token }}" class="btn btn-sm btn-outline-danger" title="{{ lang.ipban['act.unblock'] }}">
+									<i class="ri-delete-bin-7-line"></i>
+								</a>
+							{% endif %}
+						</td>
+					</tr>
+				{% else %}
+					<tr>
+						<td colspan="5" class="text-center">---</td>
+					</tr>
+				{% endfor %}
+			</tbody>
+		</table>
+	</div>
+</div>
+{% if flags.permModify %}
+	<div class="x_panel mt-3">
+		<form name="form" method="post" action="{{ php_self }}?mod=ipban">
+			<input type="hidden" name="token" value="{{ token }}"/>
+			<input type="hidden" name="action" value="add"/>
+			<div class="x_title">
+				<div class="row">
+					<div class="col p-2">{{ lang.ipban['hdr.block'] }}</div>
+					<div class="col text-right">
+						<button type="button" class="btn btn-outline-primary" data-toggle="modal" data-target="#infoModal">
+							<i class="fa fa-question"></i>
+						</button>
+					</div>
+				</div>
+			</div>
+			<div class="x_content">
+				<div class="row">
+					<div class="col-lg-6">
+						<div class="mb-3">
+							<label class="col-form-label">{{ lang.ipban['add.block.open'] }}</label>
+							<select name="lock:open" class="form-select" disabled>
+								<option value="0">--</option>
+								<option value="1" style="color: blue;">{{ lang.ipban['lock.block'] }}</option>
+								<option value="2" style="color: red;">{{ lang.ipban['lock.silent'] }}</option>
+							</select>
+						</div>
+						<div class="mb-3">
+							<label class="col-form-label">{{ lang.ipban['add.block.reg'] }}</label>
+							<select name="lock:reg" class="form-select">
+								<option value="0">--</option>
+								<option value="1" style="color: blue;">{{ lang.ipban['lock.block'] }}</option>
+								<option value="2" style="color: red;">{{ lang.ipban['lock.silent'] }}</option>
+							</select>
+						</div>
+					</div>
+					<div class="col-lg-6">
+						<div class="mb-3">
+							<label class="col-form-label">{{ lang.ipban['add.block.login'] }}</label>
+							<select name="lock:login" class="form-select">
+								<option value="0">--</option>
+								<option value="1" style="color: blue;">{{ lang.ipban['lock.block'] }}</option>
+								<option value="2" style="color: red;">{{ lang.ipban['lock.silent'] }}</option>
+							</select>
+						</div>
+						<div class="mb-3">
+							<label class="col-form-label">{{ lang.ipban['add.block.comm'] }}</label>
+							<select name="lock:comm" class="form-select">
+								<option value="0">--</option>
+								<option value="1" style="color: blue;">{{ lang.ipban['lock.block'] }}</option>
+								<option value="2" style="color: red;">{{ lang.ipban['lock.silent'] }}</option>
+							</select>
+						</div>
+					</div>
+					<div class="col-lg-6">
+						<div class="mb-3">
+							<label class="col-form-label">{{ lang.ipban['add.ip'] }}</label>
+							<input type="text" name="ip" value="{{ iplock }}" class="form-control" size="31"/>
+						</div>
+					</div>
+					<div class="col-lg-6">
+						<div class="mb-3">
+							<label class="col-form-label">{{ lang.ipban['add.block.rsn'] }}</label>
+							<input type="text" name="lock:rsn" class="form-control" size="30"/>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="card-footer text-center">
+				<button type="submit" class="btn btn-outline-success">{{ lang.ipban['add.submit'] }}</button>
+			</div>
+		</form>
+	</div>
+	<div id="infoModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="legendModalLabel" aria-hidden="true">
+		<div class="modal-dialog">
+			<div class="modal-content">
+				<div class="modal-body">
+					{{ lang.ipban['info.descr'] }}
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-outline-secondary" data-dismiss="modal">Close</button>
+				</div>
+			</div>
+		</div>
+	</div>
+{% endif %}

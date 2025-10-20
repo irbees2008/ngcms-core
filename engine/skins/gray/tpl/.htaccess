@@ -1,7 +1,0 @@
-#------------------------------------------------------#
-#	Next Generation CMS | http://ngcms.org/         #
-#------------------------------------------------------#
-<files *.tpl>
-order allow,deny
-deny from all
-</files>

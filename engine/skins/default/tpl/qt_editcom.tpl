@@ -80,7 +80,80 @@
 				{{ lang['tags.hide'] }}</a>
 		</div>
 	</div>
-	<div class="btn-group btn-group-sm mr-2">
+	<div
+		class="btn-group btn-group-sm mr-2">
+		<!-- Dropdown: вставка [code=язык]...[/code] -->
+		{% if callPlugin('code_highlight.hasAnyEnabled', {}) %}
+			<div class="btn-group btn-group-sm">
+				<button type="button" class="btn btn-outline-dark dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" title="Код с подсветкой (выбрать язык)">
+					<i class="fa fa-angle-down"></i>
+				</button>
+				<div class="dropdown-menu dropdown-menu-right">
+					<h6 class="dropdown-header">Язык подсветки</h6>
+					{% if callPlugin('code_highlight.brushEnabled', {'name':'php'}) %}
+						<a class="dropdown-item" href="#" onclick="insertCodeBrush('php', {{ area }}); return false;">PHP</a>
+					{% endif %}
+					{% if callPlugin('code_highlight.brushEnabled', {'name':'js'}) %}
+						<a class="dropdown-item" href="#" onclick="insertCodeBrush('js', {{ area }}); return false;">JavaScript</a>
+					{% endif %}
+					{% if callPlugin('code_highlight.brushEnabled', {'name':'sql'}) %}
+						<a class="dropdown-item" href="#" onclick="insertCodeBrush('sql', {{ area }}); return false;">SQL</a>
+					{% endif %}
+					{% if callPlugin('code_highlight.brushEnabled', {'name':'xml'}) %}
+						<a class="dropdown-item" href="#" onclick="insertCodeBrush('xml', {{ area }}); return false;">HTML/XML</a>
+					{% endif %}
+					{% if callPlugin('code_highlight.brushEnabled', {'name':'css'}) %}
+						<a class="dropdown-item" href="#" onclick="insertCodeBrush('css', {{ area }}); return false;">CSS</a>
+					{% endif %}
+					<div class="dropdown-divider"></div>
+					{% if callPlugin('code_highlight.brushEnabled', {'name':'bash'}) %}
+						<a class="dropdown-item" href="#" onclick="insertCodeBrush('bash', {{ area }}); return false;">Bash/Shell</a>
+					{% endif %}
+					{% if callPlugin('code_highlight.brushEnabled', {'name':'python'}) %}
+						<a class="dropdown-item" href="#" onclick="insertCodeBrush('python', {{ area }}); return false;">Python</a>
+					{% endif %}
+					{% if callPlugin('code_highlight.brushEnabled', {'name':'java'}) %}
+						<a class="dropdown-item" href="#" onclick="insertCodeBrush('java', {{ area }}); return false;">Java</a>
+					{% endif %}
+					{% if callPlugin('code_highlight.brushEnabled', {'name':'csharp'}) %}
+						<a class="dropdown-item" href="#" onclick="insertCodeBrush('csharp', {{ area }}); return false;">C#</a>
+					{% endif %}
+					{% if callPlugin('code_highlight.brushEnabled', {'name':'cpp'}) %}
+						<a class="dropdown-item" href="#" onclick="insertCodeBrush('cpp', {{ area }}); return false;">C/C++</a>
+					{% endif %}
+					{% if callPlugin('code_highlight.brushEnabled', {'name':'delphi'}) %}
+						<a class="dropdown-item" href="#" onclick="insertCodeBrush('delphi', {{ area }}); return false;">Delphi/Pascal</a>
+					{% endif %}
+					{% if callPlugin('code_highlight.brushEnabled', {'name':'diff'}) %}
+						<a class="dropdown-item" href="#" onclick="insertCodeBrush('diff', {{ area }}); return false;">Diff/Patch</a>
+					{% endif %}
+					{% if callPlugin('code_highlight.brushEnabled', {'name':'ruby'}) %}
+						<a class="dropdown-item" href="#" onclick="insertCodeBrush('ruby', {{ area }}); return false;">Ruby</a>
+					{% endif %}
+					{% if callPlugin('code_highlight.brushEnabled', {'name':'perl'}) %}
+						<a class="dropdown-item" href="#" onclick="insertCodeBrush('perl', {{ area }}); return false;">Perl</a>
+					{% endif %}
+					{% if callPlugin('code_highlight.brushEnabled', {'name':'vb'}) %}
+						<a class="dropdown-item" href="#" onclick="insertCodeBrush('vb', {{ area }}); return false;">VB/VB.Net</a>
+					{% endif %}
+					{% if callPlugin('code_highlight.brushEnabled', {'name':'powershell'}) %}
+						<a class="dropdown-item" href="#" onclick="insertCodeBrush('powershell', {{ area }}); return false;">PowerShell</a>
+					{% endif %}
+					{% if callPlugin('code_highlight.brushEnabled', {'name':'scala'}) %}
+						<a class="dropdown-item" href="#" onclick="insertCodeBrush('scala', {{ area }}); return false;">Scala</a>
+					{% endif %}
+					{% if callPlugin('code_highlight.brushEnabled', {'name':'groovy'}) %}
+						<a class="dropdown-item" href="#" onclick="insertCodeBrush('groovy', {{ area }}); return false;">Groovy</a>
+					{% endif %}
+					<div class="dropdown-divider"></div>
+					{% if callPlugin('code_highlight.brushEnabled', {'name':'plain'}) %}
+						<a class="dropdown-item" href="#" onclick="insertCodeBrush('plain', {{ area }}); return false;">Plain (без языка)</a>
+					{% endif %}
+					<a class="dropdown-item" href="#" onclick="insertext('[code]','[/code]', {{ area }}); return false;">Без параметра [code]</a>
+				</div>
+			</div>
+		{% endif %}
+
 		<button id="tags-link" type="button" class="btn btn-outline-dark dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
 			<i class="fa fa-link"></i>
 		</button>
@@ -542,6 +615,43 @@ if (modal) {
 modal.classList.remove('show');
 modal.style.display = 'none';
 }
+}
+}
+
+// Code highlight helper
+if (typeof insertCodeBrush !== 'function') {
+function insertCodeBrush(alias, areaId) {
+try {
+if (! alias) 
+return;
+
+
+
+} catch (e) {}
+var a = String(alias || '').toLowerCase();
+var map = {
+'html': 'xml',
+'xhtml': 'xml',
+'xml': 'xml',
+'javascript': 'js',
+'node': 'js',
+'js': 'js',
+'c#': 'csharp',
+'csharp': 'csharp',
+'cs': 'csharp',
+'c++': 'cpp',
+'cpp': 'cpp',
+'c': 'cpp',
+'text': 'plain',
+'plain': 'plain',
+'txt': 'plain',
+'mysql': 'sql',
+'mariadb': 'sql',
+'pgsql': 'sql',
+'postgres': 'sql'
+};
+var lang = (map[a] || a);
+insertext('[code=' + lang + ']', '[/code]', areaId);
 }
 }
 </script>
