@@ -3,15 +3,11 @@
 {% if (flags.edit_split) %}
 var currentInputAreaID = 'ng_news_content_short';
 {% else %}
-var currentInputAreaID = 'ng_news_content';{% endif %}
-
-function notify(type, text) {
-if (type === 'error' && typeof show_error === 'function') {
-show_error(text);
-return;
-}
-if (typeof show_info === 'function') {
-show_info(text);
+var currentInputAreaID = 'ng_news_content';{% endif %}function notify(type, text) {
+if (window.showToast) {
+window.showToast(text, {
+type: (type === 'error') ? 'error' : 'info'
+});
 return;
 }
 if (type === 'error') {
@@ -20,7 +16,6 @@ alert(text);
 console.log(text);
 }
 }
-
 function preview() {
 var form = document.getElementById('postForm');
 var contentField = form['ng_news_content{% if (flags.edit_split) %}_short{% endif %}'];
@@ -35,7 +30,6 @@ form['mod'].value = 'news';
 form.target = '_self';
 return true;
 }
-
 function changeActive(name) {
 if (name === 'full') {
 document.getElementById('container.content.full').className = 'contentActive';
@@ -47,12 +41,10 @@ document.getElementById('container.content.full').className = 'contentInactive';
 currentInputAreaID = 'ng_news_content_short';
 }
 }
-
 function validateEditForm() {
 var form = document.getElementById('postForm');
-if (! form) 
+if (! form)
 return true;
-
 var title = form.title ? form.title.value.trim() : '';
 var bodyShort = form.ng_news_content_short ? form.ng_news_content_short.value.trim() : '';
 var bodyFull = form.ng_news_content_full ? form.ng_news_content_full.value.trim() : '';
@@ -62,27 +54,30 @@ if (! title) {
 notify('error', 'Введите заголовок');
 return false;
 }
+// Сообщение при отправке формы (визуальная обратная связь)
+function announceEditSubmit() {
+notify('info', 'Сохранение изменений...');
+}
 if (! hasContent) {
 notify('error', 'Введите текст новости');
 return false;
 }
 return true;
 }
-
 document.addEventListener('DOMContentLoaded', function () {
 var form = document.getElementById('postForm');
-if (! form) 
+if (! form)
 return;
-
 form.addEventListener('submit', function (e) {
 if (! validateEditForm()) {
 e.preventDefault();
 return false;
 }
+// Показать тост до отправки
+announceEditSubmit();
 });
 });
 </script>
-
 <form name="DATA_tmp_storage" action="" id="DATA_tmp_storage">
 	<input type="hidden" name="area" value=""/>
 </form>
@@ -97,7 +92,6 @@ return false;
 			<th colspan="2">
 				<a role="button" href="{{ listURL }}">{{ lang['news.list'] }}</a>
 			</th>
-
 		</tr>
 		<tr>
 			<td>{{ lang.editnews['title'] }}:</td>
@@ -122,7 +116,6 @@ return false;
 				<td colspan="2">
 					<b>{{ lang['news.anons'] }}:</b>
 					{{ lang['desk.news.anons'] }}
-
 					<div>
 						<div>{{ quicktags }}<br/>
 							{{ smilies }}<br/><br/></div>
@@ -133,7 +126,6 @@ return false;
 			{% if (flags.extended_more) %}
 				<tr>
 					<td>{{ lang['news.more'] }}:</td>
-
 					<td>
 						<input tabindex="2" type="text" name="content_delimiter" class="input" value="{{ content.delimiter }}"/>
 					</td>
@@ -143,7 +135,6 @@ return false;
 				<td colspan="2">
 					<b>{{ lang['full.news'] }}:</b>
 					{{ lang['desk.news.full'] }}
-
 					<div>
 						<div>{{ quicktags }}<br/>
 							{{ smilies }}<br/><br/></div>
@@ -201,35 +192,27 @@ return false;
 				<td colspan="2">
 					<div>
 						{{ lang['msge_perm_no'] }}.<br/>
-
 						{{ lang['msge_rand'] }}:<br/><br/>
-
 						{% if flags['publish.lost'] %}&#8594;
 							{{ lang['news.no_pub'] }}
 						{% endif %}
 						{% if flags['html.lost'] %}&#8594;
 							{{ lang['news.no_tag'] }}
-
 						{% endif %}
 						{% if flags['mainpage.lost'] %}&#8594;
 							{{ lang['news.no_main'] }}
-
 						{% endif %}
 						{% if flags['pinned.lost'] %}&#8594;
 							{{ lang['news.no_home'] }}
-
 						{% endif %}
 						{% if flags['catpinned.lost'] %}&#8594;
 							{{ lang['news.no_cat'] }}
-
 						{% endif %}
 						{% if flags['favorite.lost'] %}&#8594;
 							{{ lang['news.no_bookmarks'] }}
-
 						{% endif %}
 						{% if flags['multicat.lost'] %}&#8594;
 							{{ lang['news.no_dopcat'] }}
-
 						{% endif %}
 					</div>
 				</td>
@@ -264,18 +247,20 @@ return false;
 					<option value="1" {% if (approve == 1) %} selected="selected" {% endif %}>{{ lang['state.published'] }}</option>
 				{% endif %}
 			</select>
-			<input class="button" type="submit" onclick="return approveMode(-1);" value="{{ lang['news.edit.save'] }}"/>
-
+			<input class="button" type="submit" value="{{ lang['do_editnews'] }}"/>
 		{% endif %}
-		<input class="button" type="button" onclick="preview()" value="{{ lang['preview'] }}"/>
-
+		<input
+		class="button" type="button" onclick="preview()" value="{{ lang['preview'] }}"/>
+		{# Если блок редактирования недоступен (flags.editable = false), всё равно показываем базовую кнопку сохранения,
+								   сервер выполнит проверку прав и вернёт уведомление при необходимости #}
+		{% if not flags.editable %}
+			<input class="button" type="submit" value="{{ lang['do_editnews'] }}"/>
+		{% endif %}
 		{% if flags.deleteable %}
-			<input class="button" type="button" onclick="confirmit('{{ deleteURL }}', '{{ lang['sure_del'] }}')" value="{{ lang['news.del'] }}"/>
-
+			<input class="button" type="button" onclick="confirmit('{{ deleteURL }}', '{{ lang['sure_del'] }}')" value="{{ lang['delete'] }}"/>
 		{% endif %}
 	</div>
 </form>
-
 <script language="javascript" type="text/javascript">
 	// Restore variables if needed
 var jev = {{ JEV }};

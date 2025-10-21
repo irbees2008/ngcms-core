@@ -18,11 +18,9 @@
 						<li>
 							<a href="{{ addnews_link }}">{{ lang.add_news }}</a>
 						</li>
-						{% if pluginIsActive('complain') %}
 							<li>
 								<a href="{{ p.complain.link|default(home ~ '/plugin/complain/?ajax=1') }}" class="complain-open" data-modal="true">Жалобы ({{ p.complain.new_count|default(0) }})</a>
 							</li>
-						{% endif %}
 					{% endif %}
 					{% if pluginIsActive('uprofile') %}
 						<li>

@@ -521,7 +521,7 @@ function msgSticker($msg, $type = '', $disp = -1)
 // $disp - ignored here; kept for signature compatibility
 function msgStickerSite($msg, $type = '', $disp = -1)
 {
-    global $notify;
+    global $notify, $template;
     $lines = [];
     $isHtml = false;
     $args = func_get_args();
@@ -537,13 +537,18 @@ function msgStickerSite($msg, $type = '', $disp = -1)
     } else {
         $message = $isHtml ? $msg : htmlspecialchars($msg, ENT_COMPAT | ENT_HTML401, 'UTF-8');
     }
-    // Minimal styling independent from Bootstrap
-    $bg = ($type === 'error') ? '#f8d7da' : '#d1ecf1';
-    $border = ($type === 'error') ? '#f5c6cb' : '#bee5eb';
-    $color = ($type === 'error') ? '#721c24' : '#0c5460';
-    $timeout = ($type === 'error') ? 8000 : 5000;
-    $notify .= '\n<noscript>\n<div style="background:' . $bg . ';color:' . $color . ';border:1px solid ' . $border . ';padding:10px;margin:10px;border-radius:4px;">' . $message . '</div>\n</noscript>\n'
-        . '<script>(function(){function add(){var c=document.getElementById("ng-stickers");if(!c){c=document.createElement("div");c.id="ng-stickers";c.style.position="fixed";c.style.top="12px";c.style.right="12px";c.style.zIndex=2147483647;document.body.appendChild(c);}var b=document.createElement("div");b.setAttribute("role","alert");b.style.background="' . $bg . '";b.style.border="1px solid ' . $border . '";b.style.color="' . $color . '";b.style.padding="10px 14px";b.style.marginTop="10px";b.style.borderRadius="4px";b.style.boxShadow="0 2px 8px rgba(0,0,0,.1)";b.style.maxWidth="420px";b.style.minWidth="260px";b.style.fontSize="14px";b.style.lineHeight="1.4";var close=document.createElement("button");close.innerHTML="&times";close.setAttribute("aria-label","Close");close.style.marginLeft="10px";close.style.float="right";close.style.fontSize="18px";close.style.lineHeight="1";close.style.border="0";close.style.background="transparent";close.style.color="' . $color . '";close.style.cursor="pointer";close.addEventListener("click",function(){b.remove();});b.innerHTML="' . str_replace(['\n', '\r', '"'], [' ', ' ', '\\"'], $message) . '";b.appendChild(close);c.appendChild(b);if(' . ($type === 'error' ? 'false' : 'true') . '){setTimeout(function(){if(b&&b.parentNode){b.parentNode.removeChild(b)}},' . $timeout . ');} } if(document.readyState==="loading"){document.addEventListener("DOMContentLoaded",add);}else{add();}})();</script>';
+    // Используем notify.js (showToast) если он подключен. Иначе – безопасный fallback (noscript + простой блок).
+    $jsMessage = json_encode($message, JSON_UNESCAPED_UNICODE);
+    $jsType = ($type === 'error') ? 'error' : (($type === 'info') ? 'info' : '');
+    $fallbackHtml = '<div style="background:' . (($type === 'error') ? '#f8d7da' : '#d1ecf1') . ';color:' . (($type === 'error') ? '#721c24' : '#0c5460') . ';border:1px solid ' . (($type === 'error') ? '#f5c6cb' : '#bee5eb') . ';padding:10px;margin:10px;border-radius:4px;">' . $message . '</div>';
+    $script = "\n<noscript>\n{$fallbackHtml}\n</noscript>\n" .
+        '<script>(function(){function exec(){try{if(window.showToast){window.showToast(' . $jsMessage . ', {type: ' . json_encode($jsType) . '});}else{var d=document.createElement("div");d.style.position="fixed";d.style.top="12px";d.style.right="12px";d.style.zIndex=2147483647;var b=document.createElement("div");b.style.background=' . json_encode(($type === 'error') ? '#f8d7da' : '#d1ecf1') . ';b.style.border="1px solid ' . (($type === 'error') ? '#f5c6cb' : '#bee5eb') . '";b.style.color=' . json_encode(($type === 'error') ? '#721c24' : '#0c5460') . ';b.style.padding="10px 14px";b.style.marginTop="10px";b.style.borderRadius="4px";b.style.boxShadow="0 2px 8px rgba(0,0,0,.1)";b.style.maxWidth="420px";b.style.minWidth="260px";b.style.fontSize="14px";b.style.lineHeight="1.4";b.innerHTML=' . $jsMessage . ';d.appendChild(b);document.body.appendChild(d);setTimeout(function(){if(b&&b.parentNode){b.parentNode.removeChild(b)}},' . (($type === 'error') ? 8000 : 5000) . ');} }catch(e){/* noop */}} function run(){setTimeout(exec,150);} if(document.readyState==="loading"){document.addEventListener("DOMContentLoaded",run);}else{run();}})();</script>';
+    $notify .= $script;
+    // Продублируем в Twig-переменную, чтобы {{ notify|raw }} отрисовал даже если движок не прокидывает $notify автоматически
+    if (!isset($template['vars']['notify'])) {
+        $template['vars']['notify'] = '';
+    }
+    $template['vars']['notify'] .= $script;
 }
 function TwigEngineMSG($type, $text, $info = '')
 {
@@ -2715,6 +2720,10 @@ function ngExceptionHandler($exception)
             $noAvatarURL = (isset($tplVars['configuration']) && is_array($tplVars['configuration']) && isset($tplVars['configuration']['noAvatarImage']) && $tplVars['configuration']['noAvatarImage']) ? (tpl_url . '/' . $tplVars['configuration']['noAvatarImage']) : (avatars_url . '/noavatar.gif');
             // Preload plugins for usermenu
             loadActionHandlers('usermenu');
+            // Execute action handlers for 'usermenu' so plugins (e.g., pm) can expose globals like `newpm`
+            // This runs functions registered via add_act('usermenu', ...), such as new_pm()
+            // and allows them to set $template vars and Twig globals before we render the menu/template
+            executeActionHandler('usermenu');
             // Load language file
             $lang = LoadLang('usermenu', 'site');
             // Prepare global params for TWIG

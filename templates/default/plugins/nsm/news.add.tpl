@@ -4,15 +4,12 @@
 var currentInputAreaID = 'ng_news_content_short';
 {% else %}
 var currentInputAreaID = 'ng_news_content';{% endif %}
-
-// Унифицированный вывод уведомлений
+// Унифицированный вывод уведомлений через notify.js
 function notify(type, text) {
-if (type === 'error' && typeof show_error === 'function') {
-show_error(text);
-return;
-}
-if (typeof show_info === 'function') {
-show_info(text);
+if (window.showToast) {
+window.showToast(text, {
+type: (type === 'error') ? 'error' : 'info'
+});
 return;
 }
 // Fallback
@@ -22,7 +19,6 @@ alert(text);
 console.log(text);
 }
 }
-
 // Предпросмотр
 function preview() {
 var form = document.getElementById('postForm');
@@ -38,7 +34,6 @@ form['mod'].value = 'news';
 form.target = '_self';
 return true;
 }
-
 // Переключение активной области текста
 function changeActive(name) {
 if (name === 'full') {
@@ -51,19 +46,16 @@ document.getElementById('container.content.full').className = 'contentInactive';
 currentInputAreaID = 'ng_news_content_short';
 }
 }
-
 // Установка режима (публикация / модерация / черновик)
 function approveMode(mode) {
 document.getElementById('approve').value = mode;
 return true;
 }
-
 // Валидация перед отправкой
 function validatePostForm() {
 var form = document.getElementById('postForm');
-if (! form) 
+if (! form)
 return true;
-
 var title = form.title ? form.title.value.trim() : '';
 var bodyShort = form.ng_news_content_short ? form.ng_news_content_short.value.trim() : '';
 var bodyFull = form.ng_news_content_full ? form.ng_news_content_full.value.trim() : '';
@@ -79,7 +71,6 @@ return false;
 }
 return true;
 }
-
 // Сообщения по типу отправки
 function announceSubmit() {
 var approve = document.getElementById('approve').value;
@@ -91,13 +82,11 @@ notify('info', 'Отправка на модерацию...');
 notify('info', 'Сохранение черновика...');
 }
 }
-
 // Перехват отправки формы
 document.addEventListener('DOMContentLoaded', function () {
 var form = document.getElementById('postForm');
-if (! form) 
+if (! form)
 return;
-
 form.addEventListener('submit', function (e) {
 if (! validatePostForm()) {
 e.preventDefault();
@@ -107,7 +96,6 @@ announceSubmit();
 });
 });
 </script>
-
 <form id="postForm" name="form" enctype="multipart/form-data" method="POST" action="{{ currentURL }}">
 	<input type="hidden" name="token" value="{{ token }}"/>
 	<input type="hidden" name="mod" value="news"/>
@@ -225,7 +213,6 @@ announceSubmit();
 		<input class="button" type="button" onclick="return preview();" value="{{ lang.nsm['preview'] }}"/>
 	</div>
 </form>
-
 <script language="javascript" type="text/javascript">
 	// Restore variables if needed
 var jev = {{ JEV }};

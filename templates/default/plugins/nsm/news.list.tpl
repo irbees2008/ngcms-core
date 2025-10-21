@@ -1,22 +1,4 @@
 <div class="block-title">{{ lang.nsm['list.news'] }}</div>
-<script type="text/javascript">
-	// Простейшие уведомления для списка (можно расширить под AJAX в будущем)
-function nsmNotify(msg, type) {
-if (type === 'error' && typeof show_error === 'function') {
-show_error(msg);
-return;
-}
-if (typeof show_info === 'function') {
-show_info(msg);
-return;
-}
-if (type === 'error') {
-alert(msg);
-} else {
-console.log(msg);
-}
-}
-</script>
 <table class="table table-striped table-bordered">
 	<tr>
 		<th colspan="4">
@@ -42,11 +24,11 @@ console.log(msg);
 			</td>
 			<td width="60">
 				{% if entry.flags.canEdit %}
-					<a href="{{ entry.editlink }}">
-					{% endif %}
+					<a href="{{ entry.editlink }}">{{ entry.itemdate }}</a>
+				{% elseif entry.flags.canView %}
+					<a href="{{ entry.link }}">{{ entry.itemdate }}</a>
+				{% else %}
 					{{ entry.itemdate }}
-					{% if entry.flags.canView %}
-					</a>
 				{% endif %}
 			</td>
 			<td width="48" cellspacing="0" cellpadding="0" align="center">
@@ -62,11 +44,12 @@ console.log(msg);
 			</td>
 			<td>
 				{% if entry.flags.status %}
-					<a href="{{ entry.link }}">
-					{% endif %}
+					<a href="{{ entry.link }}">{{ entry.title }}</a>
+				{% else %}
 					{{ entry.title }}
-					{% if entry.flags.status %}
-					</a>
+				{% endif %}
+				{% if entry.flags.canEdit %}
+					&nbsp;<a href="{{ entry.editlink }}" class="nsm-edit-link" title="Редактировать">[редактировать]</a>
 				{% endif %}
 			</td>
 		</tr>

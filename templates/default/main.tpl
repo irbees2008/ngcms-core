@@ -15,16 +15,16 @@
 		<link rel="stylesheet" href="{{ tpl_url }}/css/style.css">
 		<link rel="stylesheet" href="{{ tpl_url }}/css/slider.css">
 		<!--[if lt IE 9]>
-							<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
-							<script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
-							<![endif]-->
+											<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+											<script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+											<![endif]-->
 		<!--[if lte IE 7]>
-							<link rel="stylesheet" href="{{ tpl_url }}/css/ie7.css">
-							<script src="{{ tpl_url }}/js/ie7.js"></script>
-							<![endif]-->
+											<link rel="stylesheet" href="{{ tpl_url }}/css/ie7.css">
+											<script src="{{ tpl_url }}/js/ie7.js"></script>
+											<![endif]-->
 		<!--[if lte IE 6]>
-							<link rel="stylesheet" href="{{ tpl_url }}/css/ie6.css">
-							<![endif]-->
+											<link rel="stylesheet" href="{{ tpl_url }}/css/ie6.css">
+											<![endif]-->
 			{% if pluginIsActive('rss_export') %}
 		<link href="{{ home }}/rss.xml" rel="alternate" type="application/rss+xml" title="RSS"/> {% endif %}
 		<script src="{{ scriptLibrary }}/jq/jquery.js"></script>
@@ -177,7 +177,7 @@
 							Powered by
 							<a title="Next Generation CMS" target="_blank" href="http://ngcms.ru/">NG CMS</a>
 							2007
-																									—
+																																							—
 							{{ now|date("Y") }}.
 							<br/>{{ lang.sql_queries }}:
 							<b>{{ queries }}</b>
@@ -209,6 +209,8 @@
 			{% endif %}
 			<script src="{{ tpl_url }}/js/slider.js"></script>
 			<script src="{{ tpl_url }}/js/script.js"></script>
+			{# Вывод накопленных уведомлений (notify.js должен быть подключен выше) #}
+			{{ notify|raw }}
 		{% endblock %}
 	</body>
 </html>

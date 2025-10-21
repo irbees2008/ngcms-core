@@ -20,6 +20,7 @@
 			</div>{% endif %}
 	</div>
 </article>
+{plugin_complain}
 {% if pluginIsActive('similar') %}{{ plugin_similar_tags }}{% endif %}
 {% if pluginIsActive('comments') %}
 <div class="title">{{ lang.comments }}:	({{ comments_num }}	опубликовано {% if comments_pending > 0 %},	{{ comments_pending }}на модерации	{% endif %})
