@@ -5,6 +5,15 @@
 			<i class="fa fa-floppy-o"></i>
 		</button>
 	</div>
+	<!-- Undo / Redo -->
+	<div class="btn-group btn-group-sm mr-2">
+		<button type="button" class="btn btn-outline-dark" title="Отменить" onclick="ngToolbarUndo({{ area }})">
+			<i class="fa fa-undo"></i>
+		</button>
+		<button type="button" class="btn btn-outline-dark" title="Повторить" onclick="ngToolbarRedo({{ area }})">
+			<i class="fa fa-repeat"></i>
+		</button>
+	</div>
 	<div class="btn-group btn-group-sm mr-2">
 		<button type="button" class="btn btn-outline-dark" onclick="insertext('[p]','[/p]', {{ area }})">
 			<i class="fa fa-paragraph"></i>
@@ -308,6 +317,12 @@ el.scrollTop = scrollPos;
 } else {
 el.value += text;
 }
+// Зафиксируем изменение в нашей истории textarea (если доступна)
+try {
+if (typeof __ng_hist_push === 'function') {
+__ng_hist_push(fieldId);
+}
+} catch (e) {}
 }
 function insertUrlFromModal() {
 var areaId = document.getElementById('urlAreaId').value || '';
@@ -346,6 +361,286 @@ modal.style.display = 'none';
 }
 // keep entered values for potential next insert, but clear selection-based fields
 }
+</script>
+<script>
+	// Кнопки Undo/Redo для стандартного textarea
+function ngToolbarUndo(areaId) {
+try {
+if (typeof __ng_hist_flush === 'function') {
+__ng_hist_flush(areaId);
+}
+} catch (e) {}
+try {
+if (typeof __ng_hist_undo === 'function' && __ng_hist_undo(areaId)) {
+return;
+}
+} catch (e) {}
+try {
+var ta = document.getElementById(areaId);
+if (ta)
+ta.focus();
+} catch (e) {}
+}
+function ngToolbarRedo(areaId) {
+try {
+if (typeof __ng_hist_flush === 'function') {
+__ng_hist_flush(areaId);
+}
+} catch (e) {}
+try {
+if (typeof __ng_hist_redo === 'function' && __ng_hist_redo(areaId)) {
+return;
+}
+} catch (e) {}
+try {
+var ta = document.getElementById(areaId);
+if (ta)
+ta.focus();
+} catch (e) {}
+}
+</script>
+<script>
+	// Простая история изменений для стандартного textarea (без привязки к внешним редакторам)
+(function () {
+var MAX_DEPTH = 100;
+var maps = {}; // id -> {stack:[{v,s,e}], index:int, attached:bool, lock:bool}
+var timers = {}; // debounce таймеры на id
+function getId(areaId) {
+try {
+if (typeof areaId === 'string')
+return areaId;
+if (areaId && typeof areaId === 'object') {
+if (areaId.id)
+return String(areaId.id);
+if (areaId.getAttribute) {
+var aid = areaId.getAttribute('id');
+if (aid)
+return String(aid);
+}
+}
+if (typeof areaId === 'number')
+return String(areaId);
+} catch (e) {}
+return 'content';
+}
+function getEl(id) {
+try {
+return document.getElementById(id);
+} catch (e) {
+return null;
+}
+}
+function getMap(id) {
+if (! maps[id])
+maps[id] = {
+stack: [],
+index: -1,
+attached: false,
+lock: false
+};
+return maps[id];
+}
+function snapshot(el) {
+var v = String(el && el.value != null ? el.value : '');
+var s = 0,
+e = 0;
+try {
+if (typeof el.selectionStart === 'number' && typeof el.selectionEnd === 'number') {
+s = el.selectionStart;
+e = el.selectionEnd;
+}
+} catch (e_) {}
+return {v: v, s: s, e: e};
+}
+function applyState(el, st) {
+if (! el || ! st)
+return;
+try {
+maps[el.id] && (maps[el.id].lock = true);
+} catch (e) {}el.value = st.v;
+try {
+if (typeof el.selectionStart === 'number' && typeof el.selectionEnd === 'number') {
+el.selectionStart = st.s;
+el.selectionEnd = st.e;
+}
+} catch (e_) {}
+try {
+el.focus();
+} catch (e) {}
+setTimeout(function () {
+try {
+maps[el.id] && (maps[el.id].lock = false);
+} catch (e) {}
+}, 0);
+}
+function push(id) {
+id = getId(id);
+var el = getEl(id);
+if (! el)
+return false;
+var m = getMap(id);
+var st = snapshot(el);
+var top = m.stack[m.index] || null;
+if (top && top.v === st.v)
+return false;
+// без дубликатов
+// отбрасываем «будущее», если были откаты
+if (m.index<m.stack.length - 1) {
+			m.stack = m.stack.slice(0, m.index + 1);
+		}
+		m.stack.push(st);
+		if (m.stack.length>MAX_DEPTH) {
+m.stack.shift();
+}
+m.index = m.stack.length - 1;
+return true;
+}
+function attach(id) {
+id = getId(id);
+var el = getEl(id);
+if (! el)
+return;
+var m = getMap(id);
+if (m.attached)
+return;
+m.attached = true;
+// Базовое состояние
+push(id);
+var handler = function () {
+if (m.lock)
+return;
+// игнорируем программные применения
+// debounce
+if (timers[id]) {
+clearTimeout(timers[id]);
+}
+timers[id] = setTimeout(function () {
+push(id);
+}, 250);
+};
+el.addEventListener('input', handler);
+el.addEventListener('change', handler);
+// Вставка из буфера/drag&drop/потеря фокуса
+el.addEventListener('paste', function () {
+if (! m.lock) {
+if (timers[id])
+clearTimeout(timers[id]);
+timers[id] = setTimeout(function () {
+push(id);
+}, 50);
+}
+});
+el.addEventListener('drop', function () {
+if (! m.lock) {
+if (timers[id])
+clearTimeout(timers[id]);
+timers[id] = setTimeout(function () {
+push(id);
+}, 50);
+}
+});
+el.addEventListener('blur', function () {
+if (! m.lock) {
+push(id);
+}
+});
+// Подстраховка на Enter/Backspace/Delete
+el.addEventListener('keyup', function (e) {
+if (m.lock)
+return;
+var k = e && e.key;
+if (k === 'Enter' || k === 'Backspace' || k === 'Delete') {
+if (timers[id])
+clearTimeout(timers[id]);
+timers[id] = setTimeout(function () {
+push(id);
+}, 100);
+}
+});
+}
+function undo(id) {
+id = getId(id);
+var el = getEl(id);
+if (! el)
+return false;
+var m = getMap(id);
+if (! m.attached)
+attach(id);
+if (m.index<= 0) return false;
+		m.index--;
+		applyState(el, m.stack[m.index]);
+		return true;
+	}
+	function redo(id){
+		id = getId(id);
+		var el = getEl(id);
+		if (!el) return false;
+		var m = getMap(id);
+		if (!m.attached) attach(id);
+		if (m.index >= m.stack.length - 1)
+return false;
+m.index ++;
+applyState(el, m.stack[m.index]);
+return true;
+}
+// Экспорт в глобал
+window.__ng_hist_attach = attach;
+window.__ng_hist_push = push;
+window.__ng_hist_undo = undo;
+window.__ng_hist_redo = redo;
+window.__ng_hist_flush = function (id) {
+id = getId(id);
+var el = getEl(id);
+if (! el)
+return false;
+attach(id);
+if (timers[id]) {
+try {
+clearTimeout(timers[id]);
+} catch (e) {}timers[id] = null;
+}
+return push(id);
+};
+// Обернём стандартный insertext, чтобы фиксировать изменения
+try {
+if (typeof window.insertext === 'function' && !window.__ng_insertext_wrapped) {
+window.__ng_insertext_wrapped = true;
+window.__ng_insertext_orig = window.insertext;
+window.insertext = function (open, close, field) {
+var id = (field === '' || field === null || typeof field === 'undefined') ? 'content' : field;
+try {
+attach(id);
+} catch (e) {}
+var res = false;
+try {
+res = window.__ng_insertext_orig(open, close, field);
+} finally {
+try {
+push(id);
+} catch (e) {}
+}
+return res;
+};
+}
+} catch (e) {}
+// Автоподключение истории по фокусу на любом textarea
+try {
+document.addEventListener('focusin', function (ev) {
+try {
+var t = ev && ev.target;
+if (t && t.tagName === 'TEXTAREA' && t.id) {
+attach(t.id);
+}
+} catch (e) {}
+}, true);
+} catch (e) {}
+// Поддержка поля по умолчанию 'content', если оно присутствует
+try {
+var __el0 = document.getElementById('content');
+if (__el0)
+attach('content');
+} catch (e) {}
+})();
 </script>
 <!-- Modal: Insert Email -->
 <div id="modal-insert-email" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="email-modal-label" aria-hidden="true">
@@ -644,6 +939,102 @@ var modal = document.getElementById('modal-insert-media');
 if (modal) {
 modal.classList.remove('show');
 modal.style.display = 'none';
+}
+}
+}
+	</script>
+	<!-- Modal: Insert Acronym -->
+	<div id="modal-insert-acronym" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="acronym-modal-label" aria-hidden="true">
+		<div class="modal-dialog">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h5 id="acronym-modal-label" class="modal-title">Акроним</h5>
+					<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+						<span aria-hidden="true">&times;</span>
+					</button>
+				</div>
+				<div class="modal-body">
+					<input type="hidden" id="acronymAreaId" value=""/>
+					<div class="form-group">
+						<label for="acronymTitle">Подсказка (title)</label>
+						<input type="text" class="form-control" id="acronymTitle" placeholder="Полный расшифровки акронима"/>
+					</div>
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-outline-secondary" data-dismiss="modal">Отмена</button>
+					<button type="button" class="btn btn-primary" onclick="insertAcronymFromModal()">Вставить</button>
+				</div>
+			</div>
+		</div>
+	</div>
+	<script>
+		function prepareAcronymModal(areaId) {
+try {
+document.getElementById('acronymAreaId').value = areaId || '';
+} catch (e) {}
+}
+function insertAcronymFromModal() {
+var title = (document.getElementById('acronymTitle').value || '').replace(/\]/g, ')').trim();
+if (title === '') {
+document.getElementById('acronymTitle').focus();
+return;
+}
+var aid = (document.getElementById('acronymAreaId').value || '');
+insertext('[acronym=' + title + ']', '[/acronym]', aid);
+try {
+$('#modal-insert-acronym').modal('hide');
+} catch (e) {
+var m = document.getElementById('modal-insert-acronym');
+if (m) {
+m.classList.remove('show');
+m.style.display = 'none';
+}
+}
+}
+	</script>
+	<!-- Modal: Insert Code (language) -->
+	<div id="modal-insert-code" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="code-modal-label" aria-hidden="true">
+		<div class="modal-dialog">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h5 id="code-modal-label" class="modal-title">Код с языком</h5>
+					<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+						<span aria-hidden="true">&times;</span>
+					</button>
+				</div>
+				<div class="modal-body">
+					<input type="hidden" id="codeAreaId" value=""/>
+					<div class="form-group">
+						<label for="codeLang">Язык</label>
+						<input type="text" class="form-control" id="codeLang" placeholder="Напр.: php, js, sql, xml, css, bash..."/>
+					</div>
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-outline-secondary" data-dismiss="modal">Отмена</button>
+					<button type="button" class="btn btn-primary" onclick="insertCodeFromModal()">Вставить</button>
+				</div>
+			</div>
+		</div>
+	</div>
+	<script>
+		function prepareCodeModal(areaId) {
+try {
+document.getElementById('codeAreaId').value = areaId || '';
+} catch (e) {}
+}
+function insertCodeFromModal() {
+var lang = (document.getElementById('codeLang').value || '').trim();
+var aid = (document.getElementById('codeAreaId').value || '');
+insertext('[code' + (
+lang ? ('=' + lang) : ''
+) + ']', '[/code]', aid);
+try {
+$('#modal-insert-code').modal('hide');
+} catch (e) {
+var m = document.getElementById('modal-insert-code');
+if (m) {
+m.classList.remove('show');
+m.style.display = 'none';
 }
 }
 }
