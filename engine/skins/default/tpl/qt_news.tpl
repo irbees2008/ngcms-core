@@ -14,11 +14,19 @@
 			<i class="fa fa-repeat"></i>
 		</button>
 	</div>
+	<!-- Параграф -->
 	<div class="btn-group btn-group-sm mr-2">
 		<button type="button" class="btn btn-outline-dark" onclick="insertext('[p]','[/p]', {{ area }})">
 			<i class="fa fa-paragraph"></i>
 		</button>
 	</div>
+	<!-- Кнопка открытия модалки загрузки -->
+	<div class="btn-group btn-group-sm mr-2">
+		<button type="button" class="btn btn-outline-dark" data-toggle="modal" data-target="#modal-uplimg" title="Загрузить" onclick="try{window.__editorAreaId={{ area }};}catch(e){}">
+			<i class="fa fa-folder-open-o"></i>
+		</button>
+	</div>
+	<!-- Шрифт: B/I/U/S -->
 	<div class="btn-group btn-group-sm mr-2">
 		<button id="tags-font" type="button" class="btn btn-outline-dark dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
 			<i class="fa fa-font"></i>
@@ -38,6 +46,7 @@
 				{{ lang['tags.crossline'] }}</a>
 		</div>
 	</div>
+	<!-- Выравнивание -->
 	<div class="btn-group btn-group-sm mr-2">
 		<button id="tags-align" type="button" class="btn btn-outline-dark dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
 			<i class="fa fa-align-left"></i>
@@ -57,6 +66,7 @@
 				{{ lang['tags.justify'] }}</a>
 		</div>
 	</div>
+	<!-- Блоки/списки/код -->
 	<div class="btn-group btn-group-sm mr-2">
 		<button id="tags-block" type="button" class="btn btn-outline-dark dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
 			<i class="fa fa-quote-left"></i>
@@ -86,6 +96,7 @@
 				{{ lang['tags.hide'] }}</a>
 		</div>
 	</div>
+	<!-- Ссылки: URL / Email / Image -->
 	<div class="btn-group btn-group-sm mr-2">
 		<button id="tags-link" type="button" class="btn btn-outline-dark dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
 			<i class="fa fa-link"></i>
@@ -112,6 +123,76 @@
 				<i class="fa fa-play-circle"></i>
 			</button>
 		{% endif %}
+	</div>
+	<!-- Modal: AJAX загрузка изображений/файлов -->
+	<div id="modal-uplimg" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="uplimg-modal-label" aria-hidden="true">
+		<div class="modal-dialog modal-lg">
+			<div class="modal-content" role="document">
+				<div class="modal-header">
+					<h5 id="uplimg-modal-label" class="modal-title">Загрузка</h5>
+					<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+						<span aria-hidden="true">&times;</span>
+					</button>
+				</div>
+				<div class="modal-body">
+					<ul class="nav nav-tabs nav-fill" role="tablist">
+						<li class="nav-item">
+							<a href="#upl-img" class="nav-link active" data-toggle="tab" role="tab">Загрузка изображений</a>
+						</li>
+						<li class="nav-item">
+							<a href="#upl-data" class="nav-link" data-toggle="tab" role="tab">Загрузка файла</a>
+						</li>
+					</ul>
+					<div class="form-group"></div>
+					<!-- Tab panes -->
+					<div
+						id="upl" class="tab-content">
+						<!-- img -->
+						<div id="upl-img" class="tab-pane fade show active" role="tabpanel">
+							<ul id="newsimage-area" style="list-style: none; padding-left: 0;"></ul>
+							<div class="d-flex align-items-center justify-content-between flex-wrap">
+								<div class="mb-2 text-muted">
+									<i>
+										<b>Дополнительные настройки:</b>
+									</i>
+								</div>
+								<div class="w-100"></div>
+								<div class="form-group mb-2"><!-- Опции миниатюры и случайного имени удалены: миниатюра создаётся по умолчанию, имя формируется как имя+хеш на сервере --></div>
+								<div data-ng-dropzone="image" class="mb-2 w-100" style="border:2px dashed #cbd3da;border-radius:6px;padding:12px;text-align:center;background:#fafafa;color:#6c757d;">
+									Перетащите изображения сюда для загрузки
+								</div>
+								<div class="form-group mb-2 ml-auto d-flex align-items-center">
+									<input type="file" id="uploadimage" name="newsimage" class="form-control-file mr-2">
+									<a class="btn btn-primary" data-placement="top" data-popup="tooltip" title="Загрузить" onclick="return uploadNewsImage({{ area }});">
+										<i class="fa fa-download"></i>
+									</a>
+								</div>
+							</div>
+						</div>
+						<!-- data -->
+						<div id="upl-data" class="tab-pane fade" role="tabpanel">
+							<ul id="newsfile-area" style="list-style: none; padding-left: 0;"></ul>
+							<div class="d-flex align-items-center justify-content-between flex-wrap">
+								<div class="w-100"></div>
+								<div class="form-group mb-2"><!-- Опция случайного имени для файла удалена: имя формируется как имя+хеш на сервере --></div>
+								<div data-ng-dropzone="file" class="mb-2 w-100" style="border:2px dashed #cbd3da;border-radius:6px;padding:12px;text-align:center;background:#fafafa;color:#6c757d;">
+									Перетащите файлы сюда для загрузки
+								</div>
+								<div class="form-group mb-2 ml-auto d-flex align-items-center">
+									<input type="file" id="uploadfile" name="newsfile" class="form-control-file mr-2">
+									<a class="btn btn-primary" data-placement="top" data-popup="tooltip" title="Загрузить" onclick="return uploadNewsFile({{ area }});">
+										<i class="fa fa-download"></i>
+									</a>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-outline-dark" data-dismiss="modal">Закрыть</button>
+				</div>
+			</div>
+		</div>
 	</div>
 	<div class="btn-group btn-group-sm mr-2">
 		<button onclick="try{document.forms['DATA_tmp_storage'].area.value={{ area }};} catch(err){;} window.open('{{ php_self }}?mod=files&amp;ifield='+{{ area }}, '_Addfile', 'height=600,resizable=yes,scrollbars=yes,width=800');return false;" target="DATA_Addfile" type="button" class="btn btn-outline-dark" title="{{ lang['tags.file'] }}">
@@ -249,399 +330,6 @@
 		</div>
 	</div>
 </div>
-<script>
-	function showModalById(id) {
-var el = document.getElementById(id);
-if (! el)
-return;
-try {
-if (window.jQuery && jQuery(el).modal) {
-jQuery(el).modal('show');
-return;
-}
-} catch (e) {}el.style.display = 'block';
-el.classList.add('show');
-el.removeAttribute('aria-hidden');
-}
-// Store and prepare modal values based on current selection
-function prepareUrlModal(areaId) {
-try {
-document.getElementById('urlAreaId').value = areaId;
-} catch (e) {}
-var ta = null;
-try {
-ta = document.getElementById(areaId);
-} catch (e) {}
-if (! ta) {
-return;
-}
-var selText = '';
-if (typeof ta.selectionStart === 'number' && typeof ta.selectionEnd === 'number') {
-selText = ta.value.substring(ta.selectionStart, ta.selectionEnd);
-} else if (document.selection && document.selection.createRange) {
-ta.focus();
-var sel = document.selection.createRange();
-selText = sel.text || '';
-}
-// Prefill text with selection
-var urlText = document.getElementById('urlText');
-var urlHref = document.getElementById('urlHref');
-if (urlText) {
-urlText.value = selText || urlText.value || '';
-}
-// If selection looks like URL - prefill href
-var looksLikeUrl = /^([a-z]+:\/\/|www\.|\/|#).+/i.test(selText.trim());
-if (looksLikeUrl && urlHref && ! urlHref.value) {
-urlHref.value = selText.trim();
-}
-}
-function insertAtCursor(fieldId, text) {
-var el = null;
-try {
-el = document.getElementById(fieldId);
-} catch (e) {}
-if (! el) {
-return;
-}
-el.focus();
-if (document.selection && document.selection.createRange) {
-var sel = document.selection.createRange();
-sel.text = text;
-} else if (typeof el.selectionStart === 'number' && typeof el.selectionEnd === 'number') {
-var startPos = el.selectionStart;
-var endPos = el.selectionEnd;
-var scrollPos = el.scrollTop;
-el.value = el.value.substring(0, startPos) + text + el.value.substring(endPos, el.value.length);
-el.selectionStart = el.selectionEnd = startPos + text.length;
-el.scrollTop = scrollPos;
-} else {
-el.value += text;
-}
-// Зафиксируем изменение в нашей истории textarea (если доступна)
-try {
-if (typeof __ng_hist_push === 'function') {
-__ng_hist_push(fieldId);
-}
-} catch (e) {}
-}
-function insertUrlFromModal() {
-var areaId = document.getElementById('urlAreaId').value || '';
-var href = (document.getElementById('urlHref').value || '').trim();
-var text = (document.getElementById('urlText').value || '').trim();
-var target = document.getElementById('urlTarget').value;
-var nofollow = document.getElementById('urlNofollow').checked;
-if (! href) { // minimal UX: focus URL field if empty
-document.getElementById('urlHref').focus();
-return;
-}
-if (!/^([a-z]+:\/\/|\/|#|mailto:)/i.test(href)) {
-href = 'http://' + href;
-}
-if (! text) {
-text = href;
-}
-var attrs = '="' + href.replace(/"/g, '&quot;') + '"';
-if (target) {
-attrs += ' target="' + target.replace(/[^_a-zA-Z0-9\-]/g, '') + '"';
-}
-if (nofollow) {
-attrs += ' rel="nofollow"';
-}
-var bb = '[url' + attrs + ']' + text + '[/url]';
-insertAtCursor(areaId, bb);
-// reset minimal state and hide
-try {
-$('#modal-insert-url').modal('hide');
-} catch (e) {
-var modal = document.getElementById('modal-insert-url');
-if (modal) {
-modal.classList.remove('show');
-modal.style.display = 'none';
-}
-}
-// keep entered values for potential next insert, but clear selection-based fields
-}
-</script>
-<script>
-	// Кнопки Undo/Redo для стандартного textarea
-function ngToolbarUndo(areaId) {
-try {
-if (typeof __ng_hist_flush === 'function') {
-__ng_hist_flush(areaId);
-}
-} catch (e) {}
-try {
-if (typeof __ng_hist_undo === 'function' && __ng_hist_undo(areaId)) {
-return;
-}
-} catch (e) {}
-try {
-var ta = document.getElementById(areaId);
-if (ta)
-ta.focus();
-} catch (e) {}
-}
-function ngToolbarRedo(areaId) {
-try {
-if (typeof __ng_hist_flush === 'function') {
-__ng_hist_flush(areaId);
-}
-} catch (e) {}
-try {
-if (typeof __ng_hist_redo === 'function' && __ng_hist_redo(areaId)) {
-return;
-}
-} catch (e) {}
-try {
-var ta = document.getElementById(areaId);
-if (ta)
-ta.focus();
-} catch (e) {}
-}
-</script>
-<script>
-	// Простая история изменений для стандартного textarea (без привязки к внешним редакторам)
-(function () {
-var MAX_DEPTH = 100;
-var maps = {}; // id -> {stack:[{v,s,e}], index:int, attached:bool, lock:bool}
-var timers = {}; // debounce таймеры на id
-function getId(areaId) {
-try {
-if (typeof areaId === 'string')
-return areaId;
-if (areaId && typeof areaId === 'object') {
-if (areaId.id)
-return String(areaId.id);
-if (areaId.getAttribute) {
-var aid = areaId.getAttribute('id');
-if (aid)
-return String(aid);
-}
-}
-if (typeof areaId === 'number')
-return String(areaId);
-} catch (e) {}
-return 'content';
-}
-function getEl(id) {
-try {
-return document.getElementById(id);
-} catch (e) {
-return null;
-}
-}
-function getMap(id) {
-if (! maps[id])
-maps[id] = {
-stack: [],
-index: -1,
-attached: false,
-lock: false
-};
-return maps[id];
-}
-function snapshot(el) {
-var v = String(el && el.value != null ? el.value : '');
-var s = 0,
-e = 0;
-try {
-if (typeof el.selectionStart === 'number' && typeof el.selectionEnd === 'number') {
-s = el.selectionStart;
-e = el.selectionEnd;
-}
-} catch (e_) {}
-return {v: v, s: s, e: e};
-}
-function applyState(el, st) {
-if (! el || ! st)
-return;
-try {
-maps[el.id] && (maps[el.id].lock = true);
-} catch (e) {}el.value = st.v;
-try {
-if (typeof el.selectionStart === 'number' && typeof el.selectionEnd === 'number') {
-el.selectionStart = st.s;
-el.selectionEnd = st.e;
-}
-} catch (e_) {}
-try {
-el.focus();
-} catch (e) {}
-setTimeout(function () {
-try {
-maps[el.id] && (maps[el.id].lock = false);
-} catch (e) {}
-}, 0);
-}
-function push(id) {
-id = getId(id);
-var el = getEl(id);
-if (! el)
-return false;
-var m = getMap(id);
-var st = snapshot(el);
-var top = m.stack[m.index] || null;
-if (top && top.v === st.v)
-return false;
-// без дубликатов
-// отбрасываем «будущее», если были откаты
-if (m.index<m.stack.length - 1) {
-			m.stack = m.stack.slice(0, m.index + 1);
-		}
-		m.stack.push(st);
-		if (m.stack.length>MAX_DEPTH) {
-m.stack.shift();
-}
-m.index = m.stack.length - 1;
-return true;
-}
-function attach(id) {
-id = getId(id);
-var el = getEl(id);
-if (! el)
-return;
-var m = getMap(id);
-if (m.attached)
-return;
-m.attached = true;
-// Базовое состояние
-push(id);
-var handler = function () {
-if (m.lock)
-return;
-// игнорируем программные применения
-// debounce
-if (timers[id]) {
-clearTimeout(timers[id]);
-}
-timers[id] = setTimeout(function () {
-push(id);
-}, 250);
-};
-el.addEventListener('input', handler);
-el.addEventListener('change', handler);
-// Вставка из буфера/drag&drop/потеря фокуса
-el.addEventListener('paste', function () {
-if (! m.lock) {
-if (timers[id])
-clearTimeout(timers[id]);
-timers[id] = setTimeout(function () {
-push(id);
-}, 50);
-}
-});
-el.addEventListener('drop', function () {
-if (! m.lock) {
-if (timers[id])
-clearTimeout(timers[id]);
-timers[id] = setTimeout(function () {
-push(id);
-}, 50);
-}
-});
-el.addEventListener('blur', function () {
-if (! m.lock) {
-push(id);
-}
-});
-// Подстраховка на Enter/Backspace/Delete
-el.addEventListener('keyup', function (e) {
-if (m.lock)
-return;
-var k = e && e.key;
-if (k === 'Enter' || k === 'Backspace' || k === 'Delete') {
-if (timers[id])
-clearTimeout(timers[id]);
-timers[id] = setTimeout(function () {
-push(id);
-}, 100);
-}
-});
-}
-function undo(id) {
-id = getId(id);
-var el = getEl(id);
-if (! el)
-return false;
-var m = getMap(id);
-if (! m.attached)
-attach(id);
-if (m.index<= 0) return false;
-		m.index--;
-		applyState(el, m.stack[m.index]);
-		return true;
-	}
-	function redo(id){
-		id = getId(id);
-		var el = getEl(id);
-		if (!el) return false;
-		var m = getMap(id);
-		if (!m.attached) attach(id);
-		if (m.index >= m.stack.length - 1)
-return false;
-m.index ++;
-applyState(el, m.stack[m.index]);
-return true;
-}
-// Экспорт в глобал
-window.__ng_hist_attach = attach;
-window.__ng_hist_push = push;
-window.__ng_hist_undo = undo;
-window.__ng_hist_redo = redo;
-window.__ng_hist_flush = function (id) {
-id = getId(id);
-var el = getEl(id);
-if (! el)
-return false;
-attach(id);
-if (timers[id]) {
-try {
-clearTimeout(timers[id]);
-} catch (e) {}timers[id] = null;
-}
-return push(id);
-};
-// Обернём стандартный insertext, чтобы фиксировать изменения
-try {
-if (typeof window.insertext === 'function' && !window.__ng_insertext_wrapped) {
-window.__ng_insertext_wrapped = true;
-window.__ng_insertext_orig = window.insertext;
-window.insertext = function (open, close, field) {
-var id = (field === '' || field === null || typeof field === 'undefined') ? 'content' : field;
-try {
-attach(id);
-} catch (e) {}
-var res = false;
-try {
-res = window.__ng_insertext_orig(open, close, field);
-} finally {
-try {
-push(id);
-} catch (e) {}
-}
-return res;
-};
-}
-} catch (e) {}
-// Автоподключение истории по фокусу на любом textarea
-try {
-document.addEventListener('focusin', function (ev) {
-try {
-var t = ev && ev.target;
-if (t && t.tagName === 'TEXTAREA' && t.id) {
-attach(t.id);
-}
-} catch (e) {}
-}, true);
-} catch (e) {}
-// Поддержка поля по умолчанию 'content', если оно присутствует
-try {
-var __el0 = document.getElementById('content');
-if (__el0)
-attach('content');
-} catch (e) {}
-})();
-</script>
 <!-- Modal: Insert Email -->
 <div id="modal-insert-email" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="email-modal-label" aria-hidden="true">
 	<div class="modal-dialog">
@@ -719,133 +407,7 @@ attach('content');
 		</div>
 	</div>
 </div>
-<script>
-	function prepareEmailModal(areaId) {
-try {
-document.getElementById('emailAreaId').value = areaId;
-} catch (e) {}
-var ta = null;
-try {
-ta = document.getElementById(areaId);
-} catch (e) {}
-if (! ta) {
-return;
-}
-var selText = '';
-if (typeof ta.selectionStart === 'number' && typeof ta.selectionEnd === 'number') {
-selText = ta.value.substring(ta.selectionStart, ta.selectionEnd);
-} else if (document.selection && document.selection.createRange) {
-ta.focus();
-var sel = document.selection.createRange();
-selText = sel.text || '';
-}
-var emailField = document.getElementById('emailAddress');
-var textField = document.getElementById('emailText');
-var looksLikeEmail = /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,20}$/i.test(selText.trim());
-if (looksLikeEmail) {
-if (emailField && ! emailField.value) {
-emailField.value = selText.trim();
-}
-if (textField && ! textField.value) {
-textField.value = selText.trim();
-}
-} else {
-if (textField) {
-textField.value = selText || textField.value || '';
-}
-}
-}
-function insertEmailFromModal() {
-var areaId = document.getElementById('emailAreaId').value || '';
-var email = (document.getElementById('emailAddress').value || '').trim();
-var text = (document.getElementById('emailText').value || '').trim();
-if (! email || email.indexOf('@') === -1) {
-document.getElementById('emailAddress').focus();
-return;
-}
-if (! text) {
-text = email;
-}
-var bb = (text === email) ? ('[email]' + email + '[/email]') : ('[email="' + email.replace(/"/g, '&quot;') + '"]' + text + '[/email]');
-insertAtCursor(areaId, bb);
-try {
-$('#modal-insert-email').modal('hide');
-} catch (e) {
-var modal = document.getElementById('modal-insert-email');
-if (modal) {
-modal.classList.remove('show');
-modal.style.display = 'none';
-}
-}
-}
-function prepareImgModal(areaId) {
-try {
-document.getElementById('imgAreaId').value = areaId;
-} catch (e) {}
-var ta = null;
-try {
-ta = document.getElementById(areaId);
-} catch (e) {}
-if (! ta) {
-return;
-}
-var selText = '';
-if (typeof ta.selectionStart === 'number' && typeof ta.selectionEnd === 'number') {
-selText = ta.value.substring(ta.selectionStart, ta.selectionEnd);
-} else if (document.selection && document.selection.createRange) {
-ta.focus();
-var sel = document.selection.createRange();
-selText = sel.text || '';
-}
-var hrefField = document.getElementById('imgHref');
-var altField = document.getElementById('imgAlt');
-var looksLikeImg = /^((https?:\/\/|ftp:\/\/|\/).+)\.(jpg|jpeg|png|gif|webp|svg)(\?.*)?$/i.test(selText.trim());
-if (looksLikeImg && hrefField && ! hrefField.value) {
-hrefField.value = selText.trim();
-}
-if (altField && ! looksLikeImg) {
-altField.value = selText || altField.value || '';
-}
-}
-function insertImgFromModal() {
-var areaId = document.getElementById('imgAreaId').value || '';
-var href = (document.getElementById('imgHref').value || '').trim();
-var alt = (document.getElementById('imgAlt').value || '').trim();
-var width = (document.getElementById('imgWidth').value || '').trim();
-var height = (document.getElementById('imgHeight').value || '').trim();
-var align = document.getElementById('imgAlign').value;
-if (! href) {
-document.getElementById('imgHref').focus();
-return;
-}
-if (!/^((https?:\/\/|ftp:\/\/)|\/|#)/i.test(href)) {
-href = 'http://' + href;
-}
-var attrs = '="' + href.replace(/"/g, '&quot;') + '"';
-if (width) {
-attrs += ' width="' + width.replace(/[^0-9]/g, '') + '"';
-}
-if (height) {
-attrs += ' height="' + height.replace(/[^0-9]/g, '') + '"';
-}
-if (align) {
-attrs += ' align="' + align.replace(/[^a-z]/ig, '').toLowerCase() + '"';
-}
-var bb = '[img' + attrs + ']' + (
-alt || ''
-) + '[/img]';
-insertAtCursor(areaId, bb);
-try {
-$('#modal-insert-image').modal('hide');
-} catch (e) {
-var modal = document.getElementById('modal-insert-image');
-if (modal) {
-modal.classList.remove('show');
-modal.style.display = 'none';
-}
-}
-}
-</script>
+<!-- JS логика перенесена во внешний файл /lib/news_editor.js -->
 <!-- Modal: Insert Media -->
 {% if pluginIsActive('bb_media') %}
 	<div id="modal-insert-media" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="media-modal-label" aria-hidden="true">
@@ -885,64 +447,6 @@ modal.style.display = 'none';
 			</div>
 		</div>
 	</div>
-	<script>
-		function prepareMediaModal(areaId) {
-try {
-document.getElementById('mediaAreaId').value = areaId;
-} catch (e) {}
-var ta = null;
-try {
-ta = document.getElementById(areaId);
-} catch (e) {}
-if (! ta) {
-return;
-}
-var selText = '';
-if (typeof ta.selectionStart === 'number' && typeof ta.selectionEnd === 'number') {
-selText = ta.value.substring(ta.selectionStart, ta.selectionEnd);
-} else if (document.selection && document.selection.createRange) {
-ta.focus();
-var sel = document.selection.createRange();
-selText = sel.text || '';
-}
-var hrefField = document.getElementById('mediaHref');
-if (hrefField && ! hrefField.value) {
-hrefField.value = selText.trim();
-}
-}
-function insertMediaFromModal() {
-var areaId = document.getElementById('mediaAreaId').value || '';
-var href = (document.getElementById('mediaHref').value || '').trim();
-var w = (document.getElementById('mediaWidth').value || '').trim();
-var h = (document.getElementById('mediaHeight').value || '').trim();
-var p = (document.getElementById('mediaPreview').value || '').trim();
-if (! href) {
-document.getElementById('mediaHref').focus();
-return;
-}
-var attrs = '';
-if (w) {
-attrs += ' width="' + w.replace(/[^0-9]/g, '') + '"';
-}
-if (h) {
-attrs += ' height="' + h.replace(/[^0-9]/g, '') + '"';
-}
-if (p) {
-attrs += ' preview="' + p.replace(/"/g, '&quot;') + '"';
-}
-var bb = attrs ? ('[media' + attrs + ']' + href + '[/media]') : ('[media]' + href + '[/media]');
-insertAtCursor(areaId, bb);
-try {
-$('#modal-insert-media').modal('hide');
-} catch (e) {
-var modal = document.getElementById('modal-insert-media');
-if (modal) {
-modal.classList.remove('show');
-modal.style.display = 'none';
-}
-}
-}
-	</script>
 	<!-- Modal: Insert Acronym -->
 	<div id="modal-insert-acronym" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="acronym-modal-label" aria-hidden="true">
 		<div class="modal-dialog">
@@ -967,31 +471,6 @@ modal.style.display = 'none';
 			</div>
 		</div>
 	</div>
-	<script>
-		function prepareAcronymModal(areaId) {
-try {
-document.getElementById('acronymAreaId').value = areaId || '';
-} catch (e) {}
-}
-function insertAcronymFromModal() {
-var title = (document.getElementById('acronymTitle').value || '').replace(/\]/g, ')').trim();
-if (title === '') {
-document.getElementById('acronymTitle').focus();
-return;
-}
-var aid = (document.getElementById('acronymAreaId').value || '');
-insertext('[acronym=' + title + ']', '[/acronym]', aid);
-try {
-$('#modal-insert-acronym').modal('hide');
-} catch (e) {
-var m = document.getElementById('modal-insert-acronym');
-if (m) {
-m.classList.remove('show');
-m.style.display = 'none';
-}
-}
-}
-	</script>
 	<!-- Modal: Insert Code (language) -->
 	<div id="modal-insert-code" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="code-modal-label" aria-hidden="true">
 		<div class="modal-dialog">
@@ -1016,105 +495,5 @@ m.style.display = 'none';
 			</div>
 		</div>
 	</div>
-	<script>
-		function prepareCodeModal(areaId) {
-try {
-document.getElementById('codeAreaId').value = areaId || '';
-} catch (e) {}
-}
-function insertCodeFromModal() {
-var lang = (document.getElementById('codeLang').value || '').trim();
-var aid = (document.getElementById('codeAreaId').value || '');
-insertext('[code' + (
-lang ? ('=' + lang) : ''
-) + ']', '[/code]', aid);
-try {
-$('#modal-insert-code').modal('hide');
-} catch (e) {
-var m = document.getElementById('modal-insert-code');
-if (m) {
-m.classList.remove('show');
-m.style.display = 'none';
-}
-}
-}
-	</script>
 {% endif %}
-<script>
-	// Code highlight helper for toolbar: inserts [code=lang]...[/code]
-if (typeof insertCodeBrush !== 'function') {
-function insertCodeBrush(alias, areaId) {
-try {
-if (! alias)
-return;
-} catch (e) {}
-var a = String(alias || '').toLowerCase();
-var map = {
-'html': 'xml',
-'xhtml': 'xml',
-'xml': 'xml',
-'javascript': 'js',
-'node': 'js',
-'js': 'js',
-'c#': 'csharp',
-'csharp': 'csharp',
-'cs': 'csharp',
-'c++': 'cpp',
-'cpp': 'cpp',
-'c': 'cpp',
-'text': 'plain',
-'plain': 'plain',
-'txt': 'plain',
-'mysql': 'sql',
-'mariadb': 'sql',
-'pgsql': 'sql',
-'postgres': 'sql'
-};
-var lang = (map[a] || a);
-// Попробуем работать с текущим выделением без вложения [code] внутрь [code=...]
-var el = null;
-try {
-el = document.getElementById(areaId);
-} catch (e) {}
-if (! el) {
-insertext('[code=' + lang + ']', '[/code]', areaId);
-return;
-}
-// Получаем выделение
-var start = 0,
-end = 0,
-selected = '';
-if (typeof el.selectionStart === 'number' && typeof el.selectionEnd === 'number') {
-start = el.selectionStart;
-end = el.selectionEnd;
-selected = el.value.substring(start, end);
-} else if (document.selection && document.selection.createRange) {
-el.focus();
-var sel = document.selection.createRange();
-selected = sel.text || '';
-}
-// Нормализуем переносы для регекспов
-var sel = String(selected);
-var reBlock = /^\[code(?:=[^\]]+)?\]([\s\S]*?)\[\/code\]$/i; // весь блок [code]
-if (sel && reBlock.test(sel)) { // если выделен целый блок [code]...[/code] — заменяем заголовок, не создавая вложенности
-var inner = sel.replace(/^\[code(?:=[^\]]+)?\]/i, '').replace(/\[\/code\]$/i, '');
-var replacement = '[code=' + lang + ']' + inner + '[/code]';
-// Замена выделения на месте
-if (document.selection && document.selection.createRange) {
-var r = document.selection.createRange();
-r.text = replacement;
-} else if (typeof el.selectionStart === 'number' && typeof el.selectionEnd === 'number') {
-var scroll = el.scrollTop;
-el.value = el.value.substring(0, start) + replacement + el.value.substring(end);
-el.selectionStart = el.selectionEnd = start + replacement.length;
-el.scrollTop = scroll;
-} else { // fallback
-el.value += replacement;
-}
-return;
-}
-// Иначе просто оборачиваем выделение (или курсор) в [code=lang]...[/code]
-insertext('[code=' + lang + ']', '[/code]', areaId);
-}
-}
-</script>
+<script src="/lib/news_editor.js"></script>

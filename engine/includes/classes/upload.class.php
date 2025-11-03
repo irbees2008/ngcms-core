@@ -230,8 +230,13 @@ class file_managment
         $fil = trim(str_replace([' ', '\\', '/', chr(0)], ['_', ''], implode('.', $fil)));
         $fil = $parse->translit($fil);
         $fname = $fil . ($ext ? '.' . $ext : '');
-        // Save original file name
+        // Save original file name (без хеша)
         $origFname = $fname;
+        // Добавляем суффикс-хеш к имени файла по умолчанию: name_<hash>.<ext>
+        // Это уменьшает коллизии и заменяет ранее используемый случайный префикс
+        // Формируем короткий хеш на основе uniqid/mt_rand
+        $hashSuffix = substr(md5(uniqid(mt_rand(), true)), 0, 8);
+        $fname = $fil . '_' . $hashSuffix . ($ext ? '.' . $ext : '');
         // DSN - Data Storage Network. Store data in BTREE if requested
         if ($param['dsn']) {
             // Check if directory for DSN exists

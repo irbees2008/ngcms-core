@@ -5,9 +5,24 @@
 			<i class="fa fa-floppy-o"></i>
 		</button>
 	</div>
+	<!-- Undo / Redo -->
+	<div class="btn-group btn-group-sm mr-2">
+		<button type="button" class="btn btn-outline-dark" title="Отменить" onclick="ngToolbarUndo({{ area }})">
+			<i class="fa fa-undo"></i>
+		</button>
+		<button type="button" class="btn btn-outline-dark" title="Повторить" onclick="ngToolbarRedo({{ area }})">
+			<i class="fa fa-repeat"></i>
+		</button>
+	</div>
 	<div class="btn-group btn-group-sm mr-2">
 		<button type="button" class="btn btn-outline-dark" onclick="insertext('[p]','[/p]', {{ area }})">
 			<i class="fa fa-paragraph"></i>
+		</button>
+	</div>
+	<!-- Кнопка открытия модалки загрузки -->
+	<div class="btn-group btn-group-sm mr-2">
+		<button type="button" class="btn btn-outline-dark" data-toggle="modal" data-target="#modal-uplimg" title="Загрузить" onclick="try{window.__editorAreaId={{ area }};}catch(e){}">
+			<i class="fa fa-folder-open-o"></i>
 		</button>
 	</div>
 	<div class="btn-group btn-group-sm mr-2">
@@ -150,24 +165,26 @@
 				</div>
 			</div>
 		{% endif %}
+	</div>
+	<div class="btn-group btn-group-sm mr-2">
 		<button id="tags-link" type="button" class="btn btn-outline-dark dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
 			<i class="fa fa-link"></i>
 		</button>
 		<div class="dropdown-menu" aria-labelledby="tags-link">
-			<a href="#" class="dropdown-item" data-toggle="modal" data-target="#modal-insert-url" onclick="prepareUrlModal({{ area }})">
+			<a href="#" class="dropdown-item" data-toggle="modal" data-target="#modal-insert-url" onclick="prepareUrlModal({{ area }}); showModalById('modal-insert-url'); return false;">
 				<i class="fa fa-link"></i>
 				{{ lang['tags.link'] }}</a>
-			<a href="#" class="dropdown-item" data-toggle="modal" data-target="#modal-insert-email" onclick="prepareEmailModal({{ area }})">
+			<a href="#" class="dropdown-item" data-toggle="modal" data-target="#modal-insert-email" onclick="prepareEmailModal({{ area }}); showModalById('modal-insert-email'); return false;">
 				<i class="fa fa-envelope-o"></i>
 				{{ lang['tags.email'] }}</a>
-			<a href="#" class="dropdown-item" data-toggle="modal" data-target="#modal-insert-image" onclick="prepareImgModal({{ area }})">
+			<a href="#" class="dropdown-item" data-toggle="modal" data-target="#modal-insert-image" onclick="prepareImgModal({{ area }}); showModalById('modal-insert-image'); return false;">
 				<i class="fa fa-file-image-o"></i>
 				{{ lang['tags.image'] }}</a>
 		</div>
 	</div>
 	<div class="btn-group btn-group-sm mr-2">
 		{% if pluginIsActive('bb_media') %}
-			<button id="tags-media" type="button" class="btn btn-outline-dark" data-toggle="modal" data-target="#modal-insert-media" onclick="prepareMediaModal({{ area }})" title="[media]">
+			<button id="tags-media" type="button" class="btn btn-outline-dark" data-toggle="modal" data-target="#modal-insert-media" onclick="prepareMediaModal({{ area }}); showModalById('modal-insert-media'); return false;" title="[media]">
 				<i class="fa fa-play-circle"></i>
 			</button>
 		{% else %}
@@ -191,6 +208,76 @@
 		<button data-toggle="modal" data-target="#modal-smiles" type="button" class="btn btn-outline-dark">
 			<i class="fa fa-smile-o"></i>
 		</button>
+	</div>
+</div>
+<!-- Modal: AJAX загрузка изображений/файлов (Bootstrap 3) -->
+<div id="modal-uplimg" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="uplimg-modal-label" aria-hidden="true">
+	<div class="modal-dialog modal-lg">
+		<div class="modal-content" role="document">
+			<div class="modal-header">
+				<h5 id="uplimg-modal-label" class="modal-title">Загрузка</h5>
+				<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+					<span aria-hidden="true">&times;</span>
+				</button>
+			</div>
+			<div class="modal-body">
+				<ul class="nav nav-tabs nav-fill" role="tablist">
+					<li class="nav-item">
+						<a href="#upl-img" class="nav-link active" data-toggle="tab" role="tab">Загрузка изображений</a>
+					</li>
+					<li class="nav-item">
+						<a href="#upl-data" class="nav-link" data-toggle="tab" role="tab">Загрузка файла</a>
+					</li>
+				</ul>
+				<div class="form-group"></div>
+				<!-- Tab panes -->
+				<div
+					id="upl" class="tab-content">
+					<!-- img -->
+					<div id="upl-img" class="tab-pane fade show active" role="tabpanel">
+						<ul id="newsimage-area" style="list-style: none; padding-left: 0;"></ul>
+						<div class="d-flex align-items-center justify-content-between flex-wrap">
+							<div class="mb-2 text-muted">
+								<i>
+									<b>Дополнительные настройки:</b>
+								</i>
+							</div>
+							<div class="w-100"></div>
+							<div class="form-group mb-2"><!-- Опции миниатюры и случайного имени удалены: миниатюра создаётся по умолчанию, имя формируется как имя+хеш на сервере --></div>
+							<div data-ng-dropzone="image" class="mb-2 w-100" style="border:2px dashed #cbd3da;border-radius:6px;padding:12px;text-align:center;background:#fafafa;color:#6c757d;">
+								Перетащите изображения сюда для загрузки
+							</div>
+							<div class="form-group mb-2 ml-auto d-flex align-items-center">
+								<input type="file" id="uploadimage" name="newsimage" class="form-control-file mr-2">
+								<a class="btn btn-primary" data-placement="top" data-popup="tooltip" title="Загрузить" onclick="return uploadNewsImage({{ area }});">
+									<i class="fa fa-download"></i>
+								</a>
+							</div>
+						</div>
+						<!-- data -->
+						<div id="upl-data" class="tab-pane fade" role="tabpanel">
+							<ul id="newsfile-area" style="list-style: none; padding-left: 0;"></ul>
+							<div class="d-flex align-items-center justify-content-between flex-wrap">
+								<div class="w-100"></div>
+								<div class="form-group mb-2"><!-- Опция случайного имени для файла удалена: имя формируется как имя+хеш на сервере --></div>
+								<div data-ng-dropzone="file" class="mb-2 w-100" style="border:2px dashed #cbd3da;border-radius:6px;padding:12px;text-align:center;background:#fafafa;color:#6c757d;">
+									Перетащите файлы сюда для загрузки
+								</div>
+								<div class="form-group mb-2 ml-auto d-flex align-items-center">
+									<input type="file" id="uploadfile" name="newsfile" class="form-control-file mr-2">
+									<a class="btn btn-primary" data-placement="top" data-popup="tooltip" title="Загрузить" onclick="return uploadNewsFile({{ area }});">
+										<i class="fa fa-download"></i>
+									</a>
+								</div>
+							</div>
+						</div>
+					</div>
+					<div class="modal-footer">
+						<button type="button" class="btn btn-outline-dark" data-dismiss="modal">Закрыть</button>
+					</div>
+				</div>
+			</div>
+		</div>
 	</div>
 </div>
 <!-- Reuse the same modals/JS as in qt_news.tpl -->
@@ -355,310 +442,4 @@
 		</div>
 	</div>
 {% endif %}
-<script>
-	function prepareUrlModal(areaId) {
-try {
-document.getElementById('urlAreaId').value = areaId;
-} catch (e) {}
-var ta = null;
-try {
-ta = document.getElementById(areaId);
-} catch (e) {}
-if (! ta) {
-return;
-}
-var selText = '';
-if (typeof ta.selectionStart === 'number' && typeof ta.selectionEnd === 'number') {
-selText = ta.value.substring(ta.selectionStart, ta.selectionEnd);
-} else if (document.selection && document.selection.createRange) {
-ta.focus();
-var sel = document.selection.createRange();
-selText = sel.text || '';
-}
-var urlText = document.getElementById('urlText');
-var urlHref = document.getElementById('urlHref');
-if (urlText) {
-urlText.value = selText || urlText.value || '';
-}
-var looksLikeUrl = /^([a-z]+:\/\/|www\.|\/|#).+/i.test(selText.trim());
-if (looksLikeUrl && urlHref && ! urlHref.value) {
-urlHref.value = selText.trim();
-}
-}
-function insertAtCursor(fieldId, text) {
-var el = null;
-try {
-el = document.getElementById(fieldId);
-} catch (e) {}
-if (! el) {
-return;
-}
-el.focus();
-if (document.selection && document.selection.createRange) {
-var sel = document.selection.createRange();
-sel.text = text;
-} else if (typeof el.selectionStart === 'number' && typeof el.selectionEnd === 'number') {
-var startPos = el.selectionStart;
-var endPos = el.selectionEnd;
-var scrollPos = el.scrollTop;
-el.value = el.value.substring(0, startPos) + text + el.value.substring(endPos, el.value.length);
-el.selectionStart = el.selectionEnd = startPos + text.length;
-el.scrollTop = scrollPos;
-} else {
-el.value += text;
-}
-}
-function insertUrlFromModal() {
-var areaId = document.getElementById('urlAreaId').value || '';
-var href = (document.getElementById('urlHref').value || '').trim();
-var text = (document.getElementById('urlText').value || '').trim();
-var target = document.getElementById('urlTarget').value;
-var nofollow = document.getElementById('urlNofollow').checked;
-if (! href) {
-document.getElementById('urlHref').focus();
-return;
-}
-if (!/^([a-z]+:\/\/|\/|#|mailto:)/i.test(href)) {
-href = 'http://' + href;
-}
-if (! text) {
-text = href;
-}
-var attrs = '="' + href.replace(/"/g, '&quot;') + '"';
-if (target) {
-attrs += ' target="' + target.replace(/[^_a-zA-Z0-9\-]/g, '') + '"';
-}
-if (nofollow) {
-attrs += ' rel="nofollow"';
-}
-var bb = '[url' + attrs + ']' + text + '[/url]';
-insertAtCursor(areaId, bb);
-try {
-$('#modal-insert-url').modal('hide');
-} catch (e) {
-var modal = document.getElementById('modal-insert-url');
-if (modal) {
-modal.classList.remove('show');
-modal.style.display = 'none';
-}
-}
-}
-function prepareEmailModal(areaId) {
-try {
-document.getElementById('emailAreaId').value = areaId;
-} catch (e) {}
-var ta = null;
-try {
-ta = document.getElementById(areaId);
-} catch (e) {}
-if (! ta) {
-return;
-}
-var selText = '';
-if (typeof ta.selectionStart === 'number' && typeof ta.selectionEnd === 'number') {
-selText = ta.value.substring(ta.selectionStart, ta.selectionEnd);
-} else if (document.selection && document.selection.createRange) {
-ta.focus();
-var sel = document.selection.createRange();
-selText = sel.text || '';
-}
-var emailField = document.getElementById('emailAddress');
-var textField = document.getElementById('emailText');
-var looksLikeEmail = /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,20}$/i.test(selText.trim());
-if (looksLikeEmail) {
-if (emailField && ! emailField.value) {
-emailField.value = selText.trim();
-}
-if (textField && ! textField.value) {
-textField.value = selText.trim();
-}
-} else {
-if (textField) {
-textField.value = selText || textField.value || '';
-}
-}
-}
-function insertEmailFromModal() {
-var areaId = document.getElementById('emailAreaId').value || '';
-var email = (document.getElementById('emailAddress').value || '').trim();
-var text = (document.getElementById('emailText').value || '').trim();
-if (! email || email.indexOf('@') === -1) {
-document.getElementById('emailAddress').focus();
-return;
-}
-if (! text) {
-text = email;
-}
-var bb = (text === email) ? ('[email]' + email + '[/email]') : ('[email="' + email.replace(/"/g, '&quot;') + '"]' + text + '[/email]');
-insertAtCursor(areaId, bb);
-try {
-$('#modal-insert-email').modal('hide');
-} catch (e) {
-var modal = document.getElementById('modal-insert-email');
-if (modal) {
-modal.classList.remove('show');
-modal.style.display = 'none';
-}
-}
-}
-function prepareImgModal(areaId) {
-try {
-document.getElementById('imgAreaId').value = areaId;
-} catch (e) {}
-var ta = null;
-try {
-ta = document.getElementById(areaId);
-} catch (e) {}
-if (! ta) {
-return;
-}
-var selText = '';
-if (typeof ta.selectionStart === 'number' && typeof ta.selectionEnd === 'number') {
-selText = ta.value.substring(ta.selectionStart, ta.selectionEnd);
-} else if (document.selection && document.selection.createRange) {
-ta.focus();
-var sel = document.selection.createRange();
-selText = sel.text || '';
-}
-var hrefField = document.getElementById('imgHref');
-var altField = document.getElementById('imgAlt');
-var looksLikeImg = /^((https?:\/\/|ftp:\/\/|\/).+)\.(jpg|jpeg|png|gif|webp|svg)(\?.*)?$/i.test(selText.trim());
-if (looksLikeImg && hrefField && ! hrefField.value) {
-hrefField.value = selText.trim();
-}
-if (altField && ! looksLikeImg) {
-altField.value = selText || altField.value || '';
-}
-}
-function insertImgFromModal() {
-var areaId = document.getElementById('imgAreaId').value || '';
-var href = (document.getElementById('imgHref').value || '').trim();
-var alt = (document.getElementById('imgAlt').value || '').trim();
-var width = (document.getElementById('imgWidth').value || '').trim();
-var height = (document.getElementById('imgHeight').value || '').trim();
-var align = document.getElementById('imgAlign').value;
-if (! href) {
-document.getElementById('imgHref').focus();
-return;
-}
-if (!/^((https?:\/\/|ftp:\/\/)|\/|#)/i.test(href)) {
-href = 'http://' + href;
-}
-var attrs = '="' + href.replace(/"/g, '&quot;') + '"';
-if (width) {
-attrs += ' width="' + width.replace(/[^0-9]/g, '') + '"';
-}
-if (height) {
-attrs += ' height="' + height.replace(/[^0-9]/g, '') + '"';
-}
-if (align) {
-attrs += ' align="' + align.replace(/[^a-z]/ig, '').toLowerCase() + '"';
-}
-var bb = '[img' + attrs + ']' + (
-alt || ''
-) + '[/img]';
-insertAtCursor(areaId, bb);
-try {
-$('#modal-insert-image').modal('hide');
-} catch (e) {
-var modal = document.getElementById('modal-insert-image');
-if (modal) {
-modal.classList.remove('show');
-modal.style.display = 'none';
-}
-}
-}
-// Media modal helpers
-function prepareMediaModal(areaId) {
-try {
-document.getElementById('mediaAreaId').value = areaId;
-} catch (e) {}
-var ta = null;
-try {
-ta = document.getElementById(areaId);
-} catch (e) {}
-if (! ta) {
-return;
-}
-var selText = '';
-if (typeof ta.selectionStart === 'number' && typeof ta.selectionEnd === 'number') {
-selText = ta.value.substring(ta.selectionStart, ta.selectionEnd);
-} else if (document.selection && document.selection.createRange) {
-ta.focus();
-var sel = document.selection.createRange();
-selText = sel.text || '';
-}
-var hrefField = document.getElementById('mediaHref');
-if (hrefField && ! hrefField.value) {
-hrefField.value = (selText || '').trim();
-}
-}
-function insertMediaFromModal() {
-var areaId = document.getElementById('mediaAreaId').value || '';
-var href = (document.getElementById('mediaHref').value || '').trim();
-var w = (document.getElementById('mediaWidth').value || '').trim();
-var h = (document.getElementById('mediaHeight').value || '').trim();
-var p = (document.getElementById('mediaPreview').value || '').trim();
-if (! href) {
-document.getElementById('mediaHref').focus();
-return;
-}
-var attrs = '';
-if (w) {
-attrs += ' width="' + w.replace(/[^0-9]/g, '') + '"';
-}
-if (h) {
-attrs += ' height="' + h.replace(/[^0-9]/g, '') + '"';
-}
-if (p) {
-attrs += ' preview="' + p.replace(/"/g, '&quot;') + '"';
-}
-var bb = attrs ? ('[media' + attrs + ']' + href + '[/media]') : ('[media]' + href + '[/media]');
-insertAtCursor(areaId, bb);
-try {
-$('#modal-insert-media').modal('hide');
-} catch (e) {
-var modal = document.getElementById('modal-insert-media');
-if (modal) {
-modal.classList.remove('show');
-modal.style.display = 'none';
-}
-}
-}
-</script>
-<script>
-	// Глобальная helper-функция для вставки [code=язык]...[/code]
-if (typeof insertCodeBrush !== 'function') {
-function insertCodeBrush(alias, areaId) {
-try {
-if (! alias) {
-return;
-}
-} catch (e) {}
-var a = String(alias || '').toLowerCase();
-var map = {
-'html': 'xml',
-'xhtml': 'xml',
-'xml': 'xml',
-'javascript': 'js',
-'node': 'js',
-'js': 'js',
-'c#': 'csharp',
-'csharp': 'csharp',
-'cs': 'csharp',
-'c++': 'cpp',
-'cpp': 'cpp',
-'c': 'cpp',
-'text': 'plain',
-'plain': 'plain',
-'txt': 'plain',
-'mysql': 'sql',
-'mariadb': 'sql',
-'pgsql': 'sql',
-'postgres': 'sql'
-};
-var lang = (map[a] || a);
-insertext('[code=' + lang + ']', '[/code]', areaId);
-}
-}
-</script>
+<script src="/lib/news_editor.js"></script>
