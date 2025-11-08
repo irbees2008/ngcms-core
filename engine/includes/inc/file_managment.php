@@ -253,6 +253,7 @@ function manage_showlist($type)
             'view_thumb'   => $row['preview'] ? $row['view_thumb'] : '',
             'file_link'    => $file_link,
             'file_name'    => $row['orig_name'],
+            'name'         => $row['name'],
             'id'           => $row['id'],
             'width'        => $row['width'],
             'height'       => $row['height'],

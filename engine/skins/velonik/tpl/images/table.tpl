@@ -1,20 +1,19 @@
 <link href="{{ skins_url }}/public/css/jquery.fancybox.min.css" type="text/css" rel="stylesheet">
 <script src="{{ skins_url }}/public/js/jquery.fancybox.min.js" type="text/javascript"></script>
 <!-- Uploadifive (multi-upload) assets: load explicitly for default3 -->
-<link
-href="{skins_url}/assets/vendor/uploadifive/uploadifive.css" type="text/css" rel="stylesheet">
+<link href="{{ skins_url }}/assets/vendor/uploadifive/uploadifive.css" type="text/css" rel="stylesheet">
 <!-- start page title -->
 <div class="row mb-2">
 	<div class="col-12">
 		<ol class="breadcrumb m-0">
 			<li class="breadcrumb-item">
-				<a href="admin.php">
+				<a href="{{ php_self }}">
 					<i class="fa fa-home"></i>
 				</a>
 			</li>
-			<li class="breadcrumb-item active">{l_images_title}</li>
+			<li class="breadcrumb-item active">{{ lang['images_title'] }}</li>
 		</ol>
-		<h4>{l_images_title}</h4>
+		<h4>{{ lang['images_title'] }}</h4>
 	</div>
 </div>
 <!-- end page title -->
@@ -22,49 +21,49 @@ href="{skins_url}/assets/vendor/uploadifive/uploadifive.css" type="text/css" rel
 <div id="collapseImagesFilter" class="collapse">
 	<div class="x_panel mb-4">
 		<div class="x_content">
-			<form action="{php_self}" method="get" name="options_bar">
+			<form action="{{ php_self }}" method="get" name="options_bar">
 				<input type="hidden" name="mod" value="images"/>
 				<input type="hidden" name="action" value="list"/>
-				<input type="hidden" name="area" value="{area}"/>
+				<input type="hidden" name="area" value="{{ area }}"/>
 				<div
 					class="row">
 					<!--Block 1-->
 					<div class="col-lg-3">
 						<div class="form-group">
-							<label>{l_month}</label>
+							<label>{{ lang['month'] }}</label>
 							<select name="postdate" class="form-select">
-								<option selected value="">- {l_all} -</option>
-								{dateslist}
+								<option selected value="">- {{ lang['all'] }} -</option>
+								{{ dateslist|raw }}
 							</select>
 						</div>
 					</div>
 					<!--Block 2-->
 					<div class="col-lg-3">
 						<div class="form-group">
-							<label>{l_category}</label>
-							<div class="ng-select">{dirlistcat}</div>
+							<label>{{ lang['category'] }}</label>
+							<div class="ng-select">{{ dirlistcat|raw }}</div>
 						</div>
 					</div>
 					<!--Block 3-->
 					<div class="col-lg-3">
 						<div class="form-group">
-							[status]
-							<label>{l_author}</label>
+							{% if status %}
+							<label>{{ lang['author'] }}</label>
 							<select name="author" class="form-select">
-								<option value="">- {l_all} -</option>
-								{authorlist}
+								<option value="">- {{ lang['all'] }} -</option>
+								{{ authorlist|raw }}
 							</select>
-							[/status]
+							{% endif %}
 						</div>
 					</div>
 					<!--Block 4-->
 					<div class="col-lg-3">
 						<div class="form-group">
-							<label>{l_per_page}</label>
-							<input type="text" name="npp" value="{npp}" class="form-control"/>
+							<label>{{ lang['per_page'] }}</label>
+							<input type="text" name="npp" value="{{ npp }}" class="form-control"/>
 						</div>
 						<div class="form-group mt-2 text-right">
-							<button type="submit" class="btn btn-outline-primary">{l_show}</button>
+							<button type="submit" class="btn btn-outline-primary">{{ lang['show'] }}</button>
 						</div>
 					</div>
 				</div>
@@ -73,8 +72,8 @@ href="{skins_url}/assets/vendor/uploadifive/uploadifive.css" type="text/css" rel
 	</div>
 </div>
 <!-- Mass actions form: BEGIN -->
-<form id="delform" name="imagedelete" action="{php_self}?mod=images" method="post">
-	<input type="hidden" name="area" value="{area}"/>
+<form id="delform" name="imagedelete" action="{{ php_self }}?mod=images" method="post">
+	<input type="hidden" name="area" value="{{ area }}"/>
 	<div class="row mb-3">
 		<div class="col-md-12">
 			<div class="x_panel">
@@ -83,16 +82,16 @@ href="{skins_url}/assets/vendor/uploadifive/uploadifive.css" type="text/css" rel
 						<div class="gallery-filters mb-3 mb-md-0">
 							<div class="d-flex">
 								<div class="custom-control custom-switch py-3 mr-auto">
-									<input id="masterCheck" type="checkbox" class="form-check-input" name="master_box" title="{l_select_all}" onclick="javascript:check_uncheck_all(imagedelete)"/>
-									<label for="masterCheck" class="form-check-label">Выделить все изображения</label>
+									<input id="masterCheck" type="checkbox" class="form-check-input" name="master_box" title="{{ lang['select_all'] }}" onclick="javascript:check_uncheck_all(imagedelete)"/>
+									<label for="masterCheck" class="form-check-label">{{ lang['select_all_images']|default('Выделить все изображения') }}</label>
 								</div>
-								<button type="button" class="btn btn-outline-success m-1" data-bs-toggle="modal" data-bs-target="#uploadnewModal" data-backdrop="static">{l_upload_img}</button>
-								<button type="button" class="btn btn-outline-success m-1" data-bs-toggle="modal" data-bs-target="#uploadNewByUrlModal" data-backdrop="static">{l_upload_img_url}</button>
-								[status]
-								<button type="button" class="btn btn-outline-primary m-1" data-bs-toggle="modal" data-bs-target="#categoriesModal" data-backdrop="static" title="{l_categories}">
+								<button type="button" class="btn btn-outline-success m-1" data-bs-toggle="modal" data-bs-target="#uploadnewModal" data-backdrop="static">{{ lang['upload_img'] }}</button>
+								<button type="button" class="btn btn-outline-success m-1" data-bs-toggle="modal" data-bs-target="#uploadNewByUrlModal" data-backdrop="static">{{ lang['upload_img_url'] }}</button>
+								{% if status %}
+								<button type="button" class="btn btn-outline-primary m-1" data-bs-toggle="modal" data-bs-target="#categoriesModal" data-backdrop="static" title="{{ lang['categories'] }}">
 									<i class="fa fa-folder"></i>
 								</button>
-								[/status]
+								{% endif %}
 								<button type="button" class="btn btn-outline-primary m-1" data-bs-toggle="collapse" data-bs-target="#collapseImagesFilter" aria-expanded="false" aria-controls="collapseImagesFilter">
 									<i class="fa fa-filter"></i>
 								</button>
@@ -114,22 +113,22 @@ href="{skins_url}/assets/vendor/uploadifive/uploadifive.css" type="text/css" rel
 		</div>
 	</div>
 	<div class="row" id="entries">
-		{entries}
+		{{ entries|raw }}
 	</div>
 	<div class="row mt-2">
-		<div class="col-lg-6 mb-2 mb-lg-0">{pagesss}</div>
+	<div class="col-lg-6 mb-2 mb-lg-0">{{ pagesss|raw }}</div>
 		<div class="col-lg-6">
-			[status]
+			{% if status %}
 			<div class="input-group">
 				<select name="subaction" class="form-select">
-					<option value="">-- {l_action} --</option>
-					<option value="delete">{l_delete}</option>
-					<option value="move">{l_move}</option>
+					<option value="">-- {{ lang['action'] }} --</option>
+					<option value="delete">{{ lang['delete'] }}</option>
+					<option value="move">{{ lang['move'] }}</option>
 				</select>
-				{dirlist}
+				{{ dirlist|raw }}
 				<button type="submit" class="btn btn-outline-warning">OK</button>
 			</div>
-			[/status]
+			{% endif %}
 		</div>
 	</div>
 </form>
@@ -137,30 +136,30 @@ href="{skins_url}/assets/vendor/uploadifive/uploadifive.css" type="text/css" rel
 	<div class="modal-dialog">
 		<div class="modal-content">
 			<div class="modal-header">
-				<h4 class="modal-title" id="uploadnewModalLabel">{l_uploadnew}</h4>
+				<h4 class="modal-title" id="uploadnewModalLabel">{{ lang['uploadnew'] }}</h4>
 				<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
 			</div>
-			<form id="uploadnew_form" action="{php_self}?mod=images" method="post" enctype="multipart/form-data" name="sn">
+			<form id="uploadnew_form" action="{{ php_self }}?mod=images" method="post" enctype="multipart/form-data" name="sn">
 				<input type="hidden" name="subaction" value="upload"/>
-				<input type="hidden" name="area" value="{area}"/>
+				<input type="hidden" name="area" value="{{ area }}"/>
 				<div class="modal-body">
 					<div class="form-group row mb-2">
-						<label class="col-sm-4 col-form-label">{l_category}</label>
-						<div class="col-sm-8 ng-select">{dirlistS}</div>
+						<label class="col-sm-4 col-form-label">{{ lang['category'] }}</label>
+						<div class="col-sm-8 ng-select">{{ dirlistS|raw }}</div>
 					</div>
 					<div class="form-group row">
 						<div class="col-sm-8 offset-4">
 							<div class="form-check mb-2">
 								<input id="flagReplace" type="checkbox" name="replace" value="1" class="form-check-input">
-								<label class="form-check-label" for="flagReplace">{l_do_replace}</label>
+								<label class="form-check-label" for="flagReplace">{{ lang['do_replace'] }}</label>
 							</div>
 							<div class="form-check mb-2">
 								<input id="flagRand" type="checkbox" name="rand" value="1" class="form-check-input">
-								<label class="form-check-label" for="flagRand">{l_do_rand}</label>
+								<label class="form-check-label" for="flagRand">{{ lang['do_rand'] }}</label>
 							</div>
 							<div class="form-check mb-2">
-								<input id="flagStamp" type="checkbox" name="stamp" value="1" class="form-check-input" {stamp_mode}{stamp_checked}>
-								<label class="form-check-label" for="flagStamp">{l_do_wmimage}</label>
+								<input id="flagStamp" type="checkbox" name="stamp" value="1" class="form-check-input" {{ stamp_mode }}{{ stamp_checked }}>
+								<label class="form-check-label" for="flagStamp">{{ lang['do_wmimage'] }}</label>
 							</div>
 							<!-- Always create thumbnails -->
 							<input type="hidden" name="thumb" value="1">
@@ -184,7 +183,7 @@ href="{skins_url}/assets/vendor/uploadifive/uploadifive.css" type="text/css" rel
 					</div>
 				</div>
 				<div class="modal-footer text-right">
-					<button type="submit" class="btn btn-outline-success">{l_upload}</button>
+					<button type="submit" class="btn btn-outline-success">{{ lang['upload'] }}</button>
 					<button type="button" class="btn btn-light" data-bs-dismiss="modal">Close</button>
 				</div>
 			</form>
@@ -195,26 +194,26 @@ href="{skins_url}/assets/vendor/uploadifive/uploadifive.css" type="text/css" rel
 	<div class="modal-dialog">
 		<div class="modal-content">
 			<div class="modal-header">
-				<h4 class="modal-title" id="uploadnewModalLabel">{l_upload_img_url}</h4>
+				<h4 class="modal-title" id="uploadnewModalLabel">{{ lang['upload_img_url'] }}</h4>
 				<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
 			</div>
-			<form action="{php_self}?mod=images" method="post" name="snup">
+			<form action="{{ php_self }}?mod=images" method="post" name="snup">
 				<input type="hidden" name="subaction" value="uploadurl"/>
-				<input type="hidden" name="area" value="{area}"/>
+				<input type="hidden" name="area" value="{{ area }}"/>
 				<div class="modal-body">
 					<div class="form-group row mb-2">
-						<label class="col-sm-4 col-form-label">{l_category}</label>
-						<div class="col-sm-8 ng-select">{dirlistS}</div>
+						<label class="col-sm-4 col-form-label">{{ lang['category'] }}</label>
+						<div class="col-sm-8 ng-select">{{ dirlistS|raw }}</div>
 					</div>
 					<div class="form-group row">
 						<div class="col-sm-8 offset-4">
 							<div class="form-check mb-2">
 								<input id="replace2" type="checkbox" name="replace" value="1" class="form-check-input">
-								<label class="form-check-label" for="replace2">{l_do_replace}</label>
+								<label class="form-check-label" for="replace2">{{ lang['do_replace'] }}</label>
 							</div>
 							<div class="form-check mb-2">
 								<input id="rand2" type="checkbox" name="rand" value="1" class="form-check-input">
-								<label class="form-check-label" for="rand2">{l_do_rand}</label>
+								<label class="form-check-label" for="rand2">{{ lang['do_rand'] }}</label>
 							</div>
 							<div class="form-check mb-2">
 								<input id="stamp2" type="checkbox" name="stamp" value="1" class="form-check-input" {stamp_mode}{stamp_checked}>
@@ -242,14 +241,14 @@ href="{skins_url}/assets/vendor/uploadifive/uploadifive.css" type="text/css" rel
 					</div>
 				</div>
 				<div class="modal-footer text-right">
-					<button type="submit" class="btn btn-outline-success">{l_upload}</button>
+					<button type="submit" class="btn btn-outline-success">{{ lang['upload'] }}</button>
 					<button type="button" class="btn btn-light" data-bs-dismiss="modal">Close</button>
 				</div>
 			</form>
 		</div>
 	</div>
 </div>
-[status]
+{% if status %}
 <div id="categoriesModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="categoriesModalLabel" aria-hidden="true">
 	<div class="modal-dialog">
 		<div class="modal-content">
@@ -258,21 +257,21 @@ href="{skins_url}/assets/vendor/uploadifive/uploadifive.css" type="text/css" rel
 				<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
 			</div>
 			<div class="modal-body">
-				<form action="{php_self}?mod=images" method="post" name="newcat">
+				<form action="{{ php_self }}?mod=images" method="post" name="newcat">
 					<input type="hidden" name="subaction" value="newcat"/>
-					<input type="hidden" name="area" value="{area}"/>
-					<label class="col-form-label">{l_addnewcat}</label>
+					<input type="hidden" name="area" value="{{ area }}"/>
+					<label class="col-form-label">{{ lang['addnewcat'] }}</label>
 					<div class="input-group mb-3">
 						<input type="text" name="newfolder" class="form-control"/>
 						<button type="submit" class="btn btn-outline-success">OK</button>
 					</div>
 				</form>
-				<form action="{php_self}?mod=images" method="post" name="delcat">
+				<form action="{{ php_self }}?mod=images" method="post" name="delcat">
 					<input type="hidden" name="subaction" value="delcat"/>
-					<input type="hidden" name="area" value="{area}"/>
-					<label class="col-form-label">{l_delcat}</label>
+					<input type="hidden" name="area" value="{{ area }}"/>
+					<label class="col-form-label">{{ lang['delcat'] }}</label>
 					<div class="input-group mb-3 ng-select">
-						{dirlist}
+						{{ dirlist|raw }}
 						<button type="submit" class="btn btn-outline-danger">OK</button>
 					</div>
 				</form>
@@ -283,7 +282,7 @@ href="{skins_url}/assets/vendor/uploadifive/uploadifive.css" type="text/css" rel
 		</div>
 	</div>
 </div>
-[/status]
+{% endif %}
 <script type="module">
 	document.addEventListener('DOMContentLoaded', () => { // Gallery filtering
 const filterButtons = document.querySelectorAll('[data-filter]');
@@ -491,35 +490,35 @@ reject(new Error('Failed to load ' + src));
 document.head.appendChild(s);
 });
 }
-function ensureUploadifive() {
+	function ensureUploadifive() {
 if (window.jQuery && $.fn && $.fn.uploadifive) {
 return Promise.resolve(true);
 }
 // Пытаемся подгрузить из скина, затем из lib
-var skinSrc = '{skins_url}/assets/vendor/uploadifive/jquery.uploadifive.js';
-var libSrc = '{{ home }}/lib/jq/plugins/uploadifive/jquery.uploadifive.min.js';
+		var skinSrc = '{{ skins_url }}/assets/vendor/uploadifive/jquery.uploadifive.js';
+		var libSrc = '{{ home }}/lib/jq/plugins/uploadifive/jquery.uploadifive.min.js';
 return loadScript(skinSrc).catch(function () {
 return loadScript(libSrc);
 });
 }
-function initUploader() {
+	function initUploader() {
 var uploader = $('#fileUploadInput').uploadifive({
 auto: false,
-uploadScript: '{admin_url}/rpc.php?methodName=admin.files.upload',
-cancelImg: '{skins_url}/images/up_cancel.png',
+			uploadScript: '{{ admin_url }}/rpc.php?methodName=admin.files.upload',
+			cancelImg: '{{ skins_url }}/images/up_cancel.png',
 folder: '',
-fileExt: '{listExt}',
-fileDesc: '{descExt}',
-sizeLimit: '{maxSize}',
+			fileExt: '{{ listExt }}',
+			fileDesc: '{{ descExt }}',
+			sizeLimit: '{{ maxSize }}',
 multi: true,
 buttonText: 'Выбрать изображение ...',
 width: 200,
 onInit: function () { // Прячем ручные кнопки добавления/удаления, так как используем uploadifive
 $('#showRemoveAddButtoms').hide();
 },
-onUpload: function (filesToUpload) { // Подготовка данных для отправки
+			onUpload: function (filesToUpload) { // Подготовка данных для отправки
 var formData = {
-ngAuthCookie: '{authcookie}',
+					ngAuthCookie: '{{ authcookie }}',
 uploadType: 'image',
 category: getUploadCategory(),
 rand: $('#flagRand').is(':checked') ? 1 : 0,

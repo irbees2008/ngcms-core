@@ -1,12 +1,12 @@
 <tr>
 	<td width="50%">
-		{title}
-		[descr]
-		<small class="form-text text-muted">{descr}</small>
-		[/descr]
+		{{ title|raw }}
+		{% if descr %}
+			<small class="form-text text-muted">{{ descr|raw }}</small>
+		{% endif %}
 	</td>
 	<td width="50%">
-		{input}
-		{error}
+		{{ input|raw }}
+		{{ error|raw }}
 	</td>
 </tr>

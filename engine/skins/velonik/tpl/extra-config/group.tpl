@@ -2,15 +2,13 @@
 	<td colspan="2">
 		<fieldset class="admGroup">
 			<legend class="title">
-				{title}
-								[toggle]
-									[<a href="#" data-toggle="admin-group">{l_group.toggle}</a>]
-									[/toggle]
+				{{ title|raw }}
+				{% if toggle %}[<a href="#" data-toggle="admin-group">{{ lang['group.toggle']|default('Свернуть/развернуть') }}</a>]{% endif %}
 			</legend>
-			<div class="admin-group-content" [toggle] style="display:{toggle_mode};" [/toggle]>
+			<div class="admin-group-content" {% if toggle %} style="display:{{ toggle_mode }};" {% endif %}>
 				<table class="table table-sm">
 					<tbody>
-						{entries}
+						{{ entries|raw }}
 					</tbody>
 				</table>
 			</div>

@@ -1,7 +1,7 @@
 <tr>
 	<td nowrap>
-		{title}
-		<code class="form-text text-muted">{descr}</code>
+		{{ title|raw }}
+		<code class="form-text text-muted">{{ descr|raw }}</code>
 	</td>
-	<td>{result}</td>
+	<td>{{ result|raw }}</td>
 </tr>

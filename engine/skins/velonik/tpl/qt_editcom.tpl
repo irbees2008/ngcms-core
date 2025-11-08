@@ -418,7 +418,7 @@ el.value += text;
 }
 function hideModalById(id) {
 var el = document.getElementById(id);
-if (! el) 
+if (! el)
 return;
 try {
 var inst = bootstrap.Modal.getInstance(el) || new bootstrap.Modal(el);
@@ -438,7 +438,7 @@ if (! href) {
 document.getElementById('urlHref').focus();
 return;
 }
-if (!/^([a-z]+:\/\/|\/|#|mailto:)/i.test(href)) 
+if (!/^([a-z]+:\/\/|\/|#|mailto:)/i.test(href))
 href = 'http://' + href;
 if (! text) {
 text = href;
@@ -525,7 +525,7 @@ if (! href) {
 document.getElementById('imgHref').focus();
 return;
 }
-if (!/^((https?:\/\/|ftp:\/\/)|\/|#)/i.test(href)) 
+if (!/^((https?:\/\/|ftp:\/\/)|\/|#)/i.test(href))
 href = 'http://' + href;
 var attrs = '="' + href.replace(/"/g, '&quot;') + '"';
 if (width) {
@@ -560,7 +560,7 @@ hrefField.value = (selText || '').trim();
 }
 function hideModalBs5(id) {
 var el = document.getElementById(id);
-if (! el) 
+if (! el)
 return;
 try {
 var inst = bootstrap.Modal.getInstance(el) || new bootstrap.Modal(el);
@@ -597,7 +597,7 @@ hideModalBs5('modal-insert-media');
 if (typeof insertCodeBrush !== 'function') {
 function insertCodeBrush(alias, areaId) {
 try {
-if (! alias) 
+if (! alias)
 return;
 } catch (e) {}
 var a = String(alias || '').toLowerCase();
