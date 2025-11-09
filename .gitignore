@@ -1,5 +1,7 @@
 /.idea
-/engine/plugins
+# Игнорируем весь каталог plugins, но разрешаем шаблоны (tpl) внутри плагинов
+/engine/plugins/*
+!/engine/plugins/**/tpl/**
 /engine/cache
 /engine/backups/*.gz
 /engine/conf/config.php
@@ -10,9 +12,11 @@
 /engine/trash/admin_note.inc.txt
 /uploads
 /vendor
-/templates
-!/templates/default
-!/templates/default2
+# Игнорируем все темы, кроме перечисленных; рекурсивно включаем их содержимое
+/templates/*
+!/templates/default/**
+!/templates/default2/**
+# Добавьте при необходимости: !/templates/popsa2/**
 .phpunit.result.cache
 composer.lock
 npm-debug.log
