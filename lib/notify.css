@@ -1,0 +1,118 @@
+﻿.ngt-toast__container {
+    position: fixed;
+    top: 12px;
+    right: 12px;
+    z-index: 2000;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    pointer-events: none
+}
+.ngt-toast {
+    min-width: 220px;
+    max-width: 320px;
+    background: #fff;
+    color: #2a2a2a;
+    border-radius: 8px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, .12), 0 2px 6px rgba(0, 0, 0, .08);
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 8px 10px;
+    border-left: 3px solid #4a90e2;
+    pointer-events: auto;
+    opacity: 0;
+    transform: translateY(-6px);
+    transition: opacity .2s ease, transform .2s ease
+}
+.ngt-toast--show {
+    opacity: 1;
+    transform: translateY(0)
+}
+.ngt-toast--hide {
+    opacity: 0;
+    transform: translateY(-6px)
+}
+.ngt-toast__icon {
+    flex: 0 0 18px;
+    line-height: 0;
+    margin-top: 1px
+}
+.ngt-toast__svg {
+    width: 18px;
+    height: 18px;
+    display: block
+}
+.ngt-toast__content {
+    flex: 1 1 auto;
+    min-width: 0
+}
+.ngt-toast__type {
+    margin: 0 0 2px;
+    font-weight: 700;
+    font-size: 13px;
+    line-height: 1.2
+}
+.ngt-toast__message {
+    margin: 0;
+    font-size: 12px;
+    line-height: 1.35;
+    word-wrap: break-word;
+    word-break: break-word;
+    max-height: 8.1em;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 6;
+    -webkit-box-orient: vertical
+}
+.ngt-toast__close {
+    flex: 0 0 auto;
+    margin-left: 2px;
+    background: transparent;
+    border: 0;
+    color: inherit;
+    opacity: .6;
+    cursor: pointer;
+    padding: 2px;
+    border-radius: 6px;
+    line-height: 0
+}
+.ngt-toast__close:hover {
+    opacity: 1;
+    background: rgba(0, 0, 0, .04)
+}
+.ngt-toast--blue {
+    border-left-color: #4a90e2
+}
+.ngt-toast--green {
+    border-left-color: #2ecc71
+}
+.ngt-toast--red {
+    border-left-color: #e74c3c
+}
+.ngt-toast--orange {
+    border-left-color: #f39c12
+}
+.ngt-toast--blue .ngt-toast__type {
+    color: #2c7bd1
+}
+.ngt-toast--green .ngt-toast__type {
+    color: #239c58
+}
+.ngt-toast--red .ngt-toast__type {
+    color: #c0392b
+}
+.ngt-toast--orange .ngt-toast__type {
+    color: #c87f0a
+}
+@media (max-width:480px) {
+    .ngt-toast {
+        min-width: 200px;
+        max-width: calc(100vw - 20px)
+    }
+    .ngt-toast__container {
+        right: 10px;
+        left: 10px;
+        top: 10px
+    }
+}
