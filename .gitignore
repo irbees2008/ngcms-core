@@ -13,7 +13,6 @@
 /templates
 !/templates/default
 !/templates/default2
-!/templates/popsa2
 .phpunit.result.cache
 composer.lock
 npm-debug.log
