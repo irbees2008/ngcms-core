@@ -369,11 +369,16 @@ function manage_showlist($type)
         'stamp_checked'  => ($config['stamp_mode'] == 2) ? ' checked' : '',
         'thumb_checked'  => ' checked',
         'box_preview'    => (isset($_COOKIE['img_preview']) && $_COOKIE['img_preview'] ? ' checked="checked"' : ''),
+        // Передаём числовой статус пользователя в Twig
+        'status'         => intval($userROW['status']),
+        // Для отладки отображаемый статус
+        'debug_status'   => 'USR_STATUS=' . intval($userROW['status']) . ' FILTER=' . (($userROW['status'] < 3) ? 'ADMIN/MOD' : 'LIMITED'),
     ];
     $tvars['regx']['#\[preview\](.+?)\[/preview\]#is'] = (isset($_COOKIE['img_preview']) && $_COOKIE['img_preview']) ? '$1' : '';
     // Create auth cookie
     $tvars['vars']['authcookie'] = $userROW['authcookie'];
-    if ($userROW['status'] < '3') {
+    // Обработка старых маркеров [status]..[/status]
+    if (intval($userROW['status']) < 3) {
         $tvars['vars']['[status]'] = '';
         $tvars['vars']['[/status]'] = '';
     } else {
