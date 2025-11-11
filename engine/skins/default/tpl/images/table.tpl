@@ -88,7 +88,7 @@
 				</button>
 			</div>
 		</div>
-		<div class="row" id="entries">
+	<div class="row" id="entriesRow">
 			<div class="col-md-12">
 				<div class="panel-body">
 					<div class="row">
@@ -320,10 +320,17 @@ tbl.deleteRow(lastRow - 1);
 }
 </script>
 <script type="text/javascript">
-	$(document).ready(function () {
-$('#delform').on('input', function () {
-$(this.elements.category).toggle('move' === $(this.elements.subaction).val());
-}).trigger('input');
+		$(document).ready(function () {
+// Показ/скрытие селекта категории при выборе действия "Переместить"
+$('#delform').on('change input', function () {
+	var form = this;
+	if (form && form.elements && form.elements.subaction) {
+		var show = (form.elements.subaction.value === 'move');
+		if (form.elements.category) {
+			$(form.elements.category).toggle(show);
+		}
+	}
+}).trigger('change');
 $('#uploadnew_form').on('submit', function (e) {
 e.preventDefault();
 $('#uploadnewModal').on('hidden.bs.modal', function () {
