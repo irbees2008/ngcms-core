@@ -1,8 +1,14 @@
 .CodeMirror {
     font-family: monospace;
-    height: 300px;
+    /*height: 300px;*/
     color: #000;
     direction: ltr
+}
+@media (max-width: 991.98px) {
+    #fileEditorSelector .CodeMirror {
+        height: 578px !important;
+        min-height: 578px;
+    }
 }
 .CodeMirror-lines {
     padding: 4px 0
