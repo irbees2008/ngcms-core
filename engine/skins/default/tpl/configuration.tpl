@@ -1120,29 +1120,109 @@
 function toggleSmtp(event) {
 $(".useSMTP").toggle("smtp" === $("#mail_mode option:selected").val());
 }
+// Unified notify wrapper: prefer showToast if available, fallback to legacy sticker/alert
+function __ngNotify(message, type) {
+try {
+if (typeof window.showToast === 'function') {
+window.showToast(String(message), {
+type: (type || 'info')
+});
+return;
+}
+if (typeof window.ngNotifySticker === 'function') {
+window.ngNotifySticker(String(message), {
+className: (type || 'info'),
+closeBTN: true
+});
+return;
+}
+} catch (e) {}
+try {
+alert(String(message));
+} catch (_e) {}
+}
+// Extract message/type from backend responses (RPC)
+function __pickMsg(resp, okDefault) {
+if (! resp) {
+return {
+msg: okDefault || 'OK',
+type: 'success'
+};
+}
+if (typeof resp === 'string') {
+return {msg: resp, type: 'info'};
+}
+if (resp.errorText) {
+return {
+msg: resp.errorText,
+type: (resp.type || (resp.status ? 'success' : 'error'))
+};
+}
+if (resp.infoText) {
+return {
+msg: resp.infoText,
+type: (resp.type || (resp.status ? 'success' : 'info'))
+};
+}
+if (resp.message) {
+return {
+msg: resp.message,
+type: (resp.type || (resp.status ? 'success' : 'info'))
+};
+}
+if (resp.content) {
+return {
+msg: resp.content,
+type: (resp.type || (resp.status ? 'success' : 'info'))
+};
+}
+if (resp.error) {
+return {msg: resp.error, type: 'error'};
+}
+if (resp.status && typeof resp.status === 'string') {
+return {
+msg: resp.status,
+type: (/ok|success/i.test(resp.status) ? 'success' : 'info')
+};
+}
+return {
+msg: okDefault || 'OK',
+type: 'success'
+};
+}
 // Check DB connection
 function ngCheckDB() {
-post('admin.configuration.dbCheck', {
+return post('admin.configuration.dbCheck', {
 'token': '{{ token }}',
 'dbtype': $("#db_dbtype").val(),
 'dbhost': $("#db_dbhost").val(),
 'dbname': $("#db_dbname").val(),
 'dbuser': $("#db_dbuser").val(),
 'dbpasswd': $("#db_dbpasswd").val()
+}, false).then(function (resp) {
+var res = __pickMsg(resp, '{{ lang['db_check_ok']|default('DB connection OK') }}');
+__ngNotify(res.msg, (/error|fail/i.test(res.type) ? 'error' : 'success'));
+}).catch(function (err) {
+__ngNotify((err && (err.message || err.statusText)) || 'DB check failed', 'error');
 });
 }
 // Check MEMCached connection
 function ngCheckMemcached() {
-post('admin.configuration.memcachedCheck', {
+return post('admin.configuration.memcachedCheck', {
 'token': '{{ token }}',
 'ip': $("#memcached_ip").val(),
 'port': $("#memcached_port").val(),
 'prefix': $("#memcached_prefix").val()
+}, false).then(function (resp) {
+var res = __pickMsg(resp, '{{ lang['memcached_check_ok']|default('MEMCached connection OK') }}');
+__ngNotify(res.msg, (/error|fail/i.test(res.type) ? 'error' : 'success'));
+}).catch(function (err) {
+__ngNotify((err && (err.message || err.statusText)) || 'MEMCached check failed', 'error');
 });
 }
 // Send test e-mail message
 function ngCheckEmail() {
-post('admin.configuration.emailCheck', {
+return post('admin.configuration.emailCheck', {
 'token': '{{ token }}',
 'mode': $("#mail_mode").val(),
 'from': {
@@ -1160,6 +1240,11 @@ post('admin.configuration.emailCheck', {
 'pass': $("#mail_smtp_pass").val(),
 'secure': $("#mail_smtp_secure").val()
 }
+}, false).then(function (resp) {
+var res = __pickMsg(resp, '{{ lang['email_check_ok']|default('Email sent (check your inbox)') }}');
+__ngNotify(res.msg, (/error|fail/i.test(res.type) ? 'error' : 'success'));
+}).catch(function (err) {
+__ngNotify((err && (err.message || err.statusText)) || 'Email check failed', 'error');
 });
 }
 </script>

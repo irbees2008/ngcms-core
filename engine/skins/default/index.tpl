@@ -11,6 +11,66 @@
 		<script src="{{ skins_url }}/public/js/vendor.js" type="text/javascript"></script>
 		<script src="{{ skins_url }}/public/js/app.js" type="text/javascript"></script>
 		<script src="{{ skins_url }}/public/js/notify.js" type="text/javascript"></script>
+		<script type="text/javascript">
+			// Переопределяем глобальную post(), чтобы уважать флаг notify (тихий режим) и исключить двойные уведомления
+window.post = function (methodName, params, notify) {
+var n = (arguments.length < 3 || typeof notify === 'undefined') ? true : !! notify;
+var token = $('input[name="token"]').val();
+return $.ajax({
+method: 'POST',
+url: NGCMS.admin_url + '/rpc.php',
+dataType: 'json',
+headers: {
+'X-CSRF-TOKEN': token,
+'X-Requested-With': 'XMLHttpRequest'
+},
+data: {
+json: 1,
+token: token,
+methodName: methodName,
+params: JSON.stringify(params || {})
+},
+beforeSend: function () {
+if (typeof window.ngShowLoading === 'function')
+window.ngShowLoading();
+
+}
+}).then(function (resp) {
+if (! resp || ! resp.status) {
+var ex = {
+message: 'Error [' + (
+resp && resp.errorCode
+) + ']: ' + (
+resp && resp.errorText
+),
+response: resp
+};
+return $.Deferred().reject(ex).promise();
+}
+return resp;
+}).done(function (resp) {
+if (n && typeof window.ngNotifySticker === 'function') {
+window.ngNotifySticker(resp.errorText, {
+className: 'alert-success',
+closeBTN: true
+});
+}
+return resp;
+}).fail(function (err) {
+if (n && typeof window.ngNotifySticker === 'function') {
+var fallbackMsg = (window.NGCMS && NGCMS.lang && NGCMS.lang.rpc_httpError) || 'Request error';
+window.ngNotifySticker(err.message || fallbackMsg, {
+className: 'alert-danger',
+closeBTN: true
+});
+}
+}).always(function () {
+if (typeof window.ngHideLoading === 'function')
+window.ngHideLoading();
+
+});
+};
+		</script>
 	</head>
 	<body>
 		<div id="loading-layer" style="display:none">

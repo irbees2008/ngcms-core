@@ -318,11 +318,13 @@ export function post(methodName, params = {}, notifyResult = true) {
       return response;
     })
     .fail(function (error) {
-      // title: `<h5>${NGCMS.lang.notifyWindowError}</h5>`,
-      ngNotifySticker(error.message || NGCMS.lang.rpc_httpError, {
-        className: "alert-danger",
-        closeBTN: true,
-      });
+      // Respect notifyResult flag to avoid duplicate stickers when caller handles notifications
+      if (notifyResult) {
+        ngNotifySticker(error.message || NGCMS.lang.rpc_httpError, {
+          className: "alert-danger",
+          closeBTN: true,
+        });
+      }
     })
     .always(function () {
       ngHideLoading();
