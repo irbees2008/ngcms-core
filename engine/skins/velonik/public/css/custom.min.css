@@ -3947,3 +3947,32 @@ ul.notifications {
     cursor: pointer;
     color: #6c757d
 }
+#news_relates {
+    display: none;
+    background: #ffc;
+    border: 1px solid #9E9E9E;
+    padding: 5px;
+    -moz-border-radius: 4px;
+    -webkit-border-radius: 4px;
+    border-radius: 4px;
+    position: absolute;
+}
+#news_relates li {
+    display: block;
+    padding: 2px 75px 2px 5px;
+    line-height: 16px;
+    border-bottom: 1px dotted #ccc;
+    color: #777;
+}
+#news_relates li span {
+    float: right;
+    height: 16px;
+    width: 70px;
+    margin-right: -75px;
+    text-align: center;
+    color: #333;
+    font-weight: bold;
+}
+#news_relates li b {
+    font-weight: bold;
+}

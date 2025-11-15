@@ -85,7 +85,7 @@
 								<input id="newsTitle" type="text" name="title" value="{{ title }}" class="form-control"/>
 								<span class="input-group-text">
 									<a href="{{ link }}" target="_blank">
-										<i class="ri-links-line"></i>
+										<i class="fa fa-external-link" aria-hidden="true"></i>
 									</a>
 								</span>
 							</div>
