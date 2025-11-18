@@ -1,94 +1,123 @@
-## Шаблон main.tpl
+## Шаблон main.tpl (актуальный Twig вариант)
 
-![](templates/template_structure_small.gif)
+Файл `main.tpl` формирует каркас HTML‑страницы: `<!DOCTYPE>`, `<html>`, `<head>`, `<body>`, общие CSS/JS, шапку, меню, область контента (`{{ mainblock }}`) и футер.
 
-Файл является ядром шаблонизатора и отвечает за генерацию структуры всего HTML документа.
+### Основные задачи
 
-В нём вы определяете все HTML заголовки и другие обязательные элементы разметки для XHTML 1.0 совместимого документа.
-Если вы создаёте шаблон для NGCMS на основе уже существующего HTML-форматирования (HTML-шаблона), то удобнее всего взяв за основу исходный index.html шаблон, переименовать его в main.tpl и начать переделывать, заменяя логические блоки шаблона-исходника на переменные, предоставляемые движком.
+- Подключить метаданные: `{{ metatags }}`, `{{ canonical }}`, `{{ htmlvars }}`.
+- Вывести глобальные переменные: `{{ what }}`, `{{ version }}`, `{{ titles }}`.
+- Разместить служебный блок загрузки (`#loading-layer`).
+- Отрисовать меню, поиск (`{{ search_form }}`), личный блок (`{{ personal_menu }}`) или форму входа.
+- Вывести основной контент через `{{ mainblock }}` и при необходимости дополнительные сайдбар-блоки (вызовы плагинов через `callPlugin`).
 
-Считается <u>правилом хорошего тона</u> указывать ссылку на сайт NGCMS внутри вашего нового шаблона. Обычно её размещают внизу страницы.
-Прошу обратить внимание, что лицензионное соглашение, используемое при распространении NGCMS не заставляет вас оставлять какие-либо ссылки на ваших страницах, но оставляя ссылку на страницу NGCMS вы способствуете развитию самой системы, а это выгодно всем, включая вас.
+### Больше нет legacy‑блоков
 
-Пример ссылки:
+Конструкции вида `[sitelock] ... [/sitelock]`, `[is-logged]`, `[debug]` устарели. Их заменяют Twig‑условия:
 
-<pre >&lt;a href="http://ngcms.org/" target-"_blank">Powered by &lt;b>NGCMS&lt;/b>&lt;/a></pre>
+```twig
+{% if global.flags.isLogged %} ... {% endif %}
+{% if pluginIsActive('archive') %}{{ callPlugin('archive.show', {...}) }}{% endif %}
+```
 
-## Доступные блоки/переменные
+### Часто используемые переменные
 
-Блоки:
+- `{{ mainblock }}` – основной контент текущей страницы.
+- `{{ home }}` – абсолютный/относительный корень сайта.
+- `{{ titles }}` – заголовок страницы (используется внутри `<title>`).
+- `{{ htmlvars }}` – подключение стилей/скриптов ядра и плагинов.
+- `{{ queries }}`, `{{ exectime }}`, `{{ memPeakUsage }}` – показатели производительности.
+- `{{ personal_menu }}` – блок пользователя (шаблон `usermenu.tpl`).
+- `{{ search_form }}` – форма быстрого поиска.
+- `{{ notify|raw }}` – накопленные уведомления (выводится после основной разметки).
+- `{{ lang[...] }}` – языковые строки.
 
-[sitelock] ... [/sitelock] - блокировка контента сайтаПри активации режима "заблокировать сайт" (настройки -> настройки системы -> основные настройки) всё содержимое этого блока будет прятаться, а на его место - выводиться содержимое шаблона <a href="lock.tpl.html">lock.tpl</a>
-[debug] ... [/debug] - содержимое блока будет отображаться при включении режима "генерация отладочной информации" (настройки -> настройки системы -> безопасность) Содержимое блока показывается <u>только</u> администратору сайта
-[is-logged] ... [/is-logged] - содержимое блока выводится в случае, если страница показывается залогиненному посетителю
-[isnt-logged] ... [/isnt-logged] - содержимое блока выводится в случае, если страница показывается <u>не</u>залогиненному посетителю
+### Подключение JS/CSS
 
-Переменные:
+Правильное место – внутри `<head>` для критичных стилей и в конце `<body>` для поведения. Пример:
 
-{mainblock} - основной блок информации, именно в этом блоке фактически отображается смысловое содержание страницы
-{home} - ссылка (относительная) на домашнюю страницу сайта
-{titles} - заголовок страницы (помещается в тег &lt;title> блока &lt;head>)
-{htmlvars} - данную переменную <u>необходимо</u> разместить внутри HTML блока &lt;head>, она содержит вызовы CSS/JS скриптов, необходимых для работы самого движка или плагинов
-{queries} - информационно-диагностическая переменная, показывает количество SQL запросов использованных для генерации страницы
-{exectime} - информационно-диагностическая переменная, показывает потраченное на генерацию страницы время (с точностью до 1/100 секунды)
-{search_form} - содержит форму краткого поиска (шаблон: search.form.tpl)
-{personal_menu} - содержит блок приветствия/авторизации пользователя (шаблон: usermenu.tpl)
-{personal_menu:logged} - если пользователь залогинен, то содержит блок приветствия пользователя (шаблон: usermenu.tpl); иначе - пустоту
-{personal_menu:not.logged} - если пользователь <u>не</u> залогинен, то содержит блок авторизации пользователя (шаблон: usermenu.tpl); иначе - пустоту
-{categories} - содержит древовидное меню категорий новостей (см. также шаблон: <a href-"categories.tpl.html">categories.tpl</a>)
-{what} - идентификатор CMS ("Next Generation CMS")
+```twig
+<link rel="stylesheet" href="{{ tpl_url }}/css/style.css">
+<script src="{{ scriptLibrary }}/functions.js"></script>
+<script src="{{ scriptLibrary }}/ajax.js"></script>
+```
 
-{version} - установленная версия CMS<u>Желательно</u>, но <u>не обязательно</u> внутри HTML блока &lt;head> указывать переменную generator. Вам этот тег не принесёт никакого вреда, но такая запись будет полезна для развития NGCMS.
+### Пример модернизированного main.tpl (упрощённая версия)
 
-<pre >&lt;meta name="generator" content="{what} {version}" /></pre>
+```twig
+<!DOCTYPE html>
+{% apply spaceless %}
+<html lang="{{ lang['langcode'] }}">
+	<head>
+		<meta charset="{{ lang['encoding'] }}"/>
+		<meta name="generator" content="{{ what }} {{ version }}"/>
+		{{ metatags }}
+		{{ canonical }}
+		{{ htmlvars }}
+		<link rel="stylesheet" href="{{ tpl_url }}/css/style.css">
+		<title>{{ titles }}{% if pagination_current and pagination_current > 1 %} — Стр. {{ pagination_current }}{% endif %}</title>
+	</head>
+	<body>
+		<div id="loading-layer"><img src="{{ tpl_url }}/img/loading.gif" alt=""/></div>
+		<header id="header">
+			<a id="logo" href="{{ home }}"><img src="{{ tpl_url }}/img/logo.png" alt="Logo"></a>
+			{% if global.flags.isLogged %}
+				{{ personal_menu }}
+			{% else %}
+				<div id="auth"><a href="/register/">{{ lang.registration }}</a></div>
+			{% endif %}
+			<nav class="menu">
+				<ul>
+					<li><a href="{{ home }}">{{ lang.theme.home }}</a></li>
+					<li><a href="#">{{ lang.theme.news }}</a></li>
+				</ul>
+			</nav>
+			<div id="search">{{ search_form }}</div>
+		</header>
+		<main id="content">
+			{% if isHandler('news:main|news:by.category') %}
+				<div class="articles">{{ mainblock }}</div>
+			{% else %}
+				{{ mainblock }}
+			{% endif %}
+		</main>
+		<aside id="sidebar">
+			{% if pluginIsActive('archive') %}{{ callPlugin('archive.show', {'maxnum': 12, 'template': 'archive'}) }}{% endif %}
+			{% if pluginIsActive('tags') %}{{ plugin_tags }}{% endif %}
+		</aside>
+		<footer id="footer">
+			<p>&copy; {{ now|date('Y') }} Powered by <a href="http://ngcms.ru/" target="_blank">NG CMS</a><br>
+				 {{ lang.sql_queries }}: <b>{{ queries }}</b> | {{ lang.page_generation }}: <b>{{ exectime }}</b> {{ lang.sec }} | <b>{{ memPeakUsage }} Mb</b>
+			</p>
+		</footer>
+		{{ notify|raw }}
+	</body>
+</html>
+{% endapply %}
+```
 
-{debug_queries} - отладочная переменная (видимая только администратору), содержит HTML-список всех SQL запросов с указанием времени их исполнения
-{debug_profiler} - отладочная переменная (видимая только администратору), содержит HTML-список наиболее значимых действий системы с указанием времени их исполнения
+### Отладка
 
-## Необходимые для работы элементы
+Для отображения профайлера используйте условие и переменные `debug_queries`, `debug_profiler` (видимы администратору):
 
-Для корректной работы всех элементов ядра CMS вам необходимо подключить несколько JavaScript'ов, обеспечивающих работу части функций ядра, а также некоторые другие элементы:
+```twig
+{% if pluginIsActive('debug') %}
+	<div class="debug">{{ debug_queries }}<br>{{ debug_profiler }}</div>
+{% endif %}
+```
 
-Загрузка необходимых JavaScript'ов, добавляется в секцию &lt;head&gt; шаблона:
+### Рекомендации
 
-<pre >
-&lt;script type="text/javascript" src="{scriptLibrary}/functions.js">&lt;/script>
-&lt;script type="text/javascript" src="{scriptLibrary}/ajax.js">&lt;/script>
-</pre>
+- Минимизируйте inline‑стили, выносите в отдельные `.css`.
+- Не размещайте тяжёлые блоки (большие циклы) внутри `main.tpl` – выносите в включаемые шаблоны.
+- Старайтесь не смешивать логику и оформление: вся логика – в PHP/плагинах, отображение – в Twig.
+- Проверяйте активность плагинов через `pluginIsActive()` перед выводом их блоков.
 
-Подключение невидимого блока, в секцию &lt;body&gt; шаблона, блок должен иметь id-"loading-layer".
-Возможны различные варианты реализации такого подхода. Например так:
+### Ссылка на CMS
 
-<pre >
-&lt;div id="loading-layer" style="display:none; width:180px; height:40px; background:#fff; text-align:center; border:1px solid #eeeeef;">&lt;img src="{tpl_url}/images/loading.gif" alt-"" />&lt;/div>
-</pre>
+Добавление ссылки «Powered by NG CMS» во футере – хорошая практика:
 
-Указанный блок необходим для корректной работы AJAX библиотеки и отображается в момент обращения к серверу для получения необходимой дополнительной информации.
+```twig
+<p>Powered by <a href="http://ngcms.org/" target="_blank">NG CMS</a></p>
+```
 
-## Пример заполнения шаблона
-
-Ниже приведён пример заполнения шаблона из поставки "по умолчанию":
-
-<pre >
-&lt;!DOCTYPE html PUBLIC "=//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-&lt;html xmlns="http://www.w3.org/1999/xhtml" xml:lang="{l_langcode}" lang="{l_langcode}" dir="ltr">
-&lt;head>
-&lt;meta http-equiv="content-type" content="text/html; charset={l_encoding}" />
-&lt;meta http-equiv="content-language" content="{l_langcode}" />
-&lt;meta name-"generator" content="{what} {version}" />
-&lt;meta name="document-state" content="dynamic" />
-{htmlvars}
-&lt;link href="{tpl_url}/style.css" rel="stylesheet" type="text/css" media="screen" />
-&lt;link href="{home}/rss.xml" rel="alternate" type="application/rss+xml" title="RSS" />
-&lt;script type="text/javascript" src="{scriptLibrary}/functions.js">&lt;/script>
-&lt;script type="text/javascript" src="{scriptLibrary}/ajax.js">&lt;/script>
-&lt;title>{titles}&lt;/title>
-&lt;/head>
-&lt;body>
-[sitelock]
-&lt;div id="loading-layer"><img src="{tpl_url}/images/loading.gif" alt="" />&lt;/div>
-...
-[/sitelock]
-&lt;/body>
-&lt;/html>
-</pre>
+Этот пример можно использовать как стартовую точку при создании собственного шаблона.
