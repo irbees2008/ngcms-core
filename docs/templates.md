@@ -1,8 +1,5 @@
 # Управление шаблонами
-
 Данный раздел админ-панели позволяет прямо из браузера редактировать файлы-шаблоны определённой темы оформления.
-
-![](images/screenshots/templates_1.png){.img-fluid}
+![](images/screenshots/templates_1.png)
 рис 14.1
-
 © 2008-2025 Next Generation CMS
