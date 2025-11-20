@@ -33,8 +33,6 @@
   - [bbcodes.tpl](templates/bbcodes.tpl.md)
   - [lock.tpl](templates/lock.tpl.md)
   - [login.tpl](templates/login.tpl.md)
-  - [lostpassword.entries.tpl](templates/lostpassword.entries.tpl.md)
-  - [lostpassword.entry-full.tpl](templates/lostpassword.entry-full.tpl.md)
   - [lostpassword.tpl](templates/lostpassword.tpl.md)
   - [main.tpl](templates/main.tpl.md)
   - [news.categories.tpl](templates/news.categories.tpl.md)
