@@ -315,13 +315,17 @@ $tVars = [
     'unnAppLabel'           => $unnAppLabel,
     // Глобальный токен для RPC admin.statistics.* (нужен для кнопки очистки кэша в топбаре)
     'token_statistics'      => genUToken('admin.statistics'),
+    // Унифицированный профиль пользователя для шаблонов
     'user' => array(
-        'id' => $userROW['id'],
-        'name' => $userROW['name'],
-        'status' => $status,
-        'avatar' => $userAvatar,
-        'flags' => array(
-            'hasAvatar' => $config['use_avatars'] and $userAvatar,
+        'id'     => $userROW['id'],
+        'name'   => $userROW['name'],
+        // Храним числовой статус (ID группы), текстовый статус уже есть в skin_UStatus
+        'status' => $userROW['status'],
+        // Аватар – всегда либо реальный (через userGetAvatar), либо заглушка
+        'avatar' => $skin_UAvatar,
+        'flags'  => array(
+            // Имеет реальный аватар, если включены аватары и поле avatar непустое
+            'hasAvatar' => ($config['use_avatars'] && !empty($userROW['avatar'])) ? 1 : 0,
         ),
     ),
     'newpmText' => $newpmText,

@@ -56,17 +56,28 @@
 					{# Аватар пользователя #}
 					<div class="form-row mb-3">
 						<label class="col-form-label">{{ lang['avatar'] }}</label>
-						<input type="file" name="newavatar" class="form-control" accept="image/*"/>
-						{% if flags.avatarAllowed and flags.hasAvatar %}
-							<div class="mt-2 d-flex align-items-center">
-								<img src="{{ avatar }}" alt="avatar" style="max-width: 80px; max-height: 80px;" class="me-3 rounded"/>
-								<div class="form-check">
-									<input class="form-check-input" type="checkbox" name="delavatar" id="delavatar" value="1"/>
-									<label class="form-check-label" for="delavatar">{{ lang['delete_avatar'] }}</label>
-								</div>
-							</div>
+						{# Подсказка по размерам только если аватары разрешены #}
+						{% if flags.avatarAllowed %}
+							<small class="form-text text-muted">{{ avatar_hint }}</small>
 						{% endif %}
-						<small class="form-text text-muted">{{ avatar_hint }}</small>
+						{# Загрузка доступна только если активен плагин uprofile #}
+						{% if flags.avatarAllowed and pluginIsActive('uprofile') %}
+							<input type="file" name="newavatar" class="form-control mb-2" accept="image/*"/>
+						{% endif %}
+						{% if flags.avatarAllowed %}
+							<div class="mt-2 d-flex align-items-center">
+								<img src="{{ avatar|default(skins_url ~ '/images/default-avatar.jpg') }}" alt="avatar" style="max-width:80px; max-height:80px;" class="me-3 rounded"/>
+								{% if flags.hasAvatar and pluginIsActive('uprofile') %}
+									<div class="form-check">
+										<input class="form-check-input" type="checkbox" name="delavatar" id="delavatar" value="1"/>
+										<label class="form-check-label" for="delavatar">{{ lang['delete_avatar'] }}</label>
+									</div>
+								{% endif %}
+							</div>
+							{% if not pluginIsActive('uprofile') %}
+								<small class="form-text text-muted">Плагин профиля отключён: загрузка/удаление недоступны</small>
+							{% endif %}
+						{% endif %}
 						{% if not flags.avatarAllowed %}
 							<small class="form-text text-muted">{{ lang['avatars_disabled'] }}</small>
 						{% endif %}

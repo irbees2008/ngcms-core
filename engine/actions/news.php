@@ -59,7 +59,8 @@ function editNewsForm()
     // Get news id
     $id = intval($_REQUEST['id']);
     // Try to find news that we're trying to edit
-    if (!is_array($row = $mysql->record('select * from ' . prefix . '_news where id = ' . db_squote($id)))) {
+    $row = $mysql->record('select * from ' . prefix . '_news where id = ' . db_squote($id));
+    if (!is_array($row)) {
         msg(['type' => 'error', 'text' => $lang['msge_not_found']]);
         return;
     }

@@ -80,17 +80,31 @@
 					{# Аватар пользователя #}
 					<div class="form-row mb-3">
 						<label class="col-lg-3 col-form-label">{{ lang['avatar'] }}</label>
-						<div class="col-lg-9">
-							<input type="file" name="newavatar" class="form-control-file" accept="image/*"/>
-							<small class="form-text text-muted">{{ avatar_hint }}</small>
-							{% if flags.avatarAllowed and flags.hasAvatar %}
+						<div
+							class="col-lg-9">
+							{# Показ подсказки (формат/размер) только если аватары разрешены конфигом #}
+							{% if flags.avatarAllowed %}
+								<small class="form-text text-muted">{{ avatar_hint }}</small>
+							{% endif %}
+							{# Загрузка/удаление доступны только если активен плагин uprofile (расширенная логика аватаров) #}
+							{% if flags.avatarAllowed and pluginIsActive('uprofile') %}
+								<input type="file" name="newavatar" class="form-control-file mb-2" accept="image/*"/>
+							{% endif %}
+							{% if flags.avatarAllowed %}
 								<div class="mt-2 d-flex align-items-center">
-									<img src="{{ avatar }}" alt="avatar" style="max-width: 80px; max-height: 80px;" class="mr-3 rounded"/>
-									<div class="form-check">
-										<input class="form-check-input" type="checkbox" name="delavatar" id="delavatar" value="1"/>
-										<label class="form-check-label" for="delavatar">{{ lang['delete_avatar'] }}</label>
-									</div>
+									<img
+									src="{{ avatar|default(skins_url ~ '/images/default-avatar.jpg') }}" alt="avatar" style="max-width:80px; max-height:80px;" class="mr-3 rounded"/>
+									{# Кнопка удаления только если есть аватар И активен плагин #}
+									{% if flags.hasAvatar and pluginIsActive('uprofile') %}
+										<div class="form-check">
+											<input class="form-check-input" type="checkbox" name="delavatar" id="delavatar" value="1"/>
+											<label class="form-check-label" for="delavatar">{{ lang['delete_avatar'] }}</label>
+										</div>
+									{% endif %}
 								</div>
+								{% if not pluginIsActive('uprofile') %}
+									<small class="form-text text-muted">Плагин профиля отключён: загрузка и удаление недоступны</small>
+								{% endif %}
 							{% endif %}
 							{% if not flags.avatarAllowed %}
 								<small class="form-text text-muted">{{ lang['avatars_disabled'] }}</small>

@@ -5,6 +5,13 @@
 			<i class="fa fa-floppy-o"></i>
 		</button>
 	</div>
+	{% if pluginIsActive('ai_rewriter') %}
+		<div class="btn-group btn-group-sm mr-2">
+			<button type="button" class="btn btn-outline-primary" title="Сделать рерайт" onclick="aiRewriteCurrentArea();">
+				<i class="fa fa-magic"></i>
+			</button>
+		</div>
+	{% endif %}
 	<!-- Undo / Redo -->
 	<div class="btn-group btn-group-sm mr-2">
 		<button type="button" class="btn btn-outline-dark" title="Отменить" onclick="ngToolbarUndo({{ area }})">
@@ -64,6 +71,14 @@
 			<a href="#" class="dropdown-item" onclick="insertext('[justify]','[/justify]', {{ area }})">
 				<i class="fa fa-align-justify"></i>
 				{{ lang['tags.justify'] }}</a>
+		</div>
+	</div>
+	<div class="btn-group btn-group-sm mr-2">
+		<button id="paint-brush" type="button" class="btn btn-outline-dark dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+			<i class="fa fa-paint-brush"></i>
+		</button>
+		<div class="dropdown-menu p-2" aria-labelledby="paint-brush">
+			<div id="ng-color-palette" class="d-flex flex-wrap" data-area="{{ area }}" style="max-width:240px;"></div>
 		</div>
 	</div>
 	<!-- Блоки/списки/код -->

@@ -10,6 +10,13 @@
 			<i class="fa fa-repeat"></i>
 		</button>
 	</div>
+{% if pluginIsActive('ai_rewriter') %}
+	<div class="btn-group btn-group-sm mr-2">
+		<button type="button" class="btn btn-outline-primary" title="Сделать рерайт" onclick="aiRewriteCurrentArea();">
+			<i class="fa fa-magic"></i>
+		</button>
+	</div>
+{% endif %}
 	<div class="btn-group btn-group-sm mr-2">
 		<button type="button" class="btn" onclick="insertext('[b]','[/b]', {{ area }})" title="{{ lang['tags.bold'] }}">
 			<i class="fa fa-bold"></i>
