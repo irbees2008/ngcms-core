@@ -119,6 +119,12 @@ function systemConfigEditForm()
     // Load config file from configuration
     // Now in $config we have original version of configuration data
     include confroot . 'config.php';
+    // UI change: lock selection of auth modules in configuration.
+    // Ensure non-empty fallback values so select is not blank.
+    $currentAuthModule = (isset($config['auth_module']) && $config['auth_module']) ? $config['auth_module'] : 'basic';
+    $currentAuthDB     = (isset($config['auth_db']) && $config['auth_db']) ? $config['auth_db'] : 'basic';
+    $auth_modules = [$currentAuthModule => $currentAuthModule];
+    $auth_dbs     = [$currentAuthDB => $currentAuthDB];
     $load_profiler = $config['load_profiler'] - time();
     if (($load_profiler < 0) || ($load_profiler > 86400)) {
         $config['load_profiler'] = 0;
@@ -134,9 +140,13 @@ function systemConfigEditForm()
     if (!$config['timezone']) {
         $config['timezone'] = 'Europe/Moscow';
     }
+    // Use a copy of config with sane defaults for template binding
+    $cfgForTpl = $config;
+    $cfgForTpl['auth_module'] = $currentAuthModule;
+    $cfgForTpl['auth_db'] = $currentAuthDB;
     $tVars = [
         //	SYSTEM CONFIG is available via `config` variable
-        'config'                => $config,
+        'config'                => $cfgForTpl,
         'list'                  => [
             'captcha_font' => ListFiles('trash', 'ttf'),
             'theme'        => ListFiles('../templates', ''),

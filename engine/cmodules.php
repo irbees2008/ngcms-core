@@ -79,9 +79,11 @@ function coreRegisterUser()
         $msg = '';
         // Check captcha
         if ($config['use_captcha']) {
-            $captcha = filter_input(INPUT_REQUEST, 'vcode', FILTER_SANITIZE_STRING);
-            if (!$captcha || !isset($_SESSION['captcha']) || ($_SESSION['captcha'] != $captcha)) {
-                // Fail
+            // Read user input from POST
+            $captcha = filter_input(INPUT_POST, 'vcode', FILTER_SANITIZE_STRING);
+            // Captcha image is generated via captcha.php?id=registration, which stores code in $_SESSION['captcha.registration']
+            $sessionCode = $_SESSION['captcha.registration'] ?? ($_SESSION['captcha'] ?? null);
+            if (!$captcha || !$sessionCode || ($sessionCode != $captcha)) {
                 $msg = $lang['msge_vcode'];
             }
         }
@@ -107,6 +109,16 @@ function coreRegisterUser()
                         $v->registerUserNotify($uid, $urec);
                     }
                 }
+                // Больше не редиректим: показываем уведомление на странице регистрации
+                if (isset($_SESSION['flash_notify']) && is_array($_SESSION['flash_notify'])) {
+                    msg($_SESSION['flash_notify']);
+                    unset($_SESSION['flash_notify']);
+                } else {
+                    msg(['text' => $lang['msgo_registered'], 'info' => ($lang['register.ok#desc'] ?? 'Регистрация успешно выполнена')]);
+                }
+                // Оставляем пользователя на форме регистрации (пустой набор значений)
+                generate_reg_page($params, [], '');
+                return;
             }
         } else {
             // LOG: Registration failed
@@ -162,6 +174,13 @@ function generate_reg_page($params, $values = [], $msg = '')
             $v->registerUserForm($tVars);
         }
     }
+    // Generate captcha for registration if enabled (was missing, causing always invalid captcha)
+    if ($config['use_captcha']) {
+        $_SESSION['captcha'] = random_int(10000, 99999);
+        $tVars['flags']['hasCaptcha'] = true;
+    } else {
+        $tVars['flags']['hasCaptcha'] = false;
+    }
     // Generate inputs
     foreach ($tVars['entries'] as &$param) {
         $tInput = '';
@@ -182,7 +201,7 @@ function generate_reg_page($params, $values = [], $msg = '')
         }
         $param['input'] = $tInput;
     }
-    $tVars['flags']['hasCaptcha'] = $config['use_captcha'];
+    // flag already set above
     $tVars['form_action'] = checkLinkAvailable('core', 'registration') ?
         generateLink('core', 'registration', []) :
         generateLink('core', 'plugin', ['plugin' => 'core', 'handler' => 'registration']);

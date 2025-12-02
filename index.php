@@ -331,7 +331,20 @@ $template['vars']['memPeakUsage'] = sprintf('%7.3f', (memory_get_peak_usage() / 
 $mainTemplateName = isset($SYSTEM_FLAGS['template.main.name']) ? $SYSTEM_FLAGS['template.main.name'] : 'main';
 $mainTemplatePath = isset($SYSTEM_FLAGS['template.main.path']) ? $SYSTEM_FLAGS['template.main.path'] : tpl_site;
 // 2. Load & show template
+$__flash = isset($_SESSION['flash_notify']) && is_array($_SESSION['flash_notify']) ? $_SESSION['flash_notify'] : null;
+if ($__flash) {
+    msg($__flash);
+    // Не очищаем сразу, дождёмся успешной вставки
+}
 $tpl->template($mainTemplateName, $mainTemplatePath);
+// Если флеш есть – подготовим notify до привязки переменных
+if ($__flash) {
+    if (!empty($template['vars']['notify'])) {
+        $template['vars']['mainblock'] .= $template['vars']['notify'];
+    }
+    unset($_SESSION['flash_notify']);
+}
+// Привязываем (повторно) переменные шаблона после возможного изменения mainblock
 $tpl->vars($mainTemplateName, $template);
 if (!$SUPRESS_TEMPLATE_SHOW) {
     printHTTPheaders();
