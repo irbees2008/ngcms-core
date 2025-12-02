@@ -1,5 +1,4 @@
 <?php
-
 /**
  * Инструмент обновления базы данных NGCMS
  *
@@ -184,40 +183,6 @@ function doUpgrade(int $fromVersion, int $toVersion): void
     }
     // Восстановление стандартного режима SQL
     $db->exec("SET SQL_MODE=''");
-    /**
-     * Проверяет и конвертирует все таблицы в utf8mb4, если требуется
-     */
-    function checkAndConvertAllTablesToUtf8mb4($db): void
-    {
-        try {
-            $result = $db->query("SHOW TABLES");
-            $tables = [];
-            if (is_array($result)) {
-                foreach ($result as $row) {
-                    $tables[] = reset($row);
-                }
-            } else {
-                while ($row = $result->fetch(PDO::FETCH_NUM)) {
-                    $tables[] = $row[0];
-                }
-            }
-            foreach ($tables as $tableName) {
-                $createResult = $db->query("SHOW CREATE TABLE `{$tableName}`");
-                $createTable = '';
-                if (is_array($createResult)) {
-                    $createTable = $createResult[0]['Create Table'] ?? $createResult[0][1] ?? '';
-                } else {
-                    $createRow = $createResult->fetch(PDO::FETCH_NUM);
-                    $createTable = $createRow[1] ?? '';
-                }
-                if (strpos($createTable, 'CHARSET=utf8mb4') === false) {
-                    executeSqlWithReporting($db, "ALTER TABLE `{$tableName}` CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
-                }
-            }
-        } catch (Exception $e) {
-            echo "<div class='error'>Ошибка при конвертации таблиц: " . htmlspecialchars($e->getMessage()) . "</div>";
-        }
-    }
     echo renderSuccessMessage();
     renderFooter();
 }
@@ -483,6 +448,91 @@ function convertDatabaseEncodingToUtf8mb4($db): void
             $tables = array_diff($tables, ['ng_tags_tmp_export']);
         }
         // 6. Обрабатываем остальные таблицы
+        // 5b. Обрабатываем таблицу ng_tags (устранение дубликатов перед конвертацией)
+        if (in_array('ng_tags', $tables)) {
+            echo "<div class='action'>";
+            echo "<h4>Обработка таблицы тегов: ng_tags</h4>";
+            try {
+                // Определяем индекс по полю tag и его уникальность
+                $indexInfo = $db->query("SHOW INDEX FROM `ng_tags` WHERE Column_name = 'tag'");
+                $indexRows = [];
+                if (is_array($indexInfo)) {
+                    $indexRows = $indexInfo;
+                } else if ($indexInfo) {
+                    $indexRows = $indexInfo->fetchAll(PDO::FETCH_ASSOC);
+                }
+                $hasTagIndex = !empty($indexRows);
+                $keyName = 'tag';
+                $isUnique = false;
+                if ($hasTagIndex) {
+                    $first = $indexRows[0];
+                    $keyName = $first['Key_name'] ?? $keyName;
+                    // Non_unique == 0 означает уникальный индекс
+                    foreach ($indexRows as $row) {
+                        $nonUnique = isset($row['Non_unique']) ? (int)$row['Non_unique'] : 1;
+                        if ($nonUnique === 0) {
+                            $isUnique = true;
+                            $keyName = $row['Key_name'] ?? $keyName;
+                            break;
+                        }
+                    }
+                }
+                // Если индекс уникальный – временно снимаем его, чтобы можно было удалить дубликаты
+                if ($isUnique) {
+                    executeSqlWithReporting($db, "ALTER TABLE `ng_tags` DROP INDEX `{$keyName}`");
+                    echo "<div class='success'>Уникальный индекс по полю 'tag' временно удален</div>";
+                }
+                // Ищем и удаляем дубликаты значений tag, оставляя минимальный id
+                executeSqlWithReporting($db, "CREATE TEMPORARY TABLE temp_ng_tags_dedup AS \n                        SELECT MIN(id) as keep_id, tag, COUNT(*) as cnt\n                        FROM ng_tags\n                        GROUP BY tag\n                        HAVING COUNT(*) > 1");
+                $dupResult = $db->query("SELECT COUNT(*) as duplicate_count FROM temp_ng_tags_dedup");
+                $dupCount = 0;
+                if (is_array($dupResult)) {
+                    $dupCount = $dupResult[0]['duplicate_count'] ?? 0;
+                } else if ($dupResult) {
+                    $dupRow = $dupResult->fetch(PDO::FETCH_ASSOC);
+                    $dupCount = $dupRow['duplicate_count'] ?? 0;
+                }
+                echo "<div class='status'>Найдено дубликатов тегов: {$dupCount}</div>";
+                if ($dupCount > 0) {
+                    executeSqlWithReporting($db, "DELETE t1 FROM ng_tags t1\n                            INNER JOIN temp_ng_tags_dedup d ON t1.tag = d.tag\n                            WHERE t1.id <> d.keep_id");
+                    echo "<div class='success'>Дубликаты строк в ng_tags удалены</div>";
+                } else {
+                    echo "<div class='skipped'>Дубликаты не обнаружены</div>";
+                }
+                executeSqlWithReporting($db, "DROP TEMPORARY TABLE temp_ng_tags_dedup");
+                // Конвертируем таблицу в utf8mb4
+                executeSqlWithReporting($db, "ALTER TABLE `ng_tags` CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
+                // Пытаемся восстановить индекс по полю tag
+                $checkRes = $db->query("SELECT COUNT(*) as total, COUNT(DISTINCT tag) as unique_count FROM ng_tags");
+                $total = 0;
+                $unique = 0;
+                if (is_array($checkRes)) {
+                    $total = (int)($checkRes[0]['total'] ?? 0);
+                    $unique = (int)($checkRes[0]['unique_count'] ?? 0);
+                } else if ($checkRes) {
+                    $checkRow = $checkRes->fetch(PDO::FETCH_ASSOC);
+                    $total = (int)($checkRow['total'] ?? 0);
+                    $unique = (int)($checkRow['unique_count'] ?? 0);
+                }
+                if ($total === $unique) {
+                    // Все значения уникальны – создаем уникальный индекс
+                    executeSqlWithReporting($db, "ALTER TABLE `ng_tags` ADD UNIQUE INDEX `tag` (`tag`)");
+                    echo "<div class='success'>Уникальный индекс по полю 'tag' восстановлен</div>";
+                } else {
+                    // Есть дубликаты – создаем обычный индекс
+                    executeSqlWithReporting($db, "ALTER TABLE `ng_tags` ADD INDEX `tag` (`tag`)");
+                    echo "<div class='skipped'>Остались дубликаты значений 'tag' – создан обычный индекс</div>";
+                }
+            } catch (Exception $e) {
+                echo "<div class='skipped'>Ошибка при обработке ng_tags: " . htmlspecialchars($e->getMessage()) . "</div>";
+                // Продолжаем обработку остальных таблиц
+            }
+            echo "<div class='success'>Таблица ng_tags успешно обработана</div>";
+            echo "</div>";
+            // Исключаем таблицу из общего списка, чтобы не обрабатывать её повторно
+            $tables = array_diff($tables, ['ng_tags']);
+        }
+        // 6. Обрабатываем остальные таблицы
         foreach ($tables as $tableName) {
             echo "<div class='action'>";
             echo "<h4>Обработка таблицы: {$tableName}</h4>";
@@ -613,6 +663,40 @@ function convertDatabaseEncodingToUtf8mb4($db): void
     } catch (Exception $e) {
         echo "<div class='action'><div class='status error'>Ошибка: " . htmlspecialchars($e->getMessage()) . "</div></div>";
         throw $e;
+    }
+}
+/**
+ * Проверяет и конвертирует все таблицы в utf8mb4, если требуется
+ */
+function checkAndConvertAllTablesToUtf8mb4($db): void
+{
+    try {
+        $result = $db->query("SHOW TABLES");
+        $tables = [];
+        if (is_array($result)) {
+            foreach ($result as $row) {
+                $tables[] = reset($row);
+            }
+        } else {
+            while ($row = $result->fetch(PDO::FETCH_NUM)) {
+                $tables[] = $row[0];
+            }
+        }
+        foreach ($tables as $tableName) {
+            $createResult = $db->query("SHOW CREATE TABLE `{$tableName}`");
+            $createTable = '';
+            if (is_array($createResult)) {
+                $createTable = $createResult[0]['Create Table'] ?? $createResult[0][1] ?? '';
+            } else {
+                $createRow = $createResult->fetch(PDO::FETCH_NUM);
+                $createTable = $createRow[1] ?? '';
+            }
+            if (strpos($createTable, 'CHARSET=utf8mb4') === false) {
+                executeSqlWithReporting($db, "ALTER TABLE `{$tableName}` CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
+            }
+        }
+    } catch (Exception $e) {
+        echo "<div class='error'>Ошибка при конвертации таблиц: " . htmlspecialchars($e->getMessage()) . "</div>";
     }
 }
 /**
