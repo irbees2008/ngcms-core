@@ -81,86 +81,86 @@
 			</div>
 		</div>
 		<div class="table-responsive users-table-wrapper">
-		<table class="table table-striped table-centered mb-3 users-table">
-			<thead>
-				<tr>
-					<th width="5%" data-label="#">
-						<a href="{{ sortLink['i']['link'] }}">#</a>
-						{{ sortLink['i']['sign'] }}
-					</th>
-					<th width="20%" data-label="{{ lang['name'] }}">
-						<a href="{{ sortLink['n']['link'] }}">{{ lang['name'] }}</a>
-						{{ sortLink['n']['sign'] }}
-					</th>
-					<th width="20%" data-label="{{ lang['regdate'] }}" data-hide-xs="true">
-						<a href="{{ sortLink['r']['link'] }}">{{ lang['regdate'] }}</a>
-						{{ sortLink['r']['sign'] }}
-					</th>
-					<th width="20%" data-label="{{ lang['last_login'] }}" data-hide-xs="true">
-						<a href="{{ sortLink['l']['link'] }}">{{ lang['last_login'] }}</a>
-						{{ sortLink['l']['sign'] }}
-					</th>
-					<th width="10%" data-label="{{ lang['all_news2'] }}" data-hide-xs="true">
-						<a href="{{ sortLink['p']['link'] }}">{{ lang['all_news2'] }}</a>
-						{{ sortLink['p']['sign'] }}
-					</th>
-					{% if flags.haveComments %}
-						<th width="10%" data-label="{l_listhead.comments}" data-hide-xs="true">{l_listhead.comments}</th>
-					{% endif %}
-					<th width="15%" data-label="{{ lang['groupName'] }}">
-						<a href="{{ sortLink['g']['link'] }}">{{ lang['groupName'] }}</a>
-						{{ sortLink['g']['sign'] }}
-					</th>
-					<th width="5%" data-label="{{ lang['active'] }}" data-hide-xs="true">&nbsp;</th>
-					<th width="5%" data-label="{{ lang['action'] }}" data-hide-xs="true">
-						{% if flags.canModify %}
-							<input type="checkbox" name="master_box" class="form-check-input" title="{l_select_all}" onclick="check_uncheck_all(this.form, 'selected_users[]')"/>
-						{% endif %}
-					</th>
-				</tr>
-			</thead>
-			<tbody>
-				{% for entry in entries %}
+			<table class="table table-striped table-centered mb-3 users-table">
+				<thead>
 					<tr>
-						<td data-label="#" data-hide-xs="true">{{ entry.id }}</td>
-						<td class="table-user" data-label="{{ lang['name'] }}">
-							<img src="{{ entry.avatar ?: (skins_url ~ '/images/default-avatar.jpg') }}" alt="table-user" class="me-2 rounded-circle" width="32" height="32"/>
-							{% if flags.canView %}
-								<a href="{{ php_self }}?mod=users&action=editForm&id={{ entry.id }}">{{ entry.name }}</a>
-							{% else %}
-								{{ entry.name }}
-							{% endif %}
-						</td>
-						<td data-label="{{ lang['regdate'] }}" data-hide-xs="true">{{ entry.regdate }}</td>
-						<td data-label="{{ lang['last_login'] }}" data-hide-xs="true">{{ entry.lastdate }}</td>
-						<td data-label="{{ lang['all_news2'] }}" data-hide-xs="true">
-							{% if entry.cntNews > 0 %}
-								<a href="{{ php_self }}?mod=news&aid={{ id }}">{{ entry.cntNews }}</a>
-								{% else %}-
-							{% endif %}
-						</td>
+						<th width="5%" data-label="#">
+							<a href="{{ sortLink['i']['link'] }}">#</a>
+							{{ sortLink['i']['sign'] }}
+						</th>
+						<th width="20%" data-label="{{ lang['name'] }}">
+							<a href="{{ sortLink['n']['link'] }}">{{ lang['name'] }}</a>
+							{{ sortLink['n']['sign'] }}
+						</th>
+						<th width="20%" data-label="{{ lang['regdate'] }}" data-hide-xs="true">
+							<a href="{{ sortLink['r']['link'] }}">{{ lang['regdate'] }}</a>
+							{{ sortLink['r']['sign'] }}
+						</th>
+						<th width="20%" data-label="{{ lang['last_login'] }}" data-hide-xs="true">
+							<a href="{{ sortLink['l']['link'] }}">{{ lang['last_login'] }}</a>
+							{{ sortLink['l']['sign'] }}
+						</th>
+						<th width="10%" data-label="{{ lang['all_news2'] }}" data-hide-xs="true">
+							<a href="{{ sortLink['p']['link'] }}">{{ lang['all_news2'] }}</a>
+							{{ sortLink['p']['sign'] }}
+						</th>
 						{% if flags.haveComments %}
-							<td width="10%" data-label="{l_listhead.comments}" data-hide-xs="true">
-								{{ entry.cntComments ?: '-'}}
-							</td>
+							<th width="10%" data-label="{l_listhead.comments}" data-hide-xs="true">{l_listhead.comments}</th>
 						{% endif %}
-						<td data-label="{{ lang['groupName'] }}">{{ entry.groupName }}</td>
-						<td data-label="{{ lang['active'] }}" data-hide-xs="true">
-							{% if entry.flags.isActive %}
-								<i class="ri-check-line text-success" title="{{ lang['active'] }}"></i>
-							{% else %}
-								<i class="ri-close-line text-danger" title="{{ lang['unactive'] }}"></i>
+						<th width="15%" data-label="{{ lang['groupName'] }}">
+							<a href="{{ sortLink['g']['link'] }}">{{ lang['groupName'] }}</a>
+							{{ sortLink['g']['sign'] }}
+						</th>
+						<th width="5%" data-label="{{ lang['active'] }}" data-hide-xs="true">&nbsp;</th>
+						<th width="5%" data-label="{{ lang['action'] }}" data-hide-xs="true">
+							{% if flags.canModify %}
+								<input type="checkbox" name="master_box" class="form-check-input" title="{l_select_all}" onclick="check_uncheck_all(this.form, 'selected_users[]')"/>
 							{% endif %}
-						</td>
-						<td data-label="{{ lang['action'] }}" data-hide-xs="true">
-							{% if (flags.canModify and flags.canMassAction) %}
-								<input type="checkbox" name="selected_users[]" class="form-check-input" value="{{ entry.id }}"/>
-							{% endif %}
-						</td>
+						</th>
 					</tr>
-				{% endfor %}
-			</tbody>
-		</table>
+				</thead>
+				<tbody>
+					{% for entry in entries %}
+						<tr>
+							<td data-label="#" data-hide-xs="true">{{ entry.id }}</td>
+							<td class="table-user" data-label="{{ lang['name'] }}">
+								<img src="{{ entry.avatar ?: (skins_url ~ '/images/default-avatar.jpg') }}" alt="table-user" class="me-2 rounded-circle" width="32" height="32"/>
+								{% if flags.canView %}
+									<a href="{{ php_self }}?mod=users&action=editForm&id={{ entry.id }}">{{ entry.name }}</a>
+								{% else %}
+									{{ entry.name }}
+								{% endif %}
+							</td>
+							<td data-label="{{ lang['regdate'] }}" data-hide-xs="true">{{ entry.regdate }}</td>
+							<td data-label="{{ lang['last_login'] }}" data-hide-xs="true">{{ entry.lastdate }}</td>
+							<td data-label="{{ lang['all_news2'] }}" data-hide-xs="true">
+								{% if entry.cntNews > 0 %}
+									<a href="{{ php_self }}?mod=news&aid={{ id }}">{{ entry.cntNews }}</a>
+									{% else %}-
+								{% endif %}
+							</td>
+							{% if flags.haveComments %}
+								<td width="10%" data-label="{l_listhead.comments}" data-hide-xs="true">
+									{{ entry.cntComments ?: '-'}}
+								</td>
+							{% endif %}
+							<td data-label="{{ lang['groupName'] }}">{{ entry.groupName }}</td>
+							<td data-label="{{ lang['active'] }}" data-hide-xs="true">
+								{% if entry.flags.isActive %}
+									<i class="fa fa-check text-success" title="{{ lang['active'] }}"></i>
+								{% else %}
+									<i class="fa fa-times text-danger" title="{{ lang['unactive'] }}"></i>
+								{% endif %}
+							</td>
+							<td data-label="{{ lang['action'] }}" data-hide-xs="true">
+								{% if (flags.canModify and flags.canMassAction) %}
+									<input type="checkbox" name="selected_users[]" class="form-check-input" value="{{ entry.id }}"/>
+								{% endif %}
+							</td>
+						</tr>
+					{% endfor %}
+				</tbody>
+			</table>
 		</div>
 		<div class="row">
 			<div class="col-lg-6 mb-2 mb-lg-0">{{ pagination }}</div>
@@ -267,24 +267,61 @@ this.submit();
 });
 </script>
 <style>
-/* ----- Адаптивность таблицы пользователей ----- */
-@media (max-width: 767.98px) {
-	.users-table thead { display: none; }
-	.users-table tbody tr { display: block; border:1px solid #dee2e6; border-radius:4px; margin-bottom:.75rem; background:#fff; }
-	.users-table tbody td { display:flex; justify-content:space-between; align-items:center; padding:.5rem .75rem; border-bottom:1px solid #f1f1f1; }
-	.users-table tbody td:last-child { border-bottom:0; }
-	.users-table tbody td.table-user { display:block; }
-	.users-table tbody td.table-user img { margin-bottom:.5rem; }
-	.users-table tbody td.table-user a, .users-table tbody td.table-user span, .users-table tbody td.table-user { font-weight:600; }
-	.users-table tbody td::before { content: attr(data-label); font-weight:600; color:#6c757d; margin-right:.75rem; }
-	.users-table-wrapper { overflow-x: visible; }
-}
-@media (max-width: 575.98px) {
-	.users-table tbody td[data-hide-xs='true'] { display: none !important; }
-	.users-table tbody td { padding:.5rem .65rem; }
-}
-/* Сохранить нормальный вид на десктопе */
-@media (min-width: 768px) {
-	.users-table-wrapper { overflow-x:auto; }
-}
+	/* ----- Адаптивность таблицы пользователей ----- */
+	@media(max-width: 767.98px) {
+		.users-table thead {
+			display: none;
+		}
+		.users-table tbody tr {
+			display: block;
+			border: 1px solid #dee2e6;
+			border-radius: 4px;
+			margin-bottom: 0.75rem;
+			background: #fff;
+		}
+		.users-table tbody td {
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			padding: 0.5rem 0.75rem;
+			border-bottom: 1px solid #f1f1f1;
+		}
+		.users-table tbody td:last-child {
+			border-bottom: 0;
+		}
+		.users-table tbody td.table-user {
+			display: block;
+		}
+		.users-table tbody td.table-user img {
+			margin-bottom: 0.5rem;
+		}
+		.users-table tbody td.table-user a,
+		.users-table tbody td.table-user span,
+		.users-table tbody td.table-user {
+			font-weight: 600;
+		}
+		.users-table tbody td::before {
+			content: attr(data-label);
+			font-weight: 600;
+			color: #6c757d;
+			margin-right: 0.75rem;
+		}
+		.users-table-wrapper {
+			overflow-x: visible;
+		}
+	}
+	@media(max-width: 575.98px) {
+		.users-table tbody td[data-hide-xs='true'] {
+			display: none !important;
+		}
+		.users-table tbody td {
+			padding: 0.5rem 0.65rem;
+		}
+	}
+	/* Сохранить нормальный вид на десктопе */
+	@media(min-width: 768px) {
+		.users-table-wrapper {
+			overflow-x: auto;
+		}
+	}
 </style>
