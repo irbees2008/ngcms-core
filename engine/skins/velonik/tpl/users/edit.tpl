@@ -56,27 +56,22 @@
 					{# Аватар пользователя #}
 					<div class="form-row mb-3">
 						<label class="col-form-label">{{ lang['avatar'] }}</label>
-						{# Подсказка по размерам только если аватары разрешены #}
-						{% if flags.avatarAllowed %}
+						<div class="mb-2">
+							<img src="{{ avatar|default(skins_url ~ '/images/default-avatar.jpg') }}" alt="avatar" style="max-width: 80px; max-height: 80px;" class="rounded"/>
+						</div>
+						{% if pluginIsActive('uprofile') and flags.avatarAllowed %}
+							<input type="file" name="newavatar" class="form-control" accept="image/*"/>
 							<small class="form-text text-muted">{{ avatar_hint }}</small>
-						{% endif %}
-						{# Загрузка доступна только если активен плагин uprofile #}
-						{% if flags.avatarAllowed and pluginIsActive('uprofile') %}
-							<input type="file" name="newavatar" class="form-control mb-2" accept="image/*"/>
-						{% endif %}
-						{% if flags.avatarAllowed %}
-							<div class="mt-2 d-flex align-items-center">
-								<img src="{{ avatar|default(skins_url ~ '/images/default-avatar.jpg') }}" alt="avatar" style="max-width:80px; max-height:80px;" class="me-3 rounded"/>
-								{% if flags.hasAvatar and pluginIsActive('uprofile') %}
-									<div class="form-check">
+							{% if flags.hasAvatar %}
+								<div class="mt-2 d-flex align-items-center">
+									<div class="form-check mb-0">
 										<input class="form-check-input" type="checkbox" name="delavatar" id="delavatar" value="1"/>
 										<label class="form-check-label" for="delavatar">{{ lang['delete_avatar'] }}</label>
 									</div>
-								{% endif %}
-							</div>
-							{% if not pluginIsActive('uprofile') %}
-								<small class="form-text text-muted">Плагин профиля отключён: загрузка/удаление недоступны</small>
+								</div>
 							{% endif %}
+						{% else %}
+							<small class="form-text text-muted">{{ lang['avatars_plugin_disabled']|default('Плагин профиля отключён или аватары запрещены') }}</small>
 						{% endif %}
 						{% if not flags.avatarAllowed %}
 							<small class="form-text text-muted">{{ lang['avatars_disabled'] }}</small>
@@ -123,7 +118,7 @@
 					<div class="col-md-6 mb-4 text-right">
 						<button type="submit" class="btn btn-outline-success">
 							<span class="d-xl-none">
-								<i class="ri-save-line"></i>
+								<i class="fa fa-floppy-o"></i>
 							</span>
 							<span class="d-none d-xl-block">{{ lang['save'] }}</span>
 						</button>
