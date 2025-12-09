@@ -93,7 +93,7 @@
 							{% if flags.avatarAllowed %}
 								<div class="mt-2 d-flex align-items-center">
 									<img
-									src="{{ avatar|default(skins_url ~ '/images/default-avatar.jpg') }}" alt="avatar" style="max-width:80px; max-height:80px;" class="mr-3 rounded"/>
+									src="{{ avatarUrl(avatar) }}" alt="avatar" style="max-width:80px; max-height:80px;" class="mr-3 rounded" onerror="this.onerror=null; this.src='{{ skins_url }}/images/default-avatar.jpg';"/>
 									{# Кнопка удаления только если есть аватар И активен плагин #}
 									{% if flags.hasAvatar and pluginIsActive('uprofile') %}
 										<div class="form-check">

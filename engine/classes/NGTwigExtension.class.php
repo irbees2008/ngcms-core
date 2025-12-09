@@ -22,7 +22,7 @@ class NGTwigExtension extends AbstractExtension implements GlobalsInterface
         return [
             new TwigFilter('truncateHTML', 'twigTruncateHTML'),
             new TwigFilter('LangDate', 'LangDate'),
-                ];
+        ];
     }
     public function getFunctions()
     {
@@ -41,6 +41,7 @@ class NGTwigExtension extends AbstractExtension implements GlobalsInterface
             new TwigFunction('debugValue', 'twigDebugValue'),
             new TwigFunction('getCategoryTree', 'twigGetCategoryTree'),
             new TwigFunction('engineMSG', 'twigEngineMSG'),
+            new TwigFunction('avatarUrl', 'twigAvatarUrl'),
         ];
     }
     public function getGlobals(): array

@@ -7,7 +7,7 @@
 </div>
 <div class="block-user-info">
 	<div class="avatar">
-		<img src="{{ user.avatar }}" alt=""/>
+		<img src="{{ avatarUrl(user.avatar) }}" alt=""/>
 		{% if not (global.user.status == 0) %}
 			{% if pluginIsActive('pm') %}
 				<a href="{{ user.write_pm_link }}">{{ lang.uprofile['write_pm'] }}</a>

@@ -2868,6 +2868,37 @@ function ngExceptionHandler($exception)
             global $parse;
             return $parse->truncateHTML($string, $len, $finisher);
         }
+        // Compute avatar URL with core fallback for missing/empty
+        function twigAvatarUrl($avatar)
+        {
+            $fallback = skins_url . '/images/default-avatar.jpg';
+            if (!is_string($avatar) || trim($avatar) == '') {
+                return $fallback;
+            }
+            $url = $avatar;
+            // Remote URLs: return as-is
+            if (preg_match('#^https?://#i', $url)) {
+                return $url;
+            }
+            // Try map URL to filesystem path and verify existence
+            $path = null;
+            // If URL starts with avatars_url, map to avatars_dir
+            if (strpos($url, avatars_url) === 0) {
+                $rel = substr($url, strlen(avatars_url));
+                $path = rtrim(avatars_dir, '/\\') . $rel;
+            } elseif (strpos($url, home) === 0) {
+                // URL under site home
+                $rel = substr($url, strlen(home));
+                $path = rtrim(site_root, '/\\') . $rel;
+            } elseif (strlen($url) && $url[0] === '/') {
+                // Absolute path relative to site root
+                $path = rtrim(site_root, '/\\') . $url;
+            }
+            if ($path && @file_exists($path)) {
+                return $url;
+            }
+            return $fallback;
+        }
         function jsonFormatter($json)
         {
             $result = '';

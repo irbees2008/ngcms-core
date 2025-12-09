@@ -1,4 +1,4 @@
-<script type="text/javascript">
+ <script type="text/javascript">
 	document.ready = function () {
 		var sizelimit = {{ info_sizelimit }};
 		if (sizelimit <= 0) {
@@ -37,11 +37,14 @@
 		<input type="text" name="editfrom" value="{{ user.from }}" class="input"/>
 	</div>
 	<div class="label label-table">
-		<label>{{ lang.uprofile['about'] }}: </label>
+		<label>{{ lang.uprofile['about'] }}:
+		</label>
 		<textarea style="height: 60px;" name="editabout" class="textarea">{{ user.info }}</textarea>
 		{% if (info_sizelimit > 0) %}
 			<div class="label-desc" id="sizelimit_text">{{ lang.uprofile['sizelimit_min'] }}
-			{about_sizelimit} {{ lang.uprofile['characters'] }}</div>{% endif %}
+				{about_sizelimit}
+				{{ lang.uprofile['characters'] }}</div>
+		{% endif %}
 	</div>
 	<div class="label label-table">
 		<label>{{ lang.uprofile['new_pass'] }}:</label>
@@ -61,7 +64,7 @@
 				<input type="file" name="newavatar" class="upload"/>
 			</div>
 			{% if (user.flags.hasAvatar) %}
-				<img src="{{ user.avatar }}" style="margin: 5px; border: 0px; max-width: 80px; max-height: 80px;" alt=""/>
+				<img src="{{ avatarUrl(user.avatar) }}" style="margin: 5px; border: 0px; max-width: 80px; max-height: 80px;" alt=""/>
 				<br/>
 				<input type="checkbox" name="delavatar" id="delavatar"/>&nbsp;{{ lang.uprofile['delete'] }}
 			{% endif %}
@@ -72,7 +75,9 @@
 			{{ lang.uprofile['avatars_denied'] }}
 		</div>
 	{% endif %}
-	{% if pluginIsActive('xfields') %}{{ plugin_xfields_0 }}{% endif %}
+	{% if pluginIsActive('xfields') %}
+		{{ plugin_xfields_0 }}
+	{% endif %}
 	<div class="clearfix"></div>
 	<div class="label">
 		<input type="submit" onclick="return validate_form();" value="{{ lang.uprofile['save'] }}" class="button">
