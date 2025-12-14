@@ -39,32 +39,55 @@ foreach ($ULIB->CMD as $plugin => $crow) {
 //
 // Generate list of active rules [ data ]
 //
+error_log("REWRITE: hList count = " . count($UH->hList));
+error_log("REWRITE: configLoaded = " . ($UH->configLoaded ? 'true' : 'false'));
+if (count($UH->hList) > 0) {
+    error_log("REWRITE: First key = " . array_key_first($UH->hList));
+    $firstItem = $UH->hList[array_key_first($UH->hList)];
+    error_log("REWRITE: First item is_array = " . (is_array($firstItem) ? 'yes' : 'no'));
+    if (is_array($firstItem)) {
+        error_log("REWRITE: First item keys = " . implode(', ', array_keys($firstItem)));
+        error_log("REWRITE: First item pluginName = " . ($firstItem['pluginName'] ?? 'NONE'));
+    }
+}
+error_log("REWRITE: Starting foreach loop...");
 $recno = 0;
 $jdata = [];
-foreach ($UH->hList as $hId) {
+foreach ($UH->hList as $hRecord) {
+    error_log("REWRITE: Processing record #$recno, pluginName=" . ($hRecord['pluginName'] ?? 'NONE'));
     $jrow = [
         'id'               => $recno,
-        'pluginName'       => $hId['pluginName'],
-        'handlerName'      => $hId['handlerName'],
-        'regex'            => $hId['rstyle']['rcmd'],
-        'flagPrimary'      => $hId['flagPrimary'],
-        'flagFailContinue' => $hId['flagFailContinue'],
-        'flagDisabled'     => $hId['flagDisabled'],
-        'setVars'          => $hId['rstyle']['setVars'],
+        'pluginName'       => $hRecord['pluginName'] ?? '',
+        'handlerName'      => $hRecord['handlerName'] ?? '',
+        'regex'            => $hRecord['rstyle']['rcmd'] ?? '',
+        'flagPrimary'      => $hRecord['flagPrimary'] ?? false,
+        'flagFailContinue' => $hRecord['flagFailContinue'] ?? false,
+        'flagDisabled'     => $hRecord['flagDisabled'] ?? false,
+        'setVars'          => $hRecord['rstyle']['setVars'] ?? [],
     ];
     // Fetch associated command
-    if ($cmd = $ULIB->fetchCommand($hId['pluginName'], $hId['handlerName'])) {
+    if ($cmd = $ULIB->fetchCommand($jrow['pluginName'], $jrow['handlerName'])) {
         $jrow['description'] = $ULIB->extractLangRec($cmd['descr']);
+    } else {
+        $jrow['description'] = '';
     }
+    // Format flags for display
+    $flags = [];
+    if ($jrow['flagPrimary']) $flags[] = 'Primary';
+    if ($jrow['flagFailContinue']) $flags[] = 'FailContinue';
+    if ($jrow['flagDisabled']) $flags[] = 'Disabled';
+    $jrow['flags'] = implode(', ', $flags);
     $jdata[] = $jrow;
     $recno++;
 }
+// Render template with Twig (entry.tpl uses {% verbatim %} block to preserve JS placeholders)
 $xe = $twig->loadTemplate('skins/' . $config['admin_skin'] . '/tpl/rewrite/entry.tpl');
+$templateRendered = $xe->render([]);
 $tVars = [
     'json'  => [
         'config'   => json_encode($jconfig),
         'data'     => json_encode($jdata),
-        'template' => json_encode($xe->render([])),
+        'template' => json_encode($templateRendered),
     ],
     'token' => genUToken('admin.rewrite'),
 ];
