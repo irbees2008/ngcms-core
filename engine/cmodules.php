@@ -401,6 +401,13 @@ function coreLoginAction($row = null, $redirect = null)
                 'banned' => ($ban_mode == 1),
             ];
         }
+        // Execute filters - add additional variables (e.g., social auth links)
+        global $PFILTERS;
+        if (isset($PFILTERS['core.login']) && is_array($PFILTERS['core.login'])) {
+            foreach ($PFILTERS['core.login'] as $k => $v) {
+                $v->loginAction($tvars);
+            }
+        }
         $template['vars']['mainblock'] = $twig->render('login.tpl', $tvars);
     }
 }
