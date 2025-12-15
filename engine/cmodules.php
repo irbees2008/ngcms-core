@@ -1,6 +1,6 @@
 <?php
 //
-// Copyright (C) 2006-2015 Next Generation CMS (http://ngcms.org/)
+// Copyright (C) 2006-2025 Next Generation CMS (http://ngcms.org/)
 // Name: cmodules.php
 // Description: Common CORE modules
 // Author: Vitaly Ponomarev
