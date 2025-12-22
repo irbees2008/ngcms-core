@@ -119,7 +119,7 @@ if (!defined('site_root')) {
     define('site_root', dirname(__DIR__) . '/');
 }
 // Define domain name for cookies
-// Определяем cookie-домен в формате `.ngcms.org`
+// Определяем cookie-домен в формате `.example.org` (для поддоменов)
 $host = strtolower($_SERVER['HTTP_HOST']);
 if (preg_match("#^(.+?):\d+$#", $host, $m)) {
     $host = $m[1]; // убираем порт
@@ -128,13 +128,22 @@ $hostParts = explode('.', $host);
 if (count($hostParts) >= 2) {
     $ngCookieDomain = '.' . $hostParts[count($hostParts) - 2] . '.' . $hostParts[count($hostParts) - 1];
 } else {
-    $ngCookieDomain = '.' . $host; // fallback
+    // Для одночастных доменов (например, localhost) безопаснее не указывать домен вовсе
+    $ngCookieDomain = '';
 }
 // Manage trackID cookie - can be used for plugins that don't require authentication,
 // but need to track the user according to their ID
+$isHttps = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') || (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https');
 if (!isset($_COOKIE['ngTrackID'])) {
     $ngTrackID = md5(md5(uniqid(rand(), 1)));
-    setcookie('ngTrackID', $ngTrackID, time() + 86400 * 365, '/', $ngCookieDomain, 0, 1);
+    setcookie('ngTrackID', $ngTrackID, [
+        'expires'  => time() + 86400 * 365,
+        'path'     => '/',
+        'domain'   => $ngCookieDomain ?: null,
+        'secure'   => $isHttps,
+        'httponly' => true,
+        'samesite' => $isHttps ? 'None' : 'Lax',
+    ]);
 } else {
     $ngTrackID = $_COOKIE['ngTrackID'];
 }
@@ -208,17 +217,40 @@ $timer->registerEvent('Config file is loaded');
 // Call multidomains processor
 multi_multidomains();
 //print "siteDomainName [".$siteDomainName."]<br/>\n";
-// Initiate session - take care about right domain name for sites with/without www. prefix
+// Initiate session - корректные параметры cookie (учёт HTTP/HTTPS, домен, срок)
 //print "<pre>".var_export($_SERVER, true).var_export($_COOKIE, true)."</pre>";
+$isHttps = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') || (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https');
+// Усиление настройки PHP-сессий на уровне приложения
+@ini_set('session.use_strict_mode', '1');
+@ini_set('session.cookie_httponly', '1');
+if ($isHttps) {
+    @ini_set('session.cookie_secure', '1');
+}
+$sessionLifetime = intval(ini_get('session.cookie_lifetime'));
+if ($sessionLifetime <= 0) {
+    // По умолчанию 24 часа, если в php.ini не задано положительное значение
+    $sessionLifetime = 86400;
+}
 session_set_cookie_params([
-    'lifetime' => 86400,
-    'path' => '/',
-    'domain' => $ngCookieDomain,
-    'secure' => true,        // только если HTTPS!
+    'lifetime' => $sessionLifetime,
+    'path'     => '/',
+    'domain'   => $ngCookieDomain ?: null,
+    'secure'   => $isHttps,
     'httponly' => true,
-    'samesite' => 'None',    // обязательно для работы на поддоменах
+    // Для HTTPS и междоменного шаринга — None, иначе Lax чтобы cookie не отбрасывался браузером
+    'samesite' => $isHttps ? 'None' : 'Lax',
 ]);
 session_start();
+// Базовая привязка сессии к User-Agent (мягкая защита)
+if (!isset($_SESSION['ua_fingerprint'])) {
+    $_SESSION['ua_fingerprint'] = substr(hash('sha256', ($_SERVER['HTTP_USER_AGENT'] ?? 'na')), 0, 16);
+} else {
+    $currUA = substr(hash('sha256', ($_SERVER['HTTP_USER_AGENT'] ?? 'na')), 0, 16);
+    if ($_SESSION['ua_fingerprint'] !== $currUA) {
+        // При резкой смене UA сбрасываем авторизацию, сессию сохраняем
+        unset($_SESSION['auth_user_id']);
+    }
+}
 // Load system libraries
 include_once root . 'includes/inc/consts.inc.php';
 include_once root . 'includes/inc/functions.inc.php';
@@ -349,6 +381,11 @@ if (isset($AUTH_METHOD[$config['auth_module']]) && isset($AUTH_METHOD[$config['a
         // Now every TWIG template will know if user is logged in
         $twigGlobal['flags']['isLogged'] = 1;
         $twigGlobal['user'] = $userROW;
+        // Единоразовая ротация session_id после успешной авторизации
+        if (empty($_SESSION['sid_rotated'])) {
+            session_regenerate_id(true);
+            $_SESSION['sid_rotated'] = 1;
+        }
     }
 } else {
     echo "Fatal error: No auth module is found.<br />Configuration is damaged, please restore from backup or perform manual fix.<br />\n";
