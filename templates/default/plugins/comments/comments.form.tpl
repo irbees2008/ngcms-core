@@ -31,7 +31,7 @@ return;
 }
 // Безопасный парсинг JSON (учёт BOM)
 function parseJSONSafe(src) {
-if (src == null) 
+if (src == null)
 return null;
 try {
 return JSON.parse(src);
@@ -54,7 +54,7 @@ captc.src = "{{ captcha_url }}?rand=" + Date.now();
 // Добавление комментария (AJAX)
 function add_comment() {
 var form = document.getElementById('comment');
-if (! form) 
+if (! form)
 return false;
 cajax.onShow("");{% if not_logged %}cajax.setVar("name", form.name.value);
 cajax.setVar("mail", form.mail.value);{% if use_captcha %}cajax.setVar("vcode", form.vcode.value);{% endif %}{% endif %}cajax.setVar("content", form.content.value);
@@ -152,7 +152,7 @@ form.scrollIntoView({behavior: 'smooth'});
 var original_comment_content = {};
 // Удаление комментария
 function delete_comment(comment_id, token) {
-if (!confirm('Удалить комментарий?')) 
+if (!confirm('Удалить комментарий?'))
 return false;
 var dajax = new sack();
 dajax.setVar("id", comment_id);
@@ -166,7 +166,7 @@ var result = null;
 try {
 result = JSON.parse(dajax.response);
 } catch (e) {
-if (typeof show_error === "function") 
+if (typeof show_error === "function")
 show_error('Ошибка обработки ответа: ' + dajax.response);
 return;
 }
@@ -175,14 +175,14 @@ var el = document.getElementById('comment' + comment_id);
 if (el) {
 el.style.display = 'none';
 }
-if (typeof show_info === "function") 
+if (typeof show_info === "function")
 show_info(result.data || 'Комментарий удалён');
 } else {
-if (typeof show_error === "function") 
+if (typeof show_error === "function")
 show_error((result && result.data) ? result.data : 'Не удалось удалить комментарий');
 }
 } else {
-if (typeof show_error === "function") 
+if (typeof show_error === "function")
 show_error('HTTP error. Code: ' + dajax.responseStatus[0]);
 }
 };
@@ -191,7 +191,7 @@ dajax.runAJAX();
 // Редактирование комментария
 function edit_comment(comment_id) {
 var comment_text_div = document.getElementById('comment_text_' + comment_id);
-if (! comment_text_div) 
+if (! comment_text_div)
 return;
 original_comment_content[comment_id] = comment_text_div.innerHTML;
 var eajax = new sack();
@@ -215,7 +215,7 @@ return null;
 }
 })(eajax.response);
 if (! result) {
-if (typeof show_error === "function") 
+if (typeof show_error === "function")
 show_error('Ошибка обработки ответа: ' + eajax.response);
 return;
 }
@@ -223,13 +223,13 @@ if (result['status'] == 1) {
 var edit_form = '<textarea id="edit_textarea_' + comment_id + '" style="width:100%; height:100px;">' + result['text'] + '</textarea><br/>' + '<button onclick="save_comment(' + comment_id + '); return false;">Сохранить</button> ' + '<button onclick="cancel_edit(' + comment_id + '); return false;">Отмена</button>';
 comment_text_div.innerHTML = edit_form;
 } else {
-if (typeof show_error === "function") 
+if (typeof show_error === "function")
 show_error('Ошибка: ' + (
 result['data'] || 'Неизвестная ошибка'
 ));
 }
 } catch (err) {
-if (typeof show_error === "function") 
+if (typeof show_error === "function")
 show_error('Ошибка обработки ответа: ' + eajax.response);
 }
 }
@@ -239,7 +239,7 @@ eajax.runAJAX();
 // Сохранение отредактированного комментария
 function save_comment(comment_id) {
 var textarea = document.getElementById('edit_textarea_' + comment_id);
-if (! textarea) 
+if (! textarea)
 return;
 var sajax = new sack();
 sajax.setVar("id", comment_id);
@@ -263,23 +263,23 @@ return null;
 }
 })(sajax.response);
 if (! result) {
-if (typeof show_error === "function") 
+if (typeof show_error === "function")
 show_error('Ошибка обработки ответа: ' + sajax.response);
 return;
 }
 if (result['status'] == 1) {
 var comment_text_div = document.getElementById('comment_text_' + comment_id);
 comment_text_div.innerHTML = result['html'];
-if (typeof show_info === "function") 
+if (typeof show_info === "function")
 show_info('Комментарий обновлён');
 } else {
-if (typeof show_error === "function") 
+if (typeof show_error === "function")
 show_error('Ошибка: ' + (
 result['data'] || 'Неизвестная ошибка'
 ));
 }
 } catch (err) {
-if (typeof show_error === "function") 
+if (typeof show_error === "function")
 show_error('Ошибка обработки ответа: ' + sajax.response);
 }
 }
