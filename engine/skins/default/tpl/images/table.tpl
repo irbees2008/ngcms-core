@@ -76,8 +76,7 @@
 					<input id="entries" type="checkbox" class="custom-control-input" name="master_box" title="{{ lang['select_all'] }}" onclick="javascript:check_uncheck_all(imagedelete)"/>
 					<label for="entries" class="custom-control-label">{{ lang['select_all_images']|default('Выделить все изображения') }}</label>
 				</div>
-				<button type="button" class="btn btn-outline-success ml-1" data-toggle="modal" data-target="#uploadnewModal" data-backdrop="static">{{ lang['upload_img'] }}</button>
-				<button type="button" class="btn btn-outline-success ml-1" data-toggle="modal" data-target="#uploadNewByUrlModal" data-backdrop="static">{{ lang['upload_img_url'] }}</button>
+				<button type="button" class="btn btn-outline-success ml-1" data-toggle="modal" data-target="#uploadImagesModal" data-backdrop="static">{{ lang['upload_img'] }}</button>
 				{% if status %}
 					<button type="button" class="btn btn-outline-primary ml-1" data-toggle="modal" data-target="#categoriesModal" data-backdrop="static" title="{{ lang['categories'] }}">
 						<i class="fa fa-folder-open-o"></i>
@@ -121,16 +120,26 @@
 		</div>
 	</div>
 </form>
-<div id="uploadnewModal" class="modal fade" tabindex="-1" role="dialog">
+<div id="uploadImagesModal" class="modal fade" tabindex="-1" role="dialog">
 	<div class="modal-dialog">
 		<div class="modal-content">
 			<div class="modal-header">
-				<h5 id="uploadnewModalLabel" class="modal-title">{{ lang['uploadnew'] }}</h5>
+				<h5 id="uploadImagesModalLabel" class="modal-title">{{ lang['upload_img'] }}</h5>
 				<button type="button" class="close" data-dismiss="modal">
 					<span>&times;</span>
 				</button>
 			</div>
-			<form id="uploadnew_form" action="{{ php_self }}?mod=images" method="post" enctype="multipart/form-data" name="sn">
+			<ul class="nav nav-tabs" role="tablist">
+				<li class="nav-item">
+					<a class="nav-link active" id="upload-tab" data-toggle="tab" href="#uploadTab" role="tab">{{ lang['upload_img']|default('Загрузка файлов') }}</a>
+				</li>
+				<li class="nav-item">
+					<a class="nav-link" id="url-tab" data-toggle="tab" href="#urlTab" role="tab">{{ lang['upload_img_url']|default('По ссылке') }}</a>
+				</li>
+			</ul>
+			<div class="tab-content">
+				<div class="tab-pane fade show active" id="uploadTab" role="tabpanel">
+					<form id="uploadnew_form" action="{{ php_self }}?mod=images" method="post" enctype="multipart/form-data" name="sn">
 				<input type="hidden" name="subaction" value="upload"/>
 				<input type="hidden" name="area" value="{{ area }}"/>
 				<div class="modal-body">
@@ -167,23 +176,13 @@
 						</div>
 					</div>
 				</div>
-				<div class="modal-footer text-right">
-					<button type="submit" class="btn btn-outline-success">{{ lang['upload'] }}</button>
+						<div class="modal-footer text-right">
+							<button type="submit" class="btn btn-outline-success">{{ lang['upload'] }}</button>
+						</div>
+					</form>
 				</div>
-			</form>
-		</div>
-	</div>
-</div>
-<div id="uploadNewByUrlModal" class="modal fade" tabindex="-1" role="dialog">
-	<div class="modal-dialog">
-		<div class="modal-content">
-			<div class="modal-header">
-				<h5 id="uploadnewModalLabel" class="modal-title">{{ lang['upload_img_url'] }}</h5>
-				<button type="button" class="close" data-dismiss="modal">
-					<span>&times;</span>
-				</button>
-			</div>
-			<form action="{{ php_self }}?mod=images" method="post" name="snup">
+				<div class="tab-pane fade" id="urlTab" role="tabpanel">
+					<form action="{{ php_self }}?mod=images" method="post" name="snup">
 				<input type="hidden" name="subaction" value="uploadurl"/>
 				<input type="hidden" name="area" value="{{ area }}"/>
 				<div class="modal-body">
@@ -220,12 +219,14 @@
 						</div>
 					</div>
 				</div>
-				<div class="modal-footer text-right">
-					<button type="submit" class="btn btn-outline-success">{{ lang['upload'] }}</button>
-				</div>
-			</form>
+					<div class="modal-footer text-right">
+						<button type="submit" class="btn btn-outline-success">{{ lang['upload'] }}</button>
+					</div>
+				</form>
+			</div>
 		</div>
 	</div>
+</div>
 </div>
 {% if status %}
 	<div id="categoriesModal" class="modal fade" tabindex="-1" role="dialog">
@@ -333,7 +334,7 @@ $('#delform').on('change input', function () {
 }).trigger('change');
 $('#uploadnew_form').on('submit', function (e) {
 e.preventDefault();
-$('#uploadnewModal').on('hidden.bs.modal', function () {
+$('#uploadImagesModal').on('hidden.bs.modal', function () {
 document.location = document.location;
 });
 $('#fileUploadInput').uploadifive('upload');
