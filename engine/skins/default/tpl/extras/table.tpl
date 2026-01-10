@@ -62,11 +62,10 @@
 							{{ entry.id }}
 							-
 							{{ entry.title }}
-							<span class="badge badge-secondary float-right">{{ entry.version }}</span>
+							<span class="badge badge-secondary float-right" title="Version {{ entry.version }}" data-bs-toggle="tooltip">v-{{ entry.version }}</span>
 						</h5>
 					</div>
-					<div
-						class="card-body">
+					<div class="card-body">
 						<!-- Блок с иконкой -->
 						<div class="card-icon">
 							{{ entry.icons }}
@@ -139,7 +138,7 @@
 		</div>
 	</div>
 </div>
-<script>
+ <script>
 	document.addEventListener('DOMContentLoaded', function () { // Обработчик для README
 const readmeLinks = document.querySelectorAll('.open-modal[data-target="#readmeModal"]');
 readmeLinks.forEach(link => {
