@@ -160,6 +160,7 @@ function systemConfigEditForm()
         'php_self'              => $PHP_SELF,
         'timestamp_active_now'  => LangDate($config['timestamp_active'], time()),
         'timestamp_updated_now' => LangDate($config['timestamp_updated'], time()),
+        'timestamp_admin_news_now' => date($config['timestamp_admin_news'] ?: 'd.m.Y H:i', time()),
         'token'                 => genUToken('admin.configuration'),
         'multiConfig'           => $mConfig,
     ];

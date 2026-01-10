@@ -456,7 +456,7 @@ function listNewsForm()
             'views'        => $row['views'],
             'attach_count' => $row['num_files'],
             'images_count' => $row['num_images'],
-            'itemdate'     => date('d.m.Y', $row['postdate']),
+            'itemdate'     => date($config['timestamp_admin_news'] ?: 'd.m.Y H:i', $row['postdate']),
             'allcats'      => resolveCatNames($cats) . ' &nbsp;',
             'title'        => secure_html((mb_strlen($row['title']) > 70) ? mb_substr($row['title'], 0, 70) . ' ...' : $row['title']),
             'link'         => newsGenerateLink($row, false, 0, true),

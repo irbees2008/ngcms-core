@@ -623,6 +623,16 @@
 					</td>
 				</tr>
 				<tr>
+					<td width="50%">{{ lang['timestamp_admin_news'] }}
+						<small class="form-text text-muted">{{ lang['date_help'] }}</small>
+					</td>
+					<td width="50%">
+						<input type="text" name='save_con[timestamp_admin_news]' value='{{ config['timestamp_admin_news'] }}' class="form-control"/>
+						<small class="form-text text-muted">{{ lang['date_now'] }}
+							{{ timestamp_admin_news_now }}</small>
+					</td>
+				</tr>
+				<tr>
 					<td width="50%">{{ lang['timestamp_updated'] }}
 						<small class="form-text text-muted">{{ lang['date_help'] }}</small>
 					</td>
