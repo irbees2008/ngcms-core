@@ -10,13 +10,12 @@
 		<link href="{{ skins_url }}/public/css/custom.min.css" type="text/css" rel="stylesheet">
 		<link href="{{ skins_url }}/public/css/notify.css" type="text/css" rel="stylesheet">
 		<link href="{{ skins_url }}/public/css/fontawesome.css" type="text/css" rel="stylesheet">
-		<script src="{{ skins_url }}/public/js/manifest.js" type="text/javascript"></script>
-		<script src="{{ skins_url }}/public/js/vendor.js" type="text/javascript"></script>
-		<script src="{{ skins_url }}/public/js/app.js" type="text/javascript"></script>
-		<script src="{{ skins_url }}/public/js/notify.js" type="text/javascript"></script>
+		 <script src="{{ skins_url }}/public/js/manifest.js" type="text/javascript"></script>
+		 <script src="{{ skins_url }}/public/js/vendor.js" type="text/javascript"></script>
+		 <script src="{{ skins_url }}/public/js/app.js" type="text/javascript"></script>
+		 <script src="{{ skins_url }}/public/js/notify.js" type="text/javascript"></script>
 		{# Стили для jQuery DateTimePicker (xdsoft) #}
-		<link href="https://cdn.jsdelivr.net/npm/jquery-datetimepicker@2.5.21/build/jquery.datetimepicker.min.css" rel="stylesheet"/>
-		<style>
+		<link href="https://cdn.jsdelivr.net/npm/jquery-datetimepicker@2.5.21/build/jquery.datetimepicker.min.css" rel="stylesheet"/> <style>
 			/* На всякий случай: повыше поверх модалок/панелей */
 			.xdsoft_datetimepicker {
 				z-index: 10550 !important;
@@ -238,7 +237,7 @@
 									</div>
 								</li>
 								<li role="pm" class="nav-item dropdown m-1">
-									<a href="{{ php_self }}?mod=pm" title="{{ lang['pm_t'] }} - {{ newpmText }}" class="info-number">
+									<a href="{{ php_self }}?mod=pm" title="{{ lang['pm_t'] }} - {{ newpmText }}" class="info-number" data-bs-toggle="tooltip" data-bs-placement="bottom">
 										<i class="fa fa-envelope"></i>
 										{% if newpm > 0 %}
 											<span class="badge bg-green">{{ newpm }}</span>
@@ -246,7 +245,7 @@
 									</a>
 								</li>
 								<li role="presentation" class="nav-item dropdown open m-1">
-									<a href="javascript:;" class="dropdown-toggle info-number" id="navbarDropdown1" data-bs-toggle="dropdown" aria-expanded="false">
+									<a href="javascript:;" class="dropdown-toggle info-number" id="navbarDropdown1" data-bs-toggle="dropdown" aria-expanded="false" title="{{ lang['notifications']|default('Уведомления') }}" data-toggle="tooltip" data-placement="bottom">
 										<i class="fa fa-bell"></i>
 										<span class="badge bg-red">{{ unnAppLabel }}</span>
 									</a>
@@ -272,7 +271,7 @@
 								{# Кнопка: Очистить кэш (браузера + сервера) - показываем только при наличии прав #}
 								{% if perm.cache %}
 									<li role="cache" class="nav-item dropdown m-1">
-										<a href="#" id="btn-clear-cache" title="{{ lang['cache.clean']|default('Очистить кеш') }}" class="info-number">
+										<a href="#" id="btn-clear-cache" title="{{ lang['cache.clean']|default('Очистить кеш') }}" class="info-number" data-bs-toggle="tooltip" data-bs-placement="bottom">
 											<i class="fa fa-cog"></i>
 										</a>
 									</li>
@@ -305,170 +304,174 @@
 		<div id="loading-layer" style="display:none">
 			{{ lang['loading'] }}
 		</div>
-		<script src="{{ skins_url }}/public/js/bootstrap.bundle.min.js"></script>
-		<script src="{{ skins_url }}/public/js/bootstrap-progressbar.min.js"></script>
-		<script src="{{ skins_url }}/public/js/custom.min.js"></script>
-		<script type="text/javascript">
-			{% set encode_lang = lang | json_encode(constant('JSON_PRETTY_PRINT') b-or constant('JSON_UNESCAPED_UNICODE')) %}
-window.NGCMS = {
-admin_url: '{{ admin_url }}',
-home: '{{ home }}',
-lang: {{ encode_lang ?: '{}' }},
-langcode: '{{ lang['langcode'] }}',
-php_self: '{{ php_self }}',
-skins_url: '{{ skins_url }}'
-};
-		</script>
-		<script type="text/javascript">
-			// Очистка кэшей браузера: localStorage, sessionStorage, Cache Storage
-async function clearBrowserCaches() {
-try { // local/session storage
-try {
-window.localStorage && window.localStorage.clear();
-} catch (e) {}
-try {
-window.sessionStorage && window.sessionStorage.clear();
-} catch (e) {}
-// Cache Storage API
-if (window.caches && caches.keys) {
-const keys = await caches.keys();
-await Promise.all(keys.map((k) => caches.delete(k)));
-}
-return true;
-} catch (e) {
-return false;
-}
-}
-// Унифицированный показ уведомлений под стиль default-скина
-function showNotify(message, type) { // 1) Наши toasts, если присутствуют
-try {
-if (typeof window.showToast === 'function') {
-var map = {
-danger: 'error',
-error: 'error',
-warning: 'warning',
-success: 'success',
-info: 'info'
-};
-var t = map[(type || 'info')] || 'info';
-var titles = {
-error: 'Ошибка',
-warning: 'Внимание',
-success: 'Готово',
-info: 'Info'
-};
-window.showToast(String(message), {
-type: t,
-title: titles[t] || '',
-sticked: t === 'error'
-});
-return;
-}
-} catch (e) {}
-// 2) Bootstrap Notify (если есть jQuery и плагин)
-try {
-if (window.$ && typeof $.notify === 'function') {
-$.notify({
-message: String(message)
-}, {
-type: type || 'info'
-});
-return;
-}
-} catch (e) {}
-// 3) Старый fallback на ngNotifySticker (оставляем для совместимости)
-try {
-if (typeof ngNotifySticker === 'function') {
-var cls = 'alert-' + (
-type || 'info'
-);
-ngNotifySticker(String(message), {
-className: cls,
-closeBTN: true
-});
-return;
-}
-} catch (e) {}
-// 4) Самый простой вариант
-try {
-alert(String(message));
-} catch (e) {}
-}
-// Глобальные шимы: любые старые вызовы будут приходить сюда и показываться как toasts
-(function () { // 1) Переопределяем ngNotifySticker -> showNotify
-try {
-var __ngStickerOriginal = window.ngNotifySticker;
-window.ngNotifySticker = function (message, options) {
-try {
-var cls = options && (options.className || options.class) || '';
-var t = 'info';
-if (/success/i.test(cls))
-t = 'success';
- else if (/(danger|error)/i.test(cls))
-t = 'danger';
- else if (/warning/i.test(cls))
-t = 'warning';
-showNotify(String(message), t);
-} catch (e) {
-if (typeof __ngStickerOriginal === 'function') {
-return __ngStickerOriginal(message, options);
-}
-try {
-alert(String(message));
-} catch (_) {}
-}
-};
-} catch (e) {}
-// 2) Переопределяем $.notify -> showNotify (если используется bootstrap-notify)
-try {
-if (window.$ && typeof $.notify === 'function') {
-var __jqNotifyOriginal = $.notify;
-$.notify = function (opts, settings) {
-try {
-var msg = (typeof opts === 'string') ? opts : (opts && (opts.message || opts.title || ''));
-var t = settings && settings.type || 'info';
-showNotify(String(msg || ''), t);
-} catch (e) {
-try {
-return __jqNotifyOriginal.apply(this, arguments);
-} catch (_) {}
-}
-};
-}
-} catch (e) {}
-})();
-// Клик по иконке "Очистить кэш": чистим браузер и дергаем RPC admin.statistics.cleanCache
-async function handleTopbarClearCacheClick(ev) {
-ev && ev.preventDefault && ev.preventDefault();
-// 1) Браузерный кэш
-const browserOk = await clearBrowserCaches();
-// 2) Серверный кэш (папка cache/) через RPC
-try {
-const resp = await post('admin.statistics.cleanCache', {
-token: '{{ token_statistics|e('js') }}'
-}, false);
-if (resp && resp.status) {
-showNotify('{{ lang['notify.cache.server_ok']|e('js') }}', 'success');
-} else {
-showNotify('{{ lang['notify.cache.server_fail']|e('js') }}', 'danger');
-}
-} catch (e) {
-showNotify('{{ lang['notify.cache.server_fail']|e('js') }}', 'danger');
-}
-// Итоговое уведомление по браузерному кэшу
-if (browserOk) {
-showNotify('{{ lang['notify.cache.browser_ok']|e('js') }}', 'success');
-} else {
-showNotify('{{ lang['notify.cache.browser_fail']|e('js') }}', 'warning');
-}
-return false;
-}
-document.addEventListener('DOMContentLoaded', function () {
-const btn = document.getElementById('btn-clear-cache');
-if (btn) {
-btn.addEventListener('click', handleTopbarClearCacheClick);
-}
-});
-		</script>
+		 <script src="{{ skins_url }}/public/js/bootstrap.bundle.min.js"></script>
+	 <script src="{{ skins_url }}/public/js/bootstrap-progressbar.min.js"></script>
+		 <script src="{{ skins_url }}/public/js/custom.min.js"></script>
+		 <script type="text/javascript">
+					{% set encode_lang = lang | json_encode(constant('JSON_PRETTY_PRINT') b-or constant('JSON_UNESCAPED_UNICODE')) %}
+		window.NGCMS = {
+		admin_url: '{{ admin_url }}',
+		home: '{{ home }}',
+		lang: {{ encode_lang ?: '{}' }},
+		langcode: '{{ lang['langcode'] }}',
+		php_self: '{{ php_self }}',
+		skins_url: '{{ skins_url }}'
+		};
+				</script>
+		 <script type="text/javascript">
+					// Очистка кэшей браузера: localStorage, sessionStorage, Cache Storage
+		async function clearBrowserCaches() {
+		try { // local/session storage
+		try {
+		window.localStorage && window.localStorage.clear();
+		} catch (e) {}
+		try {
+		window.sessionStorage && window.sessionStorage.clear();
+		} catch (e) {}
+		// Cache Storage API
+		if (window.caches && caches.keys) {
+		const keys = await caches.keys();
+		await Promise.all(keys.map((k) => caches.delete(k)));
+		}
+		return true;
+		} catch (e) {
+		return false;
+		}
+		}
+		// Унифицированный показ уведомлений под стиль default-скина
+		function showNotify(message, type) { // 1) Наши toasts, если присутствуют
+		try {
+		if (typeof window.showToast === 'function') {
+		var map = {
+		danger: 'error',
+		error: 'error',
+		warning: 'warning',
+		success: 'success',
+		info: 'info'
+		};
+		var t = map[(type || 'info')] || 'info';
+		var titles = {
+		error: 'Ошибка',
+		warning: 'Внимание',
+		success: 'Готово',
+		info: 'Info'
+		};
+		window.showToast(String(message), {
+		type: t,
+		title: titles[t] || '',
+		sticked: t === 'error'
+		});
+		return;
+		}
+		} catch (e) {}
+		// 2) Bootstrap Notify (если есть jQuery и плагин)
+		try {
+		if (window.$ && typeof $.notify === 'function') {
+		$.notify({
+		message: String(message)
+		}, {
+		type: type || 'info'
+		});
+		return;
+		}
+		} catch (e) {}
+		// 3) Старый fallback на ngNotifySticker (оставляем для совместимости)
+		try {
+		if (typeof ngNotifySticker === 'function') {
+		var cls = 'alert-' + (
+		type || 'info'
+		);
+		ngNotifySticker(String(message), {
+		className: cls,
+		closeBTN: true
+		});
+		return;
+		}
+		} catch (e) {}
+		// 4) Самый простой вариант
+		try {
+		alert(String(message));
+		} catch (e) {}
+		}
+		// Глобальные шимы: любые старые вызовы будут приходить сюда и показываться как toasts
+		(function () { // 1) Переопределяем ngNotifySticker -> showNotify
+		try {
+		var __ngStickerOriginal = window.ngNotifySticker;
+		window.ngNotifySticker = function (message, options) {
+		try {
+		var cls = options && (options.className || options.class) || '';
+		var t = 'info';
+		if (/success/i.test(cls))
+		t = 'success';
+		 else if (/(danger|error)/i.test(cls))
+		t = 'danger';
+		 else if (/warning/i.test(cls))
+		t = 'warning';
+		showNotify(String(message), t);
+		} catch (e) {
+		if (typeof __ngStickerOriginal === 'function') {
+		return __ngStickerOriginal(message, options);
+		}
+		try {
+		alert(String(message));
+		} catch (_) {}
+		}
+		};
+		} catch (e) {}
+		// 2) Переопределяем $.notify -> showNotify (если используется bootstrap-notify)
+		try {
+		if (window.$ && typeof $.notify === 'function') {
+		var __jqNotifyOriginal = $.notify;
+		$.notify = function (opts, settings) {
+		try {
+		var msg = (typeof opts === 'string') ? opts : (opts && (opts.message || opts.title || ''));
+		var t = settings && settings.type || 'info';
+		showNotify(String(msg || ''), t);
+		} catch (e) {
+		try {
+		return __jqNotifyOriginal.apply(this, arguments);
+		} catch (_) {}
+		}
+		};
+		}
+		} catch (e) {}
+		})();
+		// Клик по иконке "Очистить кэш": чистим браузер и дергаем RPC admin.statistics.cleanCache
+		async function handleTopbarClearCacheClick(ev) {
+		ev && ev.preventDefault && ev.preventDefault();
+		// 1) Браузерный кэш
+		const browserOk = await clearBrowserCaches();
+		// 2) Серверный кэш (папка cache/) через RPC
+		try {
+		const resp = await post('admin.statistics.cleanCache', {
+		token: '{{ token_statistics|e('js') }}'
+		}, false);
+		if (resp && resp.status) {
+		showNotify('{{ lang['notify.cache.server_ok']|e('js') }}', 'success');
+		} else {
+		showNotify('{{ lang['notify.cache.server_fail']|e('js') }}', 'danger');
+		}
+		} catch (e) {
+		showNotify('{{ lang['notify.cache.server_fail']|e('js') }}', 'danger');
+		}
+		// Итоговое уведомление по браузерному кэшу
+		if (browserOk) {
+		showNotify('{{ lang['notify.cache.browser_ok']|e('js') }}', 'success');
+		} else {
+		showNotify('{{ lang['notify.cache.browser_fail']|e('js') }}', 'warning');
+		}
+		return false;
+		}
+		document.addEventListener('DOMContentLoaded', function () {
+		const btn = document.getElementById('btn-clear-cache');
+		if (btn) {
+		btn.addEventListener('click', handleTopbarClearCacheClick);
+		}
+		// Инициализация Bootstrap tooltip
+		if (typeof $.fn.tooltip !== 'undefined') {
+		$('[data-bs-toggle="tooltip"], [data-toggle="tooltip"]').tooltip();
+		}
+		});
+				</script>
 	</body>
 </html>
