@@ -78,16 +78,16 @@
 				</div>
 				<button type="button" class="btn btn-outline-success ml-1" data-toggle="modal" data-target="#uploadImagesModal" data-backdrop="static">{{ lang['upload_img'] }}</button>
 				{% if status %}
-					<button type="button" class="btn btn-outline-primary ml-1" data-toggle="modal" data-target="#categoriesModal" data-backdrop="static" title="{{ lang['categories'] }}">
+					<button type="button" class="btn btn-outline-primary ml-1" data-toggle="modal" data-target="#categoriesModal" data-backdrop="static" title="{{ lang['categories'] }}"  data-bs-toggle="tooltip">
 						<i class="fa fa-folder-open-o"></i>
 					</button>
 				{% endif %}
-				<button type="button" class="btn btn-outline-primary ml-1" data-toggle="collapse" data-target="#collapseImagesFilter">
+				<button type="button" class="btn btn-outline-primary ml-1" data-toggle="collapse" data-target="#collapseImagesFilter" title="{{ lang['filter']|default('Фильтр') }}" data-bs-toggle="tooltip">
 					<i class="fa fa-filter"></i>
 				</button>
 			</div>
 		</div>
-	<div class="row" id="entriesRow">
+		<div class="row" id="entriesRow">
 			<div class="col-md-12">
 				<div class="panel-body">
 					<div class="row">
@@ -140,42 +140,42 @@
 			<div class="tab-content">
 				<div class="tab-pane fade show active" id="uploadTab" role="tabpanel">
 					<form id="uploadnew_form" action="{{ php_self }}?mod=images" method="post" enctype="multipart/form-data" name="sn">
-				<input type="hidden" name="subaction" value="upload"/>
-				<input type="hidden" name="area" value="{{ area }}"/>
-				<div class="modal-body">
-					<div class="form-group row">
-						<label class="col-sm-4 col-form-label">{{ lang['category'] }}</label>
-						<div class="col-sm-8">{{ dirlistS|raw }}</div>
-					</div>
-					<div class="form-group row">
-						<div class="col-sm-8 offset-4">
-							<label class="col-form-label d-block"><input id="flagReplace" type="checkbox" name="replace" value="1"/>
-								{{ lang['do_replace'] }}</label>
-							<label class="col-form-label d-block"><input id="flagRand" type="checkbox" name="rand" value="1"/>
-								{{ lang['do_rand'] }}</label>
-							<label class="col-form-label d-block"><input id="flagThumb" type="checkbox" name="thumb" value="1" {{ thumb_mode }} {{ thumb_checked }}/>
-								{{ lang['do_preview'] }}</label>
-							<label class="col-form-label d-block"><input id="flagStamp" type="checkbox" name="stamp" value="1" {{ stamp_mode }} {{ stamp_checked }}/>
-								{{ lang['do_wmimage'] }}</label>
+						<input type="hidden" name="subaction" value="upload"/>
+						<input type="hidden" name="area" value="{{ area }}"/>
+						<div class="modal-body">
+							<div class="form-group row">
+								<label class="col-sm-4 col-form-label">{{ lang['category'] }}</label>
+								<div class="col-sm-8">{{ dirlistS|raw }}</div>
+							</div>
+							<div class="form-group row">
+								<div class="col-sm-8 offset-4">
+									<label class="col-form-label d-block"><input id="flagReplace" type="checkbox" name="replace" value="1"/>
+										{{ lang['do_replace'] }}</label>
+									<label class="col-form-label d-block"><input id="flagRand" type="checkbox" name="rand" value="1"/>
+										{{ lang['do_rand'] }}</label>
+									<label class="col-form-label d-block"><input id="flagThumb" type="checkbox" name="thumb" value="1" {{ thumb_mode }} {{ thumb_checked }}/>
+										{{ lang['do_preview'] }}</label>
+									<label class="col-form-label d-block"><input id="flagStamp" type="checkbox" name="stamp" value="1" {{ stamp_mode }} {{ stamp_checked }}/>
+										{{ lang['do_wmimage'] }}</label>
+								</div>
+							</div>
+							<div class="table-responsive">
+								<table id="imageup" class="table table-sm">
+									<tbody>
+										<tr id="row">
+											<td width="10">1:</td>
+											<td><input id="fileUploadInput" type="file" name="userfile[0]"/></td>
+										</tr>
+									</tbody>
+								</table>
+							</div>
+							<div id="showRemoveAddButtoms" class="form-group text-right">
+								<div class="btn-group btn-group-sm" role="group">
+									<button type="button" onclick="AddImages();return false;" class="btn btn-outline-success">{{ lang['onemore'] }}</button>
+									<button type="button" onclick="RemoveImages();return false;" class="btn btn-outline-danger">{{ lang['delone'] }}</button>
+								</div>
+							</div>
 						</div>
-					</div>
-					<div class="table-responsive">
-						<table id="imageup" class="table table-sm">
-							<tbody>
-								<tr id="row">
-									<td width="10">1:</td>
-									<td><input id="fileUploadInput" type="file" name="userfile[0]"/></td>
-								</tr>
-							</tbody>
-						</table>
-					</div>
-					<div id="showRemoveAddButtoms" class="form-group text-right">
-						<div class="btn-group btn-group-sm" role="group">
-							<button type="button" onclick="AddImages();return false;" class="btn btn-outline-success">{{ lang['onemore'] }}</button>
-							<button type="button" onclick="RemoveImages();return false;" class="btn btn-outline-danger">{{ lang['delone'] }}</button>
-						</div>
-					</div>
-				</div>
 						<div class="modal-footer text-right">
 							<button type="submit" class="btn btn-outline-success">{{ lang['upload'] }}</button>
 						</div>
@@ -183,50 +183,50 @@
 				</div>
 				<div class="tab-pane fade" id="urlTab" role="tabpanel">
 					<form action="{{ php_self }}?mod=images" method="post" name="snup">
-				<input type="hidden" name="subaction" value="uploadurl"/>
-				<input type="hidden" name="area" value="{{ area }}"/>
-				<div class="modal-body">
-					<div class="form-group row">
-						<label class="col-sm-4 col-form-label">{{ lang['category'] }}</label>
-						<div class="col-sm-8">{{ dirlistS|raw }}</div>
-					</div>
-					<div class="form-group row">
-						<div class="col-sm-8 offset-sm-4">
-							<label class="col-form-label d-block"><input id="replace2" type="checkbox" name="replace" value="1"/>
-								{{ lang['do_replace'] }}</label>
-							<label class="col-form-label d-block"><input id="rand2" type="checkbox" name="rand" value="1"/>
-								{{ lang['do_rand'] }}</label>
-							<label class="col-form-label d-block"><input id="thumb2" type="checkbox" name="thumb" value="1" {{ thumb_mode }} {{ thumb_checked }}/>
-								{{ lang['do_preview'] }}</label>
-							<label class="col-form-label d-block"><input id="stamp2" type="checkbox" name="stamp" value="1" {{ stamp_mode }} {{ stamp_checked }}/>
-								{{ lang['do_wmimage'] }}</label>
+						<input type="hidden" name="subaction" value="uploadurl"/>
+						<input type="hidden" name="area" value="{{ area }}"/>
+						<div class="modal-body">
+							<div class="form-group row">
+								<label class="col-sm-4 col-form-label">{{ lang['category'] }}</label>
+								<div class="col-sm-8">{{ dirlistS|raw }}</div>
+							</div>
+							<div class="form-group row">
+								<div class="col-sm-8 offset-sm-4">
+									<label class="col-form-label d-block"><input id="replace2" type="checkbox" name="replace" value="1"/>
+										{{ lang['do_replace'] }}</label>
+									<label class="col-form-label d-block"><input id="rand2" type="checkbox" name="rand" value="1"/>
+										{{ lang['do_rand'] }}</label>
+									<label class="col-form-label d-block"><input id="thumb2" type="checkbox" name="thumb" value="1" {{ thumb_mode }} {{ thumb_checked }}/>
+										{{ lang['do_preview'] }}</label>
+									<label class="col-form-label d-block"><input id="stamp2" type="checkbox" name="stamp" value="1" {{ stamp_mode }} {{ stamp_checked }}/>
+										{{ lang['do_wmimage'] }}</label>
+								</div>
+							</div>
+							<div class="table-responsive">
+								<table id="imageup2" class="table table-sm">
+									<tbody>
+										<tr id="row">
+											<td width="10">1:</td>
+											<td><input type="text" name="userurl[0]" class="form-control"/></td>
+										</tr>
+									</tbody>
+								</table>
+							</div>
+							<div class="form-group text-right">
+								<div class="btn-group btn-group-sm" role="group">
+									<button type="button" onclick="AddImages2();return false;" class="btn btn-outline-success">{{ lang['onemore'] }}</button>
+									<button type="button" onclick="RemoveImages2();return false;" class="btn btn-outline-danger">{{ lang['delone'] }}</button>
+								</div>
+							</div>
 						</div>
-					</div>
-					<div class="table-responsive">
-						<table id="imageup2" class="table table-sm">
-							<tbody>
-								<tr id="row">
-									<td width="10">1:</td>
-									<td><input type="text" name="userurl[0]" class="form-control"/></td>
-								</tr>
-							</tbody>
-						</table>
-					</div>
-					<div class="form-group text-right">
-						<div class="btn-group btn-group-sm" role="group">
-							<button type="button" onclick="AddImages2();return false;" class="btn btn-outline-success">{{ lang['onemore'] }}</button>
-							<button type="button" onclick="RemoveImages2();return false;" class="btn btn-outline-danger">{{ lang['delone'] }}</button>
+						<div class="modal-footer text-right">
+							<button type="submit" class="btn btn-outline-success">{{ lang['upload'] }}</button>
 						</div>
-					</div>
+					</form>
 				</div>
-					<div class="modal-footer text-right">
-						<button type="submit" class="btn btn-outline-success">{{ lang['upload'] }}</button>
-					</div>
-				</form>
 			</div>
 		</div>
 	</div>
-</div>
 </div>
 {% if status %}
 	<div id="categoriesModal" class="modal fade" tabindex="-1" role="dialog">
@@ -274,7 +274,7 @@
 		</div>
 	</div>
 {% endif %}
-<script type="text/javascript">
+ <script type="text/javascript">
 	function AddImages() {
 var tbl = document.getElementById('imageup');
 var lastRow = tbl.rows.length;
@@ -320,7 +320,7 @@ tbl.deleteRow(lastRow - 1);
 }
 }
 </script>
-<script type="text/javascript">
+ <script type="text/javascript">
 		$(document).ready(function () {
 // Показ/скрытие селекта категории при выборе действия "Переместить"
 $('#delform').on('change input', function () {

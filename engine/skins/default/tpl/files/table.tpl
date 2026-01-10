@@ -80,14 +80,13 @@
 		<div class="card-header">
 			<div class="row">
 				<div class="col text-right">
-					<button type="button" class="btn btn-outline-success" data-toggle="modal" data-target="#uploadnewModal" data-backdrop="static">{{ lang['upload_file'] }}</button>
-					<button type="button" class="btn btn-outline-success" data-toggle="modal" data-target="#uploadNewByUrlModal" data-backdrop="static">{{ lang['upload_file_url'] }}</button>
+					<button type="button" class="btn btn-outline-success" data-toggle="modal" data-target="#uploadFilesModal" data-backdrop="static">{{ lang['upload_file'] }}</button>
 					{% if status %}
-						<button type="button" class="btn btn-outline-primary" data-toggle="modal" data-target="#categoriesModal" data-backdrop="static" title="{{ lang['categories'] }}">
+<button type="button" class="btn btn-outline-primary" data-toggle="modal" data-target="#categoriesModal" data-backdrop="static" title="{{ lang['categories'] }}"  data-bs-toggle="tooltip">
 							<i class="fa fa-folder-open-o"></i>
 						</button>
 					{% endif %}
-					<button type="button" class="btn btn-outline-primary" data-toggle="collapse" data-target="#collapseFilesFilter">
+<button type="button" class="btn btn-outline-primary" data-toggle="collapse" data-target="#collapseFilesFilter" title="{{ lang['filter']|default('Фильтр') }}" data-bs-toggle="tooltip">
 						<i class="fa fa-filter"></i>
 					</button>
 				</div>
@@ -135,101 +134,103 @@
 		</div>
 	</div>
 </form>
-<div id="uploadnewModal" class="modal fade" tabindex="-1" role="dialog">
+<div id="uploadFilesModal" class="modal fade" tabindex="-1" role="dialog">
 	<div class="modal-dialog">
 		<div class="modal-content">
 			<div class="modal-header">
-				<h5 id="uploadnewModalLabel" class="modal-title">{l_uploadnew}</h5>
+				<h5 id="uploadFilesModalLabel" class="modal-title">{{ lang['upload_file'] }}</h5>
 				<button type="button" class="close" data-dismiss="modal">
 					<span>&times;</span>
 				</button>
 			</div>
-			<form id="uploadnew_form" action="{{ php_self }}?mod=files" method="post" enctype="multipart/form-data" name="sn">
-				<input type="hidden" name="subaction" value="upload"/>
-				<input type="hidden" name="area" value="{{ area }}"/>
-				<div class="modal-body">
-					<div class="form-group row">
-						<label class="col-sm-4 col-form-label">{{ lang['category'] }}</label>
-						<div class="col-sm-8">{{ dirlistS|raw }}</div>
-					</div>
-					<div class="form-group row">
-						<div class="col-sm-8 offset-4">
-							<label class="col-form-label d-block"><input id="flagReplace" type="checkbox" name="replace" value="1"/>
-								{{ lang['do_replace'] }}</label>
-							<label class="col-form-label d-block"><input id="flagRand" type="checkbox" name="rand" value="1"/>
-								{{ lang['do_rand'] }}</label>
+			<ul class="nav nav-tabs" role="tablist">
+				<li class="nav-item">
+					<a class="nav-link active" id="upload-tab" data-toggle="tab" href="#uploadTab" role="tab">{{ lang['upload_file']|default('Загрузка файлов') }}</a>
+				</li>
+				<li class="nav-item">
+					<a class="nav-link" id="url-tab" data-toggle="tab" href="#urlTab" role="tab">{{ lang['upload_file_url']|default('По ссылке') }}</a>
+				</li>
+			</ul>
+			<div class="tab-content">
+				<div class="tab-pane fade show active" id="uploadTab" role="tabpanel">
+					<form id="uploadnew_form" action="{{ php_self }}?mod=files" method="post" enctype="multipart/form-data" name="sn">
+						<input type="hidden" name="subaction" value="upload"/>
+						<input type="hidden" name="area" value="{{ area }}"/>
+						<div class="modal-body">
+							<div class="form-group row">
+								<label class="col-sm-4 col-form-label">{{ lang['category'] }}</label>
+								<div class="col-sm-8">{{ dirlistS|raw }}</div>
+							</div>
+							<div class="form-group row">
+								<div class="col-sm-8 offset-4">
+									<label class="col-form-label d-block"><input id="flagReplace" type="checkbox" name="replace" value="1"/>
+										{{ lang['do_replace'] }}</label>
+									<label class="col-form-label d-block"><input id="flagRand" type="checkbox" name="rand" value="1"/>
+										{{ lang['do_rand'] }}</label>
+								</div>
+							</div>
+							<div class="table-responsive">
+								<table id="fileup" class="table table-sm">
+									<tbody>
+										<tr id="row">
+											<td width="10">1:</td>
+											<td><input id="fileUploadInput" type="file" name="userfile[0]"/></td>
+										</tr>
+									</tbody>
+								</table>
+							</div>
+							<div id="showRemoveAddButtoms" class="form-group text-right">
+								<div class="btn-group btn-group-sm" role="group">
+									<button type="button" onclick="AddFiles();return false;" class="btn btn-outline-success">{{ lang['onemore'] }}</button>
+									<button type="button" onclick="RemoveFiles();return false;" class="btn btn-outline-danger">{{ lang['delone'] }}</button>
+								</div>
+							</div>
 						</div>
-					</div>
-					<div class="table-responsive">
-						<table id="fileup" class="table table-sm">
-							<tbody>
-								<tr id="row">
-									<td width="10">1:</td>
-									<td><input id="fileUploadInput" type="file" name="userfile[0]"/></td>
-								</tr>
-							</tbody>
-						</table>
-					</div>
-					<div id="showRemoveAddButtoms" class="form-group text-right">
-						<div class="btn-group btn-group-sm" role="group">
-							<button type="button" onclick="AddFiles();return false;" class="btn btn-outline-success">{{ lang['onemore'] }}</button>
-							<button type="button" onclick="RemoveFiles();return false;" class="btn btn-outline-danger">{{ lang['delone'] }}</button>
+						<div class="modal-footer text-right">
+							<button type="submit" class="btn btn-outline-success">{{ lang['upload'] }}</button>
 						</div>
-					</div>
+					</form>
 				</div>
-				<div class="modal-footer text-right">
-					<button type="submit" class="btn btn-outline-success">{{ lang['upload'] }}</button>
+				<div class="tab-pane fade" id="urlTab" role="tabpanel">
+					<form action="{{ php_self }}?mod=files" method="post" name="snup">
+						<input type="hidden" name="subaction" value="uploadurl"/>
+						<input type="hidden" name="area" value="{{ area }}"/>
+						<div class="modal-body">
+							<div class="form-group row">
+								<label class="col-sm-4 col-form-label">{{ lang['category'] }}</label>
+								<div class="col-sm-8">{{ dirlistS|raw }}</div>
+							</div>
+							<div class="form-group row">
+								<div class="col-sm-8 offset-sm-4">
+									<label class="col-form-label d-block"><input id="replace2" type="checkbox" name="replace" value="1"/>
+										{{ lang['do_replace'] }}</label>
+									<label class="col-form-label d-block"><input id="rand2" type="checkbox" name="rand" value="1"/>
+										{{ lang['do_rand'] }}</label>
+								</div>
+							</div>
+							<div class="table-responsive">
+								<table id="fileup2" class="table table-sm">
+									<tbody>
+										<tr id="row">
+											<td width="10">1:</td>
+											<td><input type="text" name="userurl[0]" class="form-control"/></td>
+										</tr>
+									</tbody>
+								</table>
+							</div>
+							<div class="form-group text-right">
+								<div class="btn-group btn-group-sm" role="group">
+									<button type="button" onclick="AddFiles2();return false;" class="btn btn-outline-success">{{ lang['onemore'] }}</button>
+									<button type="button" onclick="RemoveFiles2();return false;" class="btn btn-outline-danger">{{ lang['delone'] }}</button>
+								</div>
+							</div>
+						</div>
+						<div class="modal-footer text-right">
+							<button type="submit" class="btn btn-outline-success">{{ lang['upload'] }}</button>
+						</div>
+					</form>
 				</div>
-			</form>
-		</div>
-	</div>
-</div>
-<div id="uploadNewByUrlModal" class="modal fade" tabindex="-1" role="dialog">
-	<div class="modal-dialog">
-		<div class="modal-content">
-			<div class="modal-header">
-				<h5 id="uploadnewModalLabel" class="modal-title">{l_upload_file_url}</h5>
-				<button type="button" class="close" data-dismiss="modal">
-					<span>&times;</span>
-				</button>
 			</div>
-			<form action="{{ php_self }}?mod=files" method="post" name="snup">
-				<input type="hidden" name="subaction" value="uploadurl"/>
-				<input type="hidden" name="area" value="{{ area }}"/>
-				<div class="modal-body">
-					<div class="form-group row">
-						<label class="col-sm-4 col-form-label">{{ lang['category'] }}</label>
-						<div class="col-sm-8">{{ dirlistS|raw }}</div>
-					</div>
-					<div class="form-group row">
-						<div class="col-sm-8 offset-sm-4">
-							<label class="col-form-label d-block"><input id="replace2" type="checkbox" name="replace" value="1"/>
-								{{ lang['do_replace'] }}</label>
-							<label class="col-form-label d-block"><input id="rand2" type="checkbox" name="rand" value="1"/>
-								{{ lang['do_rand'] }}</label>
-						</div>
-					</div>
-					<div class="table-responsive">
-						<table id="fileup2" class="table table-sm">
-							<tbody>
-								<tr id="row">
-									<td width="10">1:</td>
-									<td><input type="text" name="userurl[0]" class="form-control"/></td>
-								</tr>
-							</tbody>
-						</table>
-					</div>
-					<div class="form-group text-right">
-						<div class="btn-group btn-group-sm" role="group">
-							<button type="button" onclick="AddFiles2();return false;" class="btn btn-outline-success">{{ lang['onemore'] }}</button>
-							<button type="button" onclick="RemoveFiles2();return false;" class="btn btn-outline-danger">{{ lang['delone'] }}</button>
-						</div>
-					</div>
-				</div>
-				<div class="modal-footer text-right">
-					<button type="submit" class="btn btn-outline-success">{{ lang['upload'] }}</button>
-				</div>
-			</form>
 		</div>
 	</div>
 </div>
@@ -279,7 +280,7 @@
 		</div>
 	</div>
 {% endif %}
-<script language="javascript" type="text/javascript">
+ <script language="javascript" type="text/javascript">
 	function AddFiles() {
 var tbl = document.getElementById('fileup');
 var lastRow = tbl.rows.length;
@@ -328,14 +329,14 @@ tbl.deleteRow(lastRow - 1);
 }
 </script>
 <!-- BEGIN: Init UPLOADIFY engine -->
-<script type="text/javascript">
+ <script type="text/javascript">
 	$(document).ready(function () {
 $('#delform').on('input', function (event) {
 $(this.elements.category).toggle('move' === $(this.elements.subaction).val());
 }).trigger('input');
 $('#uploadnew_form').on('submit', function (event) {
 event.preventDefault();
-$('#uploadnewModal').on('hidden.bs.modal', function (e) {
+$('#uploadFilesModal').on('hidden.bs.modal', function (e) {
 document.location = document.location;
 });
 // Prepare script data
