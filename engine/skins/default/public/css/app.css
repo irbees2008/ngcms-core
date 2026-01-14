@@ -6782,7 +6782,7 @@ select:not([class]) {
     padding-left: 0
 }
 .navbar-nav .dropdown-menu {
-    position: static;
+    position: absolute;
     float: none
 }
 .navbar-text {
@@ -12494,7 +12494,7 @@ body.modal-open {
     /* Вертикальное центрирование */
     justify-content: center;
     /* Горизонтальное центрирование */
-    color: #1390ed ;
+    color: #1390ed;
 }
 .icon-image {
     max-width: 100%;
