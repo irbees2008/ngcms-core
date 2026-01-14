@@ -65,8 +65,8 @@
 												</div> -->
 			</div>
 			<div id="fileEditorContainer" class="col-lg-9 pl-lg-0">
-				<textarea id="fileEditorSelector" wrap="off" style="width: 100%; height: 100%; float: left; background-color: #EEEEEE; white-space: nowrap; font-family: monospace; font-size: 10pt;">*** EDITOR ***</textarea>
-				<div id="imageViewContainer" style="display: none; height: 100%; width: 100%; vertical-align: middle;"></div>
+<textarea id="fileEditorSelector" wrap="off" style="width: 100%; height: 578px; float: left; background-color: #EEEEEE; white-space: nowrap; font-family: monospace; font-size: 10pt;">*** EDITOR ***</textarea>
+<div id="imageViewContainer" style="display: none; height: 578px; width: 100%; vertical-align: middle;"></div>
 			</div>
 		</div>
 		<div class="row">
