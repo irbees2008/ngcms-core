@@ -223,7 +223,7 @@ function news_showone($newsID, $alt_name, $callingParams = [])
         $tvars['vars']['news']['url']['delete'] = admin_url . '/admin.php?mod=news&amp;action=manage&amp;subaction=mass_delete&amp;token=' . genUToken('admin.news.edit') . '&amp;selected_news[]=' . $row['id'];
         $tvars['vars']['[edit-news]'] = '<a href="' . admin_url . '/admin.php?mod=news&amp;action=edit&amp;id=' . $row['id'] . '" target="_blank">';
         $tvars['vars']['[/edit-news]'] = '</a>';
-        $tvars['vars']['[del-news]'] = "<a onclick=\"confirmit('" . admin_url . '/admin.php?mod=news&amp;subaction=do_mass_delete&amp;token=' . genUToken('admin.news.edit') . '&amp;selected_news[]=' . $row['id'] . "', '" . $lang['sure_del'] . "')\" target=\"_blank\" style=\"cursor: pointer;\">";
+        $tvars['vars']['[del-news]'] = "<a onclick=\"confirmit('" . admin_url . '/admin.php?mod=news&amp;subaction=do_mass_delete&amp;token=' . genUToken('admin.news.edit') . '&amp;selected_news[]=' . $row['id'] . "', '" . (is_array($lang) && isset($lang['sure_del']) ? $lang['sure_del'] : 'Are you sure?') . "')\" target=\"_blank\" style=\"cursor: pointer;\">";
         $tvars['vars']['[/del-news]'] = '</a>';
     } else {
         $tvars['regx']["'\\[edit-news\\].*?\\[/edit-news\\]'si"] = '';
@@ -545,7 +545,7 @@ function news_showlist($filterConditions = [], $paginationParams = [], $callingP
         $pages_count = 1;
     } else {
         if (isset($callingParams['paginationCategoryID']) && ($callingParams['paginationCategoryID'] > 0)) {
-            $query['count'] = 'SELECT count(*) FROM ' . prefix . '_news_map where categoryID = ' . db_squote($callingParams['paginationCategoryID']);
+            $query['count'] = 'SELECT count(*) FROM ' . prefix . '_news_map NM JOIN ' . prefix . '_news N ON NM.newsID = N.id WHERE NM.categoryID = ' . db_squote($callingParams['paginationCategoryID']) . ' AND N.approve = 1';
         } else {
             $query['count'] = 'SELECT count(*) as count FROM ' . prefix . '_news WHERE ' . $query['filter'];
         }
@@ -830,7 +830,7 @@ function news_showlist($filterConditions = [], $paginationParams = [], $callingP
     // Generate pagination/navigation if it's not disabled
     $paginationOutput = '';
     if (!(isset($callingParams['disablePagination']) && ($callingParams['disablePagination']))) {
-        if ($nCount > 0) {
+        if ($nCount > 0 && $pages_count > 1) {
             $paginationOutput = ngSitePagination($cstart, $pages_count, $paginationParams);
             if (!isset($callingParams['entendedReturnPagination']) && !$callingParams['extendedReturnPagination']) {
                 $output .= $paginationOutput;
