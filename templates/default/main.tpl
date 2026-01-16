@@ -15,23 +15,23 @@
 		<link rel="stylesheet" href="{{ tpl_url }}/css/style.css">
 		<link rel="stylesheet" href="{{ tpl_url }}/css/slider.css">
 		<!--[if lt IE 9]>
-											<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
-											<script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
-											<![endif]-->
+													<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+													 <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+													<![endif]-->
 		<!--[if lte IE 7]>
-											<link rel="stylesheet" href="{{ tpl_url }}/css/ie7.css">
-											<script src="{{ tpl_url }}/js/ie7.js"></script>
-											<![endif]-->
+													<link rel="stylesheet" href="{{ tpl_url }}/css/ie7.css">
+													 <script src="{{ tpl_url }}/js/ie7.js"></script>
+													<![endif]-->
 		<!--[if lte IE 6]>
-											<link rel="stylesheet" href="{{ tpl_url }}/css/ie6.css">
-											<![endif]-->
+													<link rel="stylesheet" href="{{ tpl_url }}/css/ie6.css">
+													<![endif]-->
 			{% if pluginIsActive('rss_export') %}
 		<link href="{{ home }}/rss.xml" rel="alternate" type="application/rss+xml" title="RSS"/> {% endif %}
-		<script src="{{ scriptLibrary }}/jq/jquery.js"></script>
-		<script type="text/javascript" src="{{ scriptLibrary }}/functions.js"></script>
-		<script type="text/javascript" src="{{ scriptLibrary }}/ajax.js"></script>
-		<link rel="stylesheet" href="{{ home }}/lib/notify.css">
-		<script src="{{ home }}/lib/notify.js"></script>
+		 <script src="{{ scriptLibrary }}/jq/jquery.js"></script>
+		 <script type="text/javascript" src="{{ scriptLibrary }}/functions.js"></script>
+		 <script type="text/javascript" src="{{ scriptLibrary }}/ajax.js"></script>
+		<link
+		rel="stylesheet" href="{{ home }}/lib/notify.css">  <script src="{{ home }}/lib/notify.js"></script>
 		<title>{{ titles }}
 			{% if pagination_total and pagination_current and pagination_current > 1 %}
 				- Страница
@@ -175,9 +175,9 @@
 						<p>&copy;
 							<a title="{{ home_title }}" href="{{ home }}">{{ home_title }}</a>
 							Powered by
-							<a title="Next Generation CMS" target="_blank" href="http://ngcms.ru/">NG CMS</a>
+							<a title="Next Generation CMS" target="_blank" href="http://ngcms.org/">NG CMS</a>
 							2007
-																																							—
+																																														—
 							{{ now|date("Y") }}.
 							<br/>{{ lang.sql_queries }}:
 							<b>{{ queries }}</b>
@@ -205,16 +205,23 @@
 				{{ personal_menu }}
 			{% endif %}
 			{% if isHandler('news:news') %}
-				<script src="{{ tpl_url }}/js/jquery.custom-scrollbar.min.js"></script>
+				 <script src="{{ tpl_url }}/js/jquery.custom-scrollbar.min.js"></script>
 			{% endif %}
-			<script src="{{ tpl_url }}/js/slider.js"></script>
-			<script src="{{ tpl_url }}/js/script.js"></script>
+			 <script src="{{ tpl_url }}/js/slider.js"></script>
+			 <script src="{{ tpl_url }}/js/script.js"></script>
 			{# Вывод накопленных уведомлений (notify.js должен быть подключен выше) #}
 			{{ notify|raw }}
+				{% if debug_queries is defined or debug_profiler is defined %}
+					<div class="debug-info"> {% if debug_queries is defined %}
+						{{ debug_queries|raw }}
+					{% endif %}
+					{% if debug_profiler is defined %}
+						<br/>
+						{{ debug_profiler|raw }}
+					{% endif %}
+				</div>
+			{% endif %}
 		{% endblock %}
 	</body>
 </html>
-[debug]
-{debug_queries}<br/>{debug_profiler}
-[/debug]
 {% endapply %}
