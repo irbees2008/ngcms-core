@@ -51,13 +51,13 @@
 								<div class="input-group-prepend">
 									<span class="input-group-text">&nbsp;&nbsp;{{ lang.editnews['header.date_since'] }}&nbsp;</span>
 								</div>
-								<input type="text" id="dr1" name="dr1" value="{{ dr1 }}" class="form-control" pattern="[0-9]{2}\.[0-9]{2}\.[0-9]{4}" placeholder="{{ "now" | date('d.m.Y') }}" autocomplete="off"/>
+<input type="text" id="dr1" name="dr1" value="{{ dr1 }}" class="form-control" pattern="[0-9]{2}\.[0-9]{2}\.[0-9]{4}" placeholder="{{ "now" | date('d.m.Y G:i:s') }}" autocomplete="off"/>
 							</div>
 							<div class="input-group">
 								<div class="input-group-prepend">
 									<span class="input-group-text">{{ lang.editnews['header.date_till'] }}</span>
 								</div>
-								<input type="text" id="dr2" name="dr2" value="{{ dr2 }}" class="form-control" pattern="[0-9]{2}\.[0-9]{2}\.[0-9]{4}" placeholder="{{ "now" | date('d.m.Y') }}" autocomplete="off"/>
+								<input type="text" id="dr2" name="dr2" value="{{ dr2 }}" class="form-control" pattern="[0-9]{2}\.[0-9]{2}\.[0-9]{4}" placeholder="{{ "now" | date('d.m.Y G:i:s') }}" autocomplete="off"/>
 							</div>
 						</div>
 						<div class="form-group">

@@ -78,7 +78,7 @@
 				</div>
 				<button type="button" class="btn btn-outline-success ml-1" data-toggle="modal" data-target="#uploadImagesModal" data-backdrop="static">{{ lang['upload_img'] }}</button>
 				{% if status %}
-					<button type="button" class="btn btn-outline-primary ml-1" data-toggle="modal" data-target="#categoriesModal" data-backdrop="static" title="{{ lang['categories'] }}"  data-bs-toggle="tooltip">
+					<button type="button" class="btn btn-outline-primary ml-1" data-toggle="modal" data-target="#categoriesModal" data-backdrop="static" title="{{ lang['categories'] }}" data-bs-toggle="tooltip">
 						<i class="fa fa-folder-open-o"></i>
 					</button>
 				{% endif %}
@@ -88,7 +88,7 @@
 			</div>
 		</div>
 		<div class="row" id="entriesRow">
-			<div class="col-md-12">
+			<div class="col-12">
 				<div class="panel-body">
 					<div class="row">
 						{{ entries|raw }}

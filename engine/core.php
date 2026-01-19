@@ -409,8 +409,12 @@ define('tpl_url', home . '/templates/' . $config['theme']);
 // Reconfigure allowed template paths in TWIG - site template is also available
 $twigLoader->setPaths([tpl_site, root]);
 // Add global variables `tpl_url` and `scriptLibrary` in TWIG
-$twig->addGlobal('tpl_url', tpl_url);
-$twig->addGlobal('scriptLibrary', scriptLibrary);
+// Используем прямой доступ к Environment для добавления globals после инициализации
+$twig->env->getGlobals(); // Инициализируем globals если нужно
+$twig->env->mergeGlobals([
+    'tpl_url' => tpl_url,
+    'scriptLibrary' => scriptLibrary,
+]);
 // Load lang files after executing core scripts. This is done for the switcher plugin.
 $lang = LoadLang('common');
 $lang = LoadLangTheme();

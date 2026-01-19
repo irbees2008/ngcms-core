@@ -136,6 +136,25 @@ function doUpgrade(int $fromVersion, int $toVersion): void
             checkAndConvertAllTablesToUtf8mb4($db);
         } else {
             // Специальная логика для определенных версий
+            if ($version == 6) {
+                // Обновление таблицы новостей - проверяем наличие поля xfields
+                echo "<h4>Обновление таблицы новостей</h4>";
+                $newsTable = prefix . '_news';
+                // Проверяем существование поля xfields
+                if (columnExists($db, $newsTable, 'xfields')) {
+                    echo "<div class='action'><div class='status'>Поле 'xfields' найдено, выполняем обновление...</div></div>";
+                    // Меняем тип поля обратно на MEDIUMTEXT (оптимальный вариант)
+                    executeSqlWithReporting($db, "ALTER TABLE " . prefix . "_news MODIFY xfields MEDIUMTEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
+                    // Восстанавливаем поврежденные данные
+                    executeSqlWithReporting($db, "UPDATE " . prefix . "_news SET xfields = REPLACE(xfields, 'SER[a:', 'SER|a:') WHERE xfields LIKE 'SER[a:%'");
+                    executeSqlWithReporting($db, "UPDATE " . prefix . "_news SET xfields = '' WHERE xfields LIKE 'SER|a:%' AND xfields NOT LIKE '%}'");
+                    echo "<div class='action'><div class='success'>Поле 'xfields' успешно обновлено</div></div>";
+                } else {
+                    echo "<div class='action'><div class='skipped'>Поле 'xfields' не найдено в таблице новостей. Обновление пропущено.</div></div>";
+                }
+                // Обновляем версию БД
+                executeSqlWithReporting($db, "UPDATE " . prefix . "_config SET value = 6 WHERE name = 'database.engine.revision'");
+            }
             if ($version == 7) {
                 // Обновление плагина комментариев - ДОБАВЛЯЕМ ПОЛЕ moderated
                 echo "<h4>Обновление плагина комментариев</h4>";
@@ -164,8 +183,8 @@ function doUpgrade(int $fromVersion, int $toVersion): void
                     echo "<div class='action'><div class='status error'>Ошибка при обновлении плагина комментариев: " . htmlspecialchars($e->getMessage()) . "</div></div>";
                 }
             }
-            // Стандартная обработка для других версий
-            if (!empty($upgradeMatrix[$version])) {
+            // Стандартная обработка для других версий (кроме 6, который обрабатывается отдельно)
+            if ($version != 6 && !empty($upgradeMatrix[$version])) {
                 foreach ($upgradeMatrix[$version] as $sql) {
                     executeSqlWithReporting($db, $sql);
                 }

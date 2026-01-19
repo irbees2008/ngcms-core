@@ -7,6 +7,7 @@
 //
 // Protect against hack attempts
 use PHPMailer\PHPMailer\PHPMailer;
+
 if (!defined('NGCMS')) {
     exit('HAL');
 }
@@ -121,11 +122,17 @@ function AutoBackup($delayed = false, $force = false)
 function LangDate($format, $timestamp)
 {
     global $lang;
-    $weekdays = explode(',', $lang['weekdays']);
-    $short_weekdays = explode(',', $lang['short_weekdays']);
-    $months = explode(',', $lang['months']);
-    $months_s = explode(',', $lang['months_s']);
-    $short_months = explode(',', $lang['short_months']);
+
+    // Проверка на корректность $lang
+    if (!is_array($lang)) {
+        return date($format, $timestamp);
+    }
+
+    $weekdays = explode(',', isset($lang['weekdays']) ? $lang['weekdays'] : '');
+    $short_weekdays = explode(',', isset($lang['short_weekdays']) ? $lang['short_weekdays'] : '');
+    $months = explode(',', isset($lang['months']) ? $lang['months'] : '');
+    $months_s = explode(',', isset($lang['months_s']) ? $lang['months_s'] : '');
+    $short_months = explode(',', isset($lang['short_months']) ? $lang['short_months'] : '');
     foreach ($weekdays as $name => $value) {
         $weekdays[$name] = preg_replace('/./', '\\\\\\0', $value);
     }
@@ -2240,22 +2247,26 @@ function ngExceptionHandler($exception)
 {
 ?>
     <html>
+
     <head>
         <title>NGCMS Runtime exception: <?php echo get_class($exception); ?></title>
         <style>
             body {
                 font: 1em Georgia, "Times New Roman", serif;
             }
+
             .dmsg {
                 border: 1px #EEEEEE solid;
                 padding: 10px;
                 background-color: yellow;
             }
+
             .dtrace TBODY TD {
                 padding: 3px;
                 /*border: 1px #EEEEEE solid;*/
                 background-color: #EEEEEE;
             }
+
             .dtrace THEAD TD {
                 padding: 3px;
                 background-color: #EEEEEE;
@@ -2263,6 +2274,7 @@ function ngExceptionHandler($exception)
             }
         </style>
     </head>
+
     <body>
         <?php
         echo '<h1>NGCMS Runtime exception: ' . get_class($exception) . "</h1>\n";
@@ -2312,22 +2324,26 @@ function ngExceptionHandler($exception)
             return true;
         } ?>
         <html>
+
         <head>
             <title>NGCMS Runtime error: <?php echo $lastError['message']; ?></title>
             <style type="text/css">
                 body {
                     font: 1em Georgia, "Times New Roman", serif;
                 }
+
                 .dmsg {
                     border: 1px #EEEEEE solid;
                     padding: 10px;
                     background-color: yellow;
                 }
+
                 .dtrace TBODY TD {
                     padding: 3px;
                     /*border: 1px #EEEEEE solid;*/
                     background-color: #EEEEEE;
                 }
+
                 .dtrace THEAD TD {
                     padding: 3px;
                     background-color: #EEEEEE;
@@ -2335,6 +2351,7 @@ function ngExceptionHandler($exception)
                 }
             </style>
         </head>
+
         <body>
             <?php
             echo '<div id="ngErrorInformer">';
@@ -2378,22 +2395,26 @@ function ngExceptionHandler($exception)
     {
         ?>
             <html>
+
             <head>
                 <title>NGCMS Runtime error: <?php echo $title; ?></title>
                 <style type="text/css">
                     body {
                         font: 1em Georgia, "Times New Roman", serif;
                     }
+
                     .dmsg {
                         border: 1px #EEEEEE solid;
                         padding: 10px;
                         background-color: yellow;
                     }
+
                     .dtrace TBODY TD {
                         padding: 3px;
                         /*border: 1px #EEEEEE solid;*/
                         background-color: #EEEEEE;
                     }
+
                     .dtrace THEAD TD {
                         padding: 3px;
                         background-color: #EEEEEE;
@@ -2401,6 +2422,7 @@ function ngExceptionHandler($exception)
                     }
                 </style>
             </head>
+
             <body>
                 <div id="hdrSpanItem"></div>
                 <script language="Javascript">
