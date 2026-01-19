@@ -1,0 +1,76 @@
+name: Build source code
+on:
+  push:
+    branches: [master]  # или укажите ветку, при пуше в которую будет запускаться сборка
+  pull_request:
+    branches: [master]
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+      
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.3"
+          extensions: mbstring, intl, xml, curl, zip, pdo, pdo_mysql, gd, json
+          coverage: none
+      
+      - name: Install dependencies
+        run: |
+          sudo apt-get update && sudo apt-get install -y git
+          composer install --no-dev --prefer-dist
+      
+      - name: Download source code from ng-test branches
+        run: |
+          mkdir -p ~/build
+          # Клонируем ядро из ветки ng-test
+          git clone --depth=1 --branch=ng-test https://github.com/irbees2008/ngcms-core ~/build/
+          
+          # Клонируем плагины из ветки ng-test_plugins
+          git clone --depth=1 --branch=ng-test_plugins https://github.com/irbees2008/ngcms-plugins ~/build/engine/plugins/
+          
+          # Проверяем, что ветки выбраны правильно
+          echo "Checking core branch:"
+          cd ~/build && git branch -a
+          echo "Checking plugins branch:"
+          cd ~/build/engine/plugins && git branch -a
+      
+      - name: Install libraries via composer
+        run: |
+          cd ~/build
+          composer install --no-dev --prefer-dist
+          echo ${{ github.sha }} > engine/cache/build
+      
+      - name: Cleanup and prepare
+        run: |
+          cd ~/build
+          rm -rf .git .github engine/plugins/.git
+          
+          # Определяем имя для папки
+          if [ "${{ github.event_name }}" == "pull_request" ]; then
+            FOLDER_NAME="ngcms-build-pr-${{ github.event.number }}-ng-test"
+          else
+            FOLDER_NAME="ngcms-build-${GITHUB_SHA:0:7}-ng-test"
+          fi
+          
+          # Переименовываем папку build
+          cd ~
+          mv build "$FOLDER_NAME"
+          
+          # Сохраняем имя папки для следующего шага
+          echo "FOLDER_NAME=$FOLDER_NAME" >> $GITHUB_ENV
+          echo "Built from: ng-test branches" >> ~/$FOLDER_NAME/build-info.txt
+          echo "Core: ng-test" >> ~/$FOLDER_NAME/build-info.txt
+          echo "Plugins: ng-test_plugins" >> ~/$FOLDER_NAME/build-info.txt
+      
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.FOLDER_NAME }}
+          path: ~/${{ env.FOLDER_NAME }}/
+          include-hidden-files: true
