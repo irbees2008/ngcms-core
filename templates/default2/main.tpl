@@ -23,22 +23,24 @@
 		<link
 		href="{{ tpl_url }}/css/fontawesome-4.7.0/fontawesome.css" rel="stylesheet">
 		<!-- Custom styles for this theme -->
-		<link href="{{ tpl_url }}/css/style.css" rel="stylesheet"><!--[if lt IE 9]>
-									        <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
-									        <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
-									        <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
-							 <![endif]-->
-		<!-- jQuery first, then Tether, then Popper, then Bootstrap JS. --><script src="{{ tpl_url }}/js/jquery-3.2.1.js"> </script>
-		<script src="{{ tpl_url }}/js/tether-1.4.0.js"></script>
-		<script src="{{ tpl_url }}/js/popper-1.11.0.js"></script>
-		<script src="{{ tpl_url }}/js/bootstrap.js"></script>
-		<script src="{{ tpl_url }}/js/notify-3.1.5.js"></script>
+		<link href="{{ tpl_url }}/css/style.css" rel="stylesheet">
+		<!--[if lt IE 9]>
+													        <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+													          <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+													          <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+											 <![endif]-->
+		<!-- jQuery first, then Tether, then Popper, then Bootstrap JS. -->
+		 <script src="{{ tpl_url }}/js/jquery-3.2.1.js"> </script>
+		 <script src="{{ tpl_url }}/js/tether-1.4.0.js"></script>
+		 <script src="{{ tpl_url }}/js/popper-1.11.0.js"></script>
+		 <script src="{{ tpl_url }}/js/bootstrap.js"></script>
 		<!-- Theme JavaScript -->
-		<script type="text/javascript" src="{{ scriptLibrary }}/functions.js"></script>
-		<script type="text/javascript" src="{{ scriptLibrary }}/ajax.js"></script>
-		<script src="{{ tpl_url }}/js/script.js"></script>
-		{% if pluginIsActive('rss_export') %}<link href="{{ home }}/rss.xml" rel="alternate" type="application/rss+xml" title="RSS"/>
-		{% endif %}
+		 <script type="text/javascript" src="{{ scriptLibrary }}/functions.js"></script>
+		 <script type="text/javascript" src="{{ scriptLibrary }}/ajax.js"></script>
+		<link rel="stylesheet" href="{{ scriptLibrary }}/notify.css">  <script type="text/javascript" src="{{ scriptLibrary }}/notify.js"></script>
+		 <script src="{{ tpl_url }}/js/script.js"></script>
+			{% if pluginIsActive('rss_export') %}
+		<link href="{{ home }}/rss.xml" rel="alternate" type="application/rss+xml" title="RSS"/> {% endif %}
 	</head>
 	<body>
 		{% block body %}
@@ -148,7 +150,24 @@
 			<div id="loading-layer" class="col-md-3">
 				<i class="fa fa-spinner fa-pulse"></i>
 				{{ lang.loading }}</div>
-			[debug]{debug_queries}{debug_profiler}[/debug]
+			{# Вывот накопленных уведомлений (notify.js должен быть подключен выше) #}
+			{{ notify|raw }}
+			{# Web Push уведомления #}
+			{% if webpush is defined %}
+				{{ webpush|raw }}
+			{% endif %}
+			{# Отладочная информация (SQL запросы и профилировщик) #}
+			{% if debug_queries is defined or debug_profiler is defined %}
+				<div class="debug-info">
+					{% if debug_queries is defined %}
+						{{ debug_queries|raw }}
+					{% endif %}
+					{% if debug_profiler is defined %}
+						<br/>
+						{{ debug_profiler|raw }}
+					{% endif %}
+				</div>
+			{% endif %}
 		{% endblock %}
 	</body>
 </html>
