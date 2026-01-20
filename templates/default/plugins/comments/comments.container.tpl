@@ -81,11 +81,13 @@
 					var list = root.getElementById('comments_list'); if(!list){ return; }
 					var anchorBottom = root.getElementById('new_comments');
 					if(!anchorBottom){ anchorBottom = document.createElement('div'); anchorBottom.id='new_comments'; list.appendChild(anchorBottom); }
-					var temp = document.createElement('div'); temp.innerHTML = html || '';
-					var items = temp.querySelectorAll('li[id^="comment"]');
-					items.forEach(function(li){
-						if(!li.id){ return; }
-						if(root.getElementById(li.id)){ return; }
+				// ИСПРАВЛЕНИЕ: Очищаем все старые комментарии перед вставкой новых
+				var oldComments = list.querySelectorAll('li[id^="comment"]');
+				oldComments.forEach(function(li){ li.remove(); });
+				var temp = document.createElement('div'); temp.innerHTML = html || '';
+				var items = temp.querySelectorAll('li[id^="comment"]');
+				items.forEach(function(li){
+					if(!li.id){ return; }
 						list.insertBefore(li, anchorBottom);
 					});
 				}
