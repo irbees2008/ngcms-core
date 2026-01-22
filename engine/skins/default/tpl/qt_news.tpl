@@ -173,14 +173,10 @@
 								</div>
 								<div class="w-100"></div>
 								<div class="form-group mb-2"><!-- Опции миниатюры и случайного имени удалены: миниатюра создаётся по умолчанию, имя формируется как имя+хеш на сервере --></div>
-								<div data-ng-dropzone="image" class="mb-2 w-100" style="border:2px dashed #cbd3da;border-radius:6px;padding:12px;text-align:center;background:#fafafa;color:#6c757d;">
-									Перетащите изображения сюда для загрузки
-								</div>
-								<div class="form-group mb-2 ml-auto d-flex align-items-center">
-									<input type="file" id="uploadimage" name="newsimage" class="form-control-file mr-2">
-									<a class="btn btn-primary" data-placement="top" data-popup="tooltip" title="Загрузить" onclick="return uploadNewsImage({{ area }});">
-										<i class="fa fa-download"></i>
-									</a>
+								<input type="file" id="uploadimage" name="newsimage" style="display:none;" onchange="uploadNewsImage({{ area }});">
+								<div data-ng-dropzone="image" class="mb-2 w-100" style="border:2px dashed #cbd3da;border-radius:6px;padding:12px;text-align:center;background:#fafafa;color:#6c757d;cursor:pointer;transition:all 0.2s;" onclick="document.getElementById('uploadimage').click();" onmouseover="this.style.background='#e9ecef';this.style.borderColor='#adb5bd';" onmouseout="this.style.background='#fafafa';this.style.borderColor='#cbd3da';">
+									<i class="fa fa-cloud-upload" style="font-size:24px;margin-bottom:8px;display:block;color:#007bff;"></i>
+									Перетащите изображения сюда или нажмите для выбора
 								</div>
 							</div>
 						</div>
@@ -190,14 +186,10 @@
 							<div class="d-flex align-items-center justify-content-between flex-wrap">
 								<div class="w-100"></div>
 								<div class="form-group mb-2"><!-- Опция случайного имени для файла удалена: имя формируется как имя+хеш на сервере --></div>
-								<div data-ng-dropzone="file" class="mb-2 w-100" style="border:2px dashed #cbd3da;border-radius:6px;padding:12px;text-align:center;background:#fafafa;color:#6c757d;">
-									Перетащите файлы сюда для загрузки
-								</div>
-								<div class="form-group mb-2 ml-auto d-flex align-items-center">
-									<input type="file" id="uploadfile" name="newsfile" class="form-control-file mr-2">
-									<a class="btn btn-primary" data-placement="top" data-popup="tooltip" title="Загрузить" onclick="return uploadNewsFile({{ area }});">
-										<i class="fa fa-download"></i>
-									</a>
+								<input type="file" id="uploadfile" name="newsfile" style="display:none;" onchange="uploadNewsFile({{ area }});">
+								<div data-ng-dropzone="file" class="mb-2 w-100" style="border:2px dashed #cbd3da;border-radius:6px;padding:12px;text-align:center;background:#fafafa;color:#6c757d;cursor:pointer;transition:all 0.2s;" onclick="document.getElementById('uploadfile').click();" onmouseover="this.style.background='#e9ecef';this.style.borderColor='#adb5bd';" onmouseout="this.style.background='#fafafa';this.style.borderColor='#cbd3da';">
+									<i class="fa fa-cloud-upload" style="font-size:24px;margin-bottom:8px;display:block;color:#007bff;"></i>
+									Перетащите файлы сюда или нажмите для выбора
 								</div>
 							</div>
 						</div>
@@ -511,4 +503,4 @@
 		</div>
 	</div>
 {% endif %}
-<script src="/lib/news_editor.js"></script>
+ <script src="/lib/news_editor.js"></script>

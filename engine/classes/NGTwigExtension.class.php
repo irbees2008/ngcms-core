@@ -6,6 +6,7 @@ use Twig\Extension\GlobalsInterface;
 use Twig\Node\Expression\FunctionExpression;
 use Twig\TwigFilter;
 use Twig\TwigFunction;
+
 class NGTwigLocalPathFunctionExpression extends FunctionExpression
 {
     protected function compileArguments(Compiler $compiler, $isArray = false): void
