@@ -72,9 +72,19 @@
 	<div class="card">
 		<div class="card-header">
 			<div class="d-flex">
+				<div class="d-flex mr-2">
+					<div class="custom-control custom-switch py-2 mr-2">
+						<input id="tableViewSwitch" type="checkbox" class="custom-control-input"/>
+						<label for="tableViewSwitch" class="custom-control-label">Табличный вид</label>
+					</div>
+					<div id="previewSwitchContainer" class="custom-control custom-switch py-2" style="display: none;">
+						<input id="previewSwitch" type="checkbox" class="custom-control-input"/>
+						<label for="previewSwitch" class="custom-control-label">Показать превью</label>
+					</div>
+				</div>
 				<div class="custom-control custom-switch py-2 mr-auto">
-					<input id="entries" type="checkbox" class="custom-control-input" name="master_box" title="{{ lang['select_all'] }}" onclick="javascript:check_uncheck_all(imagedelete)"/>
-					<label for="entries" class="custom-control-label">{{ lang['select_all_images']|default('Выделить все изображения') }}</label>
+					<input id="masterCheckbox" type="checkbox" class="custom-control-input" title="{{ lang['select_all'] }}" onclick="toggleAllImages(this)"/>
+					<label for="masterCheckbox" class="custom-control-label">{{ lang['select_all_images']|default('Выделить все изображения') }}</label>
 				</div>
 				<button type="button" class="btn btn-outline-success ml-1" data-toggle="modal" data-target="#uploadImagesModal" data-backdrop="static">{{ lang['upload_img'] }}</button>
 				{% if status %}
@@ -87,14 +97,123 @@
 				</button>
 			</div>
 		</div>
-		<div class="row" id="entriesRow">
+		<!-- Карточный вид -->
+		<div id="cardsView" class="row">
 			<div class="col-12">
 				<div class="panel-body">
 					<div class="row">
-						{{ entries|raw }}
+						{% for entry in entries %}
+							<!-- Карточный вид -->
+							<div class="col-sm-12 col-md-6 col-lg-3 entry-card" data-id="{{ entry.id }}" data-filename="{{ entry.file_name }}" data-folder="{{ entry.folder }}" data-user="{{ entry.user }}" data-width="{{ entry.width }}" data-height="{{ entry.height }}" data-size="{{ entry.size }}" data-editlink="{{ entry.edit_link }}">
+								<div class="cuadro_intro_hover " style="background-color:#cccccc;">
+									<p class="cuadro" style="text-align:center; margin-top:20px;">
+										{{ entry.preview_img|raw }}
+									</p>
+									<div class="caption">
+										<div class="blur"></div>
+										<div class="caption-text">
+											<h6><input type="checkbox" name="files[]" value="{{ entry.id }}" class="check" data-toggle="tooltip" title="Выбрать" data-bs-toggle="tooltip"/>
+												{{ entry.file_name }}<a data-toggle="tooltip" href="{{ entry.edit_link }}" title="{{ lang['edit']|default('Редактировать') }}" data-bs-toggle="tooltip">
+													<i class="fa fa-pencil-square-o" style=" position: absolute; right: 7px; margin: 4px 0px;"></i>
+												</a>
+											</h6>
+											<p>Категория :
+												{{ entry.folder }}</p>
+											<p>Загрузил :
+												{{ entry.user }}</p>
+											<p>SIZE :<span class="img-width">{{ entry.width }}</span>x<span class="img-height">{{ entry.height }}</span>
+												{{ entry.size }}</p>
+											<p>Просмотр :
+												<a class="view-full" data-toggle="tooltip" target="_blank" href="/uploads/images/{{ entry.folder }}/{{ entry.name|default(entry.file_name) }}" title="Полное изображение" data-bs-toggle="tooltip">
+													<i class="fa fa-search-plus" aria-hidden="true"></i>
+												</a>
+												<a class="view-thumb" data-toggle="tooltip" target="_blank" href="/uploads/images/{{ entry.folder }}/thumb/{{ entry.name|default(entry.file_name) }}" title="Уменьшенное изображение" data-bs-toggle="tooltip">
+													<i class="fa fa-search-minus" aria-hidden="true"></i>
+												</a>
+											</p>
+											<p>Вставка:
+												<a class="insert-full" data-toggle="tooltip" href="javascript:insertimage('[img=&quot;/uploads/images/{{ entry.folder }}/{{ entry.name|default(entry.file_name) }}&quot; border=&quot;0&quot; width=&quot;{{ entry.width }}&quot; height=&quot;{{ entry.height }}&quot; align=&quot;&quot;]{{ entry.name|default(entry.file_name) }} ({{ entry.size }})[/img]', '')" title="Полное изображение" data-bs-toggle="tooltip">
+													<i class="fa fa-share-square-o" aria-hidden="true"></i>
+												</a>
+												<a class="insert-preview" data-toggle="tooltip" href="javascript:insertimage('[url=&quot;/uploads/images/{{ entry.folder }}/{{ entry.name|default(entry.file_name) }}&quot; target=&quot;_blank&quot;][img=&quot;/uploads/images/{{ entry.folder }}/thumb/{{ entry.name|default(entry.file_name) }}&quot; border=&quot;0&quot; align=&quot;&quot;]{{ entry.name|default(entry.file_name) }} ({{ entry.size }})[/img][/url]', '')" title="Вставка превью с сылкой на полное изображение" data-bs-toggle="tooltip">
+													<i class="fa fa-search-plus" aria-hidden="true"></i>
+												</a>
+												<a class="insert-thumb" data-toggle="tooltip" href="javascript:insertimage('[img=&quot;/uploads/images/{{ entry.folder }}/thumb/{{ entry.name|default(entry.file_name) }}&quot; border=&quot;0&quot; align=&quot;&quot;]{{ entry.name|default(entry.file_name) }}[/img]', '')" title="Вставка уменьшенного изображения" data-bs-toggle="tooltip">
+													<i class="fa fa-search-minus" aria-hidden="true"></i>
+												</a>
+											</p>
+										</div>
+									</div>
+								</div>
+							</div>
+						{% endfor %}
 					</div>
 				</div>
 			</div>
+		</div>
+		<!-- Табличный вид -->
+		<div id="tableView" class="table-responsive" style="display: none;">
+			<table id="entriesTable" class="table table-sm mb-0">
+				<thead>
+					<tr>
+						<th colspan="3" width="80">{{ lang['header.insert']|default('Вставка') }}</th>
+						<th class="preview-column">{{ lang['show_preview']|default('Превью') }}</th>
+						<th>{{ lang['name']|default('Название') }}</th>
+						<th colspan="2">{{ lang['header.view']|default('Вид') }}</th>
+						<th colspan="2">{{ lang['size']|default('Размер') }}</th>
+						<th>{{ lang['category']|default('Категория') }}</th>
+						<th>{{ lang['author']|default('Автор') }}</th>
+						<th>{{ lang['action']|default('Действия') }}</th>
+						<th>
+							<input class="check" type="checkbox" title="{{ lang['select_all'] }}" onclick="toggleAllImages(this)"/>
+						</th>
+					</tr>
+				</thead>
+				<tbody id="entriesTableBody">
+					{% for entry in entries %}
+						<!-- Табличный вид (скрыт по умолчанию) -->
+						<tr class="entry-row" style="display: none;">
+							<td>
+								<a href="#" data-toggle="tooltip" onclick="insertimage('[img=&quot;/uploads/images/{{ entry.folder }}/{{ entry.name|default(entry.file_name) }}&quot; border=&quot;0&quot; width=&quot;{{ entry.width }}&quot; height=&quot;{{ entry.height }}&quot; align=&quot;&quot;]{{ entry.name|default(entry.file_name) }} ({{ entry.size }})[/img]', ''); return false;" title="Полное изображение" data-bs-toggle="tooltip">
+									<i class="fa fa-share-square-o"></i>
+								</a>
+							</td>
+							<td>
+								<a href="#" data-toggle="tooltip" onclick="insertimage('[url=&quot;/uploads/images/{{ entry.folder }}/{{ entry.name|default(entry.file_name) }}&quot; target=&quot;_blank&quot;][img=&quot;/uploads/images/{{ entry.folder }}/thumb/{{ entry.name|default(entry.file_name) }}&quot; border=&quot;0&quot; align=&quot;&quot;]{{ entry.name|default(entry.file_name) }} ({{ entry.size }})[/img][/url]', ''); return false;" title="Вставка превью с сылкой на полное изображение" data-bs-toggle="tooltip">
+									<i class="fa fa-search-plus"></i>
+								</a>
+							</td>
+							<td>
+								<a href="#" data-toggle="tooltip" onclick="insertimage('[img=&quot;/uploads/images/{{ entry.folder }}/thumb/{{ entry.name|default(entry.file_name) }}&quot; border=&quot;0&quot; align=&quot;&quot;]{{ entry.name|default(entry.file_name) }}[/img]', ''); return false;" title="Вставка уменьшенного изображения" data-bs-toggle="tooltip">
+									<i class="fa fa-search-minus"></i>
+								</a>
+							</td>
+							<td class="preview-column"><img src="/uploads/images/{{ entry.folder }}/thumb/{{ entry.name|default(entry.file_name) }}" style="max-width: 100px; max-height: 100px;"></td>
+							<td>{{ entry.file_name }}</td>
+							<td>
+								<a href="/uploads/images/{{ entry.folder }}/{{ entry.name|default(entry.file_name) }}" target="_blank" title="Полное изображение" data-bs-toggle="tooltip">
+									<i class="fa fa-search-plus"></i>
+								</a>
+							</td>
+							<td>
+								<a href="/uploads/images/{{ entry.folder }}/thumb/{{ entry.name|default(entry.file_name) }}" target="_blank" title="Уменьшенное изображение" data-bs-toggle="tooltip">
+									<i class="fa fa-search-minus"></i>
+								</a>
+							</td>
+							<td>{{ entry.width }}x{{ entry.height }}</td>
+							<td nowrap>{{ entry.size }}</td>
+							<td>{{ entry.folder }}</td>
+							<td>{{ entry.user }}</td>
+							<td>
+								<a href="{{ entry.edit_link }}" title="Редактировать" data-bs-toggle="tooltip">
+									<i class="fa fa-pencil"></i>
+								</a>
+							</td>
+							<td><input type="checkbox" name="files[]" value="{{ entry.id }}"/></td>
+						</tr>
+					{% endfor %}
+				</tbody>
+			</table>
 		</div>
 		<div class="card-footer">
 			<div class="row">
@@ -275,11 +394,92 @@
 	</div>
 {% endif %}
  <script type="text/javascript">
-	function AddImages() {
+	// Функция для работы с cookie
+	function setCookie(name, value, days) {
+		let expires = '';
+		if (days) {
+			const date = new Date();
+			date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+			expires = '; expires=' + date.toUTCString();
+		}
+		document.cookie = name + '=' + (value || '') + expires + '; path=/';
+	}
+	function getCookie(name) {
+		const nameEQ = name + '=';
+		const ca = document.cookie.split(';');
+		for (let i = 0; i < ca.length; i++) {
+			let c = ca[i];
+			while (c.charAt(0) === ' ') c = c.substring(1, c.length);
+			if (c.indexOf(nameEQ) === 0) return c.substring(nameEQ.length, c.length);
+		}
+		return null;
+	}
+	// Переключатель вида
+	document.addEventListener('DOMContentLoaded', function () {
+		const cardsView = document.getElementById('cardsView');
+		const tableView = document.getElementById('tableView');
+		const tableSwitch = document.getElementById('tableViewSwitch');
+		const previewSwitch = document.getElementById('previewSwitch');
+		const previewSwitchContainer = document.getElementById('previewSwitchContainer');
+		// Проверяем сохраненное значение вида
+		const savedView = getCookie('img_view_mode');
+		if (savedView === 'table') {
+			tableSwitch.checked = true;
+			switchToTableView();
+		}
+		// Проверяем сохраненное значение превью
+		const savedPreview = getCookie('img_preview');
+		if (savedPreview === '0') {
+			previewSwitch.checked = false;
+			togglePreviewColumn(false);
+		} else {
+			previewSwitch.checked = true;
+		}
+		// Обработчик переключателя вида
+		tableSwitch.addEventListener('change', function () {
+			if (this.checked) {
+				setCookie('img_view_mode', 'table', 365);
+				switchToTableView();
+			} else {
+				setCookie('img_view_mode', 'cards', 365);
+				switchToCardsView();
+			}
+		});
+		// Обработчик переключателя превью
+		previewSwitch.addEventListener('change', function () {
+			const showPreview = this.checked;
+			setCookie('img_preview', showPreview ? '1' : '0', 365);
+			togglePreviewColumn(showPreview);
+		});
+		function switchToTableView() {
+			cardsView.style.display = 'none';
+			tableView.style.display = 'block';
+			previewSwitchContainer.style.display = 'block';
+			// Показываем строки таблицы, скрываем карточки
+			document.querySelectorAll('.entry-card').forEach(card => card.style.display = 'none');
+			document.querySelectorAll('.entry-row').forEach(row => row.style.display = '');
+		}
+		function switchToCardsView() {
+			cardsView.style.display = 'block';
+			tableView.style.display = 'none';
+			previewSwitchContainer.style.display = 'none';
+			// Показываем карточки, скрываем строки таблицы
+			document.querySelectorAll('.entry-card').forEach(card => card.style.display = '');
+			document.querySelectorAll('.entry-row').forEach(row => row.style.display = 'none');
+		}
+		function togglePreviewColumn(show) {
+			const displayValue = show ? '' : 'none';
+			document.querySelectorAll('.preview-column').forEach(col => {
+				col.style.display = displayValue;
+			});
+		}
+	});
+</script>
+ <script type="text/javascript">
+function AddImages() {
 var tbl = document.getElementById('imageup');
 var lastRow = tbl.rows.length;
-var iteration = lastRow + 1;
-var row = tbl.insertRow(lastRow);
+var iteration = lastRow + 1;var row = tbl.insertRow(lastRow);
 var cellRight = row.insertCell(0);
 cellRight.innerHTML = '<span>' + iteration + ': </span>';
 cellRight = row.insertCell(1);
@@ -319,6 +519,19 @@ if (lastRow > 1) {
 tbl.deleteRow(lastRow - 1);
 }
 }
+</script>
+ <script type="text/javascript">
+	// Функция для выделения/снятия выделения всех изображений
+	function toggleAllImages(masterCheckbox) {
+		const isChecked = masterCheckbox.checked;
+		const imageCheckboxes = document.querySelectorAll('input[name="files[]"]');
+		imageCheckboxes.forEach(checkbox => {
+			// Проверяем, что checkbox видим (его родитель не скрыт)
+			if (checkbox.value && checkbox.offsetParent !== null) {
+				checkbox.checked = isChecked;
+			}
+		});
+	}
 </script>
  <script type="text/javascript">
 		$(document).ready(function () {
