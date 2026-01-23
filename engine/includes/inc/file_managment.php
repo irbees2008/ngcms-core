@@ -224,6 +224,7 @@ function manage_showlist($type)
     $query['sql'] = 'select * from ' . prefix . '_' . $fmanager->tname . ' ' . $limit . ' order by date desc limit ' . $start_from . ', ' . $npp;
     $query['count'] = 'select count(*) as cnt from ' . prefix . '_' . $fmanager->tname . ' ' . $limit;
     $nCount = 0;
+    $entries = []; // Изменено: теперь это массив данных
     foreach ($mysql->select($query['sql']) as $row) {
         $nCount++;
         $folder = $row['folder'] ? $row['folder'] . '/' : '';
@@ -246,8 +247,8 @@ function manage_showlist($type)
         } else {
             $file_link = '<a href="' . $fileurl . '" title="' . $row['name'] . '" target="_blank">' . $row['orig_name'] . '</a> ';
         }
-        $tpl->template('entries', tpl_actions . $mod);
-        $tvars['vars'] = [
+        // Создаем массив данных для текущего элемента
+        $entryData = [
             'php_self'     => $PHP_SELF,
             'rename'       => $rename,
             'view_thumb'   => $row['preview'] ? $row['view_thumb'] : '',
@@ -266,30 +267,22 @@ function manage_showlist($type)
             'user'         => $row['user'],
         ];
         if ($type == 'image') {
-            $tvars['vars']['insert_file'] = '<a href="javascript:insertimage(\'' . $html_file . '\', \'' . $_REQUEST['ifield'] . '\')" title="Insert file"><img src="' . skins_url . '/images/insert_image.png" border="0"/></a>';
-            $tvars['vars']['insert_thumb'] = $row['preview'] ? '<a href="javascript:insertimage(\'' . $html_thumb . '\', \'' . $_REQUEST['ifield'] . '\')"><img src="' . skins_url . '/images/insert_thumb.png" border="0"/></a>' : '';
-            $tvars['vars']['insert_preview'] = $row['preview'] ? '<a href="javascript:insertimage(\'' . $html_preview . '\', \'' . $_REQUEST['ifield'] . '\')"><img src="' . skins_url . '/images/insert_preview.png" border="0"/></a>' : '';
-            $tvars['vars']['view_file'] = '<a target="_blank" href="' . $fileurl . '"><img src="' . skins_url . '/images/insert_image.png" border="0"/></a>';
-            $tvars['vars']['view_thumb'] = $row['preview'] ? '<a target="_blank" href="' . $thumburl . '"><img src="' . skins_url . '/images/insert_thumb.png" border="0"/></a>' : '';
-            $tvars['vars']['edit_link'] = '?mod=images&subaction=editForm&id=' . $row['id'] .
+            $entryData['insert_file'] = '<a href="javascript:insertimage(\'' . $html_file . '\', \'' . $_REQUEST['ifield'] . '\')" title="Insert file"><img src="' . skins_url . '/images/insert_image.png" border="0"/></a>';
+            $entryData['insert_thumb'] = $row['preview'] ? '<a href="javascript:insertimage(\'' . $html_thumb . '\', \'' . $_REQUEST['ifield'] . '\')"><img src="' . skins_url . '/images/insert_thumb.png" border="0"/></a>' : '';
+            $entryData['insert_preview'] = $row['preview'] ? '<a href="javascript:insertimage(\'' . $html_preview . '\', \'' . $_REQUEST['ifield'] . '\')"><img src="' . skins_url . '/images/insert_preview.png" border="0"/></a>' : '';
+            $entryData['view_file'] = '<a target="_blank" href="' . $fileurl . '"><img src="' . skins_url . '/images/insert_image.png" border="0"/></a>';
+            $entryData['view_thumb'] = $row['preview'] ? '<a target="_blank" href="' . $thumburl . '"><img src="' . skins_url . '/images/insert_thumb.png" border="0"/></a>' : '';
+            $entryData['edit_link'] = '?mod=images&subaction=editForm&id=' . $row['id'] .
                 ($_REQUEST['author'] ? '&author=' . $_REQUEST['author'] : '') .
                 ($_REQUEST['category'] ? '&category=' . $_REQUEST['category'] : '') .
                 ($_REQUEST['postdate'] ? '&postdate=' . $_REQUEST['postdate'] : '') .
                 ($_REQUEST['page'] ? '&page=' . $_REQUEST['page'] : '') .
                 ($_REQUEST['npp'] ? '&npp=' . $_REQUEST['npp'] : '');
         } else {
-            $tvars['vars']['insert_file'] = '<a href="javascript:insertimage(\'' . $html_file . '\', \'' . $_REQUEST['ifield'] . '\')">' . $lang['insert'] . '</a>';
+            $entryData['insert_file'] = '<a href="javascript:insertimage(\'' . $html_file . '\', \'' . $_REQUEST['ifield'] . '\')">' . $lang['insert'] . '</a>';
         }
-        $tvars['regx']['#\[preview\](.+?)\[/preview\]#is'] = $_COOKIE['img_preview'] ? '$1' : '';
-        if (($type == 'image') && ($row['preview'])) {
-            //			$tvars['vars']['preview_img']  = '';
-            //			$tvars['vars']['preview_size'] = '';
-        } else {
-            //			$tvars['vars']['preview_img']  = '';
-            //			$tvars['vars']['preview_size'] = '';
-        }
-        $tpl->vars('entries', $tvars);
-        $entries .= $tpl->show('entries');
+        // Добавляем данные элемента в массив
+        $entries[] = $entryData;
     }
     $dateslist = '';
     foreach ($mysql->select("SELECT DISTINCT FROM_UNIXTIME(date,'%Y%m') as monthes, COUNT(date) AS cnt FROM " . prefix . '_' . $fmanager->tname . ' GROUP BY monthes ORDER BY monthes DESC') as $row) {
@@ -315,7 +308,7 @@ function manage_showlist($type)
         }
     }
     if (!$nCount) {
-        $entries = '<tr><td colspan=7><p align=center><b>' . $lang['not_found'] . '</b></p></td></tr>';
+        $entries = []; // Пустой массив вместо строки
     }
     // Check if dir exists
     $dName = ($type == 'image') ? images_dir : files_dir;
