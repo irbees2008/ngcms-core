@@ -7,6 +7,7 @@
 //
 // Protect against hack attempts
 use PHPMailer\PHPMailer\PHPMailer;
+
 if (!defined('NGCMS')) {
     exit('HAL');
 }
@@ -112,6 +113,7 @@ function AutoBackup($delayed = false, $force = false)
             ftruncate($fx, ftell($fx));
             fclose($fx);
         }
+
         // Always perform backup when time threshold is met
         $filename = root . 'backups/backup_' . date('Y_m_d_H_i', $time_now) . '.gz';
         require_once root . '/includes/inc/lib_admin.php';
@@ -123,10 +125,12 @@ function AutoBackup($delayed = false, $force = false)
 function LangDate($format, $timestamp)
 {
     global $lang;
+
     // Проверка на корректность $lang
     if (!is_array($lang)) {
         return date($format, $timestamp);
     }
+
     $weekdays = explode(',', isset($lang['weekdays']) ? $lang['weekdays'] : '');
     $short_weekdays = explode(',', isset($lang['short_weekdays']) ? $lang['short_weekdays'] : '');
     $months = explode(',', isset($lang['months']) ? $lang['months'] : '');
@@ -2246,22 +2250,26 @@ function ngExceptionHandler($exception)
 {
 ?>
     <html>
+
     <head>
         <title>NGCMS Runtime exception: <?php echo get_class($exception); ?></title>
         <style>
             body {
                 font: 1em Georgia, "Times New Roman", serif;
             }
+
             .dmsg {
                 border: 1px #EEEEEE solid;
                 padding: 10px;
                 background-color: yellow;
             }
+
             .dtrace TBODY TD {
                 padding: 3px;
                 /*border: 1px #EEEEEE solid;*/
                 background-color: #EEEEEE;
             }
+
             .dtrace THEAD TD {
                 padding: 3px;
                 background-color: #EEEEEE;
@@ -2269,6 +2277,7 @@ function ngExceptionHandler($exception)
             }
         </style>
     </head>
+
     <body>
         <?php
         echo '<h1>NGCMS Runtime exception: ' . get_class($exception) . "</h1>\n";
@@ -2318,22 +2327,26 @@ function ngExceptionHandler($exception)
             return true;
         } ?>
         <html>
+
         <head>
             <title>NGCMS Runtime error: <?php echo $lastError['message']; ?></title>
             <style type="text/css">
                 body {
                     font: 1em Georgia, "Times New Roman", serif;
                 }
+
                 .dmsg {
                     border: 1px #EEEEEE solid;
                     padding: 10px;
                     background-color: yellow;
                 }
+
                 .dtrace TBODY TD {
                     padding: 3px;
                     /*border: 1px #EEEEEE solid;*/
                     background-color: #EEEEEE;
                 }
+
                 .dtrace THEAD TD {
                     padding: 3px;
                     background-color: #EEEEEE;
@@ -2341,6 +2354,7 @@ function ngExceptionHandler($exception)
                 }
             </style>
         </head>
+
         <body>
             <?php
             echo '<div id="ngErrorInformer">';
@@ -2384,22 +2398,26 @@ function ngExceptionHandler($exception)
     {
         ?>
             <html>
+
             <head>
                 <title>NGCMS Runtime error: <?php echo $title; ?></title>
                 <style type="text/css">
                     body {
                         font: 1em Georgia, "Times New Roman", serif;
                     }
+
                     .dmsg {
                         border: 1px #EEEEEE solid;
                         padding: 10px;
                         background-color: yellow;
                     }
+
                     .dtrace TBODY TD {
                         padding: 3px;
                         /*border: 1px #EEEEEE solid;*/
                         background-color: #EEEEEE;
                     }
+
                     .dtrace THEAD TD {
                         padding: 3px;
                         background-color: #EEEEEE;
@@ -2407,6 +2425,7 @@ function ngExceptionHandler($exception)
                     }
                 </style>
             </head>
+
             <body>
                 <div id="hdrSpanItem"></div>
                 <script language="Javascript">

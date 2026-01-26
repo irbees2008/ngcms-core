@@ -27,9 +27,14 @@
 		</span>
 	</div>
 </div>
-<div
-	class="container">
-	<!-- Фильтр -->
+<div class="mb-3">
+	<div class="custom-control custom-switch py-2">
+		<input id="tableViewSwitch" type="checkbox" class="custom-control-input"/>
+		<label for="tableViewSwitch" class="custom-control-label">Табличный вид</label>
+	</div>
+</div>
+<!-- Карточный вид -->
+<div id="cardsView" class="container">
 	<ul class="nav nav-tabs nav-fill mb-3 d-md-flex d-block">
 		<li class="nav-item">
 			<a href="#" class="nav-link active" data-filter="pluginEntryActive">{{ lang['list.active'] }}
@@ -52,8 +57,7 @@
 			</a>
 		</li>
 	</ul>
-	<!-- Карточки плагинов -->
-	<div class="row" id="plugin-list">
+	<div class="row" id="plugin-cards">
 		{% for entry in entries %}
 			<div class="col-md-6 col-lg-4 mb-4 plugin-card {{ entry.style }}" data-status="{{ entry.status }}">
 				<div class="card border-dark">
@@ -66,7 +70,6 @@
 						</h5>
 					</div>
 					<div class="card-body">
-						<!-- Блок с иконкой -->
 						<div class="card-icon">
 							{{ entry.icons }}
 						</div>
@@ -74,7 +77,6 @@
 						<span class="badge badge-{{ entry.flags.isCompatible ? 'success' : 'warning' }}">
 							{{ entry.flags.isCompatible ? 'Совместим' : 'Не совместим' }}
 						</span>
-						<!-- Дополнительные ссылки (readme, history) -->
 						<div class="mt-2">
 							{% if entry.readme %}
 								<a href="#" class="mr-2 open-modal" data-toggle="modal" data-target="#readmeModal" data-url="{{ entry.readme }}" title="{{ lang['entry.readme'] }}">
@@ -98,6 +100,78 @@
 				</div>
 			</div>
 		{% endfor %}
+	</div>
+</div>
+<!-- Табличный вид -->
+<div id="tableView" style="display: none;">
+	<ul class="nav nav-tabs nav-fill mb-3 d-md-flex d-block">
+		<li class="nav-item">
+			<a href="#" class="nav-link active" data-filter="pluginEntryActive">{{ lang['list.active'] }}
+				<span class="badge badge-light">{{ cntActive }}</span>
+			</a>
+		</li>
+		<li class="nav-item">
+			<a href="#" class="nav-link" data-filter="pluginEntryInactive">{{ lang['list.inactive'] }}
+				<span class="badge badge-light">{{ cntInactive }}</span>
+			</a>
+		</li>
+		<li class="nav-item">
+			<a href="#" class="nav-link" data-filter="pluginEntryUninstalled">{{ lang['list.needinstall'] }}
+				<span class="badge badge-light">{{ cntUninstalled }}</span>
+			</a>
+		</li>
+		<li class="nav-item">
+			<a href="#" class="nav-link" data-filter="all">{{ lang['list.all'] }}
+				<span class="badge badge-light">{{ cntAll }}</span>
+			</a>
+		</li>
+	</ul>
+	<div class="table-responsive">
+		<table class="table table-sm">
+			<thead>
+				<tr>
+					<th></th>
+					<th>{{ lang['id'] }}</th>
+					<th>{{ lang['title'] }}</th>
+					<th>{{ lang['type'] }}</th>
+					<th>{{ lang['version'] }}</th>
+					<th>&nbsp;</th>
+					<th>{{ lang['description'] }}</th>
+					<th>{{ lang['author'] }}</th>
+					<th>{{ lang['action'] }}</th>
+				</tr>
+			</thead>
+			<tbody id="plugin-table">
+				{% for entry in entries %}
+					<tr class="{{ entry.style }} all" id="plugin_{{ entry.id }}">
+						<td>
+							{% if entry.flags.isCompatible %}
+								<i class="fa fa-check-circle-o" aria-hidden="true" style="color: green;"></i>
+							{% else %}
+								<i class="fa fa-window-close-o" aria-hidden="true" style="color: red;"></i>
+							{% endif %}
+						</td>
+						<td nowrap>{{ entry.id }}
+							{{ entry.new }}</td>
+						<td>{{ entry.url }}</td>
+						<td>{{ entry.type }}</td>
+						<td>{{ entry.version }}</td>
+						<td nowrap>
+							<a href="{{ entry.readme }}" title="Документация">
+								<i class="fa fa-file-word-o" aria-hidden="true"></i>
+							</a>|
+							<a href="{{ entry.history }}" title="История">
+								<i class="fa fa-history" aria-hidden="true"></i>
+							</a>
+						</td>
+						<td>{{ entry.description }}</td>
+						<td>{{ entry.author_url }}</td>
+						<td nowrap>{{ entry.link }}
+							{{ entry.install }}</td>
+					</tr>
+				{% endfor %}
+			</tbody>
+		</table>
 	</div>
 </div>
 <!-- Модальное окно для README -->
@@ -139,80 +213,135 @@
 	</div>
 </div>
  <script>
-	document.addEventListener('DOMContentLoaded', function () { // Обработчик для README
-const readmeLinks = document.querySelectorAll('.open-modal[data-target="#readmeModal"]');
-readmeLinks.forEach(link => {
-link.addEventListener('click', function () {
-const url = this.getAttribute('data-url');
-document.getElementById('readmeContent').src = url;
-});
-});
-// Обработчик для истории
-const historyLinks = document.querySelectorAll('.open-modal[data-target="#historyModal"]');
-historyLinks.forEach(link => {
-link.addEventListener('click', function () {
-const url = this.getAttribute('data-url');
-document.getElementById('historyContent').src = url;
-});
-});
-// --- Фильтр вкладок ---
-const filterButtons = document.querySelectorAll('.nav-tabs .nav-link');
-const pluginCards = document.querySelectorAll('.plugin-card');
-function saveSelectedFilter(filter) {
-localStorage.setItem('selectedFilter', filter);
-}
-function getSavedFilter() {
-return localStorage.getItem('selectedFilter') || 'pluginEntryActive';
-}
-// Сначала убрать active у всех вкладок
-filterButtons.forEach(btn => btn.classList.remove('active'));
-// Применяем сохраненный фильтр при загрузке страницы
-const savedFilter = getSavedFilter();
-const activeButton = document.querySelector(`.nav-tabs .nav-link[data-filter="${savedFilter}"]`);
-if (activeButton) {
-activeButton.classList.add('active');
-filterCards(savedFilter);
-} else { // Если сохраненного фильтра нет, активируем первую вкладку по умолчанию
-const defaultButton = document.querySelector('.nav-tabs .nav-link[data-filter="pluginEntryActive"]');
-if (defaultButton) {
-defaultButton.classList.add('active');
-filterCards('pluginEntryActive');
-}
-}
-// Обработчик кликов по вкладкам
-filterButtons.forEach(button => {
-button.addEventListener('click', function (e) {
-e.preventDefault();
-filterButtons.forEach(btn => btn.classList.remove('active'));
-this.classList.add('active');
-const filter = this.dataset.filter;
-saveSelectedFilter(filter);
-filterCards(filter);
-});
-});
-function filterCards(filter) {
-pluginCards.forEach(card => {
-if (filter === 'all' || card.classList.contains(filter)) {
-card.style.display = 'block';
-} else {
-card.style.display = 'none';
-}
-});
-}
-// Поиск по названию плагина
-const searchInput = document.getElementById('searchInput');
-if (searchInput) {
-searchInput.addEventListener('input', function () {
-const query = this.value.toLowerCase();
-pluginCards.forEach(card => {
-const title = card.querySelector('.card-title').textContent.toLowerCase();
-if (title.includes(query)) {
-card.style.display = 'block';
-} else {
-card.style.display = 'none';
-}
-});
-});
-}
-});
+	// Функция для работы с cookie
+	function setCookie(name, value, days) {
+		let expires = '';
+		if (days) {
+			const date = new Date();
+			date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+			expires = '; expires=' + date.toUTCString();
+		}
+		document.cookie = name + '=' + (value || '') + expires + '; path=/';
+	}
+	function getCookie(name) {
+		const nameEQ = name + '=';
+		const ca = document.cookie.split(';');
+		for (let i = 0; i < ca.length; i++) {
+			let c = ca[i];
+			while (c.charAt(0) === ' ') c = c.substring(1, c.length);
+			if (c.indexOf(nameEQ) === 0) return c.substring(nameEQ.length, c.length);
+		}
+		return null;
+	}
+	document.addEventListener('DOMContentLoaded', function () {
+		const cardsView = document.getElementById('cardsView');
+		const tableView = document.getElementById('tableView');
+		const tableSwitch = document.getElementById('tableViewSwitch');
+		// Проверяем сохраненное значение
+		const savedView = getCookie('extras_table_view');
+		if (savedView === 'table') {
+			tableSwitch.checked = true;
+			cardsView.style.display = 'none';
+			tableView.style.display = 'block';
+		}
+		// Обработчик переключателя
+		tableSwitch.addEventListener('change', function () {
+			if (this.checked) {
+				setCookie('extras_table_view', 'table', 365);
+				cardsView.style.display = 'none';
+				tableView.style.display = 'block';
+			} else {
+				setCookie('extras_table_view', 'cards', 365);
+				cardsView.style.display = 'block';
+				tableView.style.display = 'none';
+			}
+		});
+		// Обработчик для README в карточках
+		const readmeLinks = document.querySelectorAll('.open-modal[data-target="#readmeModal"]');
+		readmeLinks.forEach(link => {
+			link.addEventListener('click', function () {
+				const url = this.getAttribute('data-url');
+				document.getElementById('readmeContent').src = url;
+			});
+		});
+		// Обработчик для истории в карточках
+		const historyLinks = document.querySelectorAll('.open-modal[data-target="#historyModal"]');
+		historyLinks.forEach(link => {
+			link.addEventListener('click', function () {
+				const url = this.getAttribute('data-url');
+				document.getElementById('historyContent').src = url;
+			});
+		});
+		// Фильтр вкладок - работает для обоих видов
+		const filterButtons = document.querySelectorAll('.nav-tabs .nav-link');
+		const pluginCards = document.querySelectorAll('.plugin-card');
+		const pluginRows = document.querySelectorAll('#plugin-table tr');
+		function saveSelectedFilter(filter) {
+			localStorage.setItem('selectedFilter', filter);
+		}
+		function getSavedFilter() {
+			return localStorage.getItem('selectedFilter') || 'pluginEntryActive';
+		}
+		// Применяем сохраненный фильтр
+		filterButtons.forEach(btn => btn.classList.remove('active'));
+		const savedFilter = getSavedFilter();
+		const activeButtons = document.querySelectorAll(`.nav-tabs .nav-link[data-filter="${savedFilter}"]`);
+		activeButtons.forEach(btn => btn.classList.add('active'));
+		filterCards(savedFilter);
+		// Обработчик кликов по вкладкам
+		filterButtons.forEach(button => {
+			button.addEventListener('click', function (e) {
+				e.preventDefault();
+				document.querySelectorAll('.nav-tabs .nav-link').forEach(btn => btn.classList.remove('active'));
+				document.querySelectorAll(`.nav-tabs .nav-link[data-filter="${this.dataset.filter}"]`).forEach(btn => btn.classList.add('active'));
+				const filter = this.dataset.filter;
+				saveSelectedFilter(filter);
+				filterCards(filter);
+			});
+		});
+		function filterCards(filter) {
+			// Фильтр для карточек
+			pluginCards.forEach(card => {
+				if (filter === 'all' || card.classList.contains(filter)) {
+					card.style.display = 'block';
+				} else {
+					card.style.display = 'none';
+				}
+			});
+			// Фильтр для таблицы
+			pluginRows.forEach(row => {
+				if (filter === 'all' || row.classList.contains(filter)) {
+					row.style.display = '';
+				} else {
+					row.style.display = 'none';
+				}
+			});
+		}
+		// Поиск
+		const searchInput = document.getElementById('searchInput');
+		if (searchInput) {
+			searchInput.addEventListener('input', function () {
+				const query = this.value.toLowerCase();
+				// Поиск в карточках
+				pluginCards.forEach(card => {
+					const title = card.querySelector('.card-title').textContent.toLowerCase();
+					if (title.includes(query)) {
+						card.style.display = 'block';
+					} else {
+						card.style.display = 'none';
+					}
+				});
+				// Поиск в таблице
+				pluginRows.forEach(row => {
+					const titleCell = row.cells && row.cells[2] ? row.cells[2] : row.querySelector('td:nth-child(3)');
+					const text = (titleCell ? titleCell.textContent : row.textContent) || '';
+					if (text.toLowerCase().includes(query)) {
+						row.style.display = '';
+					} else {
+						row.style.display = 'none';
+					}
+				});
+			});
+		}
+	});
 </script>

@@ -212,6 +212,13 @@ if (!isset($config['uprefix'])) {
 }
 // Set up default timezone [ default: Europe/Moscow ]
 date_default_timezone_set($config['timezone'] ?? 'Europe/Moscow');
+// Define template paths early so they're available for plugins
+if (!defined('tpl_site')) {
+    define('tpl_site', site_root . 'templates/' . $config['theme'] . '/');
+}
+if (!defined('tpl_url')) {
+    define('tpl_url', $config['home_url'] . '/templates/' . $config['theme']);
+}
 // [[MARKER]] Configuration file is loaded
 $timer->registerEvent('Config file is loaded');
 // Call multidomains processor
@@ -284,6 +291,9 @@ $twig = new NGTwigEnvironment($twigLoader, [
 ]);
 // [[MARKER]] TWIG template engine is loaded
 $timer->registerEvent('Template engine is activated');
+// Add global variables to TWIG before runtime is initialized
+$twig->addGlobal('tpl_url', tpl_url);
+$twig->addGlobal('scriptLibrary', scriptLibrary);
 // Expose engine name/version to Twig templates for <meta name="generator">
 if (!isset($template) || !is_array($template)) {
     $template = [];
@@ -403,14 +413,19 @@ $timer->registerEvent('ALL core-related plugins are loaded');
 // Execute 'core' action handler
 executeActionHandler('core');
 $timer->registerEvent('ALL core-related plugins are executed');
-// Define last consts
-define('tpl_site', site_root . 'templates/' . $config['theme'] . '/');
-define('tpl_url', home . '/templates/' . $config['theme']);
+// Update global variables in TWIG after plugins execution (if runtime was initialized by plugins)
+try {
+    $twig->addGlobal('tpl_url', tpl_url);
+    $twig->addGlobal('scriptLibrary', scriptLibrary);
+} catch (LogicException $e) {
+    // Runtime already initialized by plugins, use mergeGlobals instead
+    $twig->env->mergeGlobals([
+        'tpl_url' => tpl_url,
+        'scriptLibrary' => scriptLibrary,
+    ]);
+}
 // Reconfigure allowed template paths in TWIG - site template is also available
 $twigLoader->setPaths([tpl_site, root]);
-// Add global variables `tpl_url` and `scriptLibrary` in TWIG
-$twig->addGlobal('tpl_url', tpl_url);
-$twig->addGlobal('scriptLibrary', scriptLibrary);
 // Load lang files after executing core scripts. This is done for the switcher plugin.
 $lang = LoadLang('common');
 $lang = LoadLangTheme();

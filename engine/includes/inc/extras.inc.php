@@ -1165,15 +1165,25 @@ function locatePluginTemplates($tname, $plugin, $localsource = 0, $skin = '', $b
         ((($skin != '') && ($block != '')) ? '/' : '') .
         ($block ? $block : '');
 
+    // Определяем пути к шаблонам (используем локальные переменные, не глобальные константы)
+    if (defined('tpl_site')) {
+        $templateSitePath = tpl_site;
+        $templateUrlPath = tpl_url;
+    } else {
+        // Константы ещё не определены (вызов до core.php line 407)
+        $templateSitePath = site_root . 'templates/' . ($config['theme'] ?? 'default') . '/';
+        $templateUrlPath = home . '/templates/' . ($config['theme'] ?? 'default');
+    }
+
     $tpath = [];
     foreach ($tname as $fn) {
         $fnc = (mb_substr($fn, 0, 1) == ':') ? mb_substr($fn, 1) : ($fn . '.tpl');
-        if (!$localsource && is_readable(tpl_site . 'plugins/' . $plugin . $tsb . '/' . $fnc)) {
-            $tpath[$fn] = tpl_site . 'plugins/' . $plugin . $tsb . '/';
-            $tpath['url:' . $fn] = tpl_url . '/plugins/' . $plugin . $tsb;
-        } elseif (!$localsource && is_readable(tpl_site . 'plugins/' . $plugin . ($block ? ('/' . $block) : '') . '/' . $fnc)) {
-            $tpath[$fn] = tpl_site . 'plugins/' . $plugin . ($block ? ('/' . $block) : '') . '/';
-            $tpath['url:' . $fn] = tpl_url . '/plugins/' . $plugin . ($block ? ('/' . $block) : '');
+        if (!$localsource && is_readable($templateSitePath . 'plugins/' . $plugin . $tsb . '/' . $fnc)) {
+            $tpath[$fn] = $templateSitePath . 'plugins/' . $plugin . $tsb . '/';
+            $tpath['url:' . $fn] = $templateUrlPath . '/plugins/' . $plugin . $tsb;
+        } elseif (!$localsource && is_readable($templateSitePath . 'plugins/' . $plugin . ($block ? ('/' . $block) : '') . '/' . $fnc)) {
+            $tpath[$fn] = $templateSitePath . 'plugins/' . $plugin . ($block ? ('/' . $block) : '') . '/';
+            $tpath['url:' . $fn] = $templateUrlPath . '/plugins/' . $plugin . ($block ? ('/' . $block) : '');
         } elseif (is_readable(extras_dir . '/' . $plugin . '/tpl' . $tsb . '/' . $fnc)) {
             $tpath[$fn] = extras_dir . '/' . $plugin . '/tpl' . $tsb . '/';
             $tpath['url:' . $fn] = admin_url . '/plugins/' . $plugin . '/tpl' . $tsb;
