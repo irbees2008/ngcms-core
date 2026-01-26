@@ -101,19 +101,21 @@ function AutoBackup($delayed = false, $force = false)
         if (!$flagDoProcess) {
             return;
         }
-        // Try to open temp file for writing
+        // Try to open temp file for writing timestamp of last backup
         $fx = is_file($backupFlagFile) ? fopen($backupFlagFile, 'r+') : fopen($backupFlagFile, 'w+');
         if ($fx === false) {
-            $filename = root . 'backups/backup_' . date('Y_m_d_H_i', $time_now) . '.gz';
-            require_once root . '/includes/inc/lib_admin.php';
-            dbBackup($filename, 1);
-            // Здесь была ошибка: нельзя работать с $fx, если он false
+            // If we cannot open the flag file, still record timestamp best-effort
+            @file_put_contents($backupFlagFile, (string)$time_now);
         } else {
             rewind($fx);
             fwrite($fx, $time_now);
             ftruncate($fx, ftell($fx));
             fclose($fx);
         }
+        // Always perform backup when time threshold is met
+        $filename = root . 'backups/backup_' . date('Y_m_d_H_i', $time_now) . '.gz';
+        require_once root . '/includes/inc/lib_admin.php';
+        dbBackup($filename, 1);
         // Delete marker
         unlink($backupMarkerFile);
     }
@@ -121,11 +123,15 @@ function AutoBackup($delayed = false, $force = false)
 function LangDate($format, $timestamp)
 {
     global $lang;
-    $weekdays = explode(',', $lang['weekdays']);
-    $short_weekdays = explode(',', $lang['short_weekdays']);
-    $months = explode(',', $lang['months']);
-    $months_s = explode(',', $lang['months_s']);
-    $short_months = explode(',', $lang['short_months']);
+    // Проверка на корректность $lang
+    if (!is_array($lang)) {
+        return date($format, $timestamp);
+    }
+    $weekdays = explode(',', isset($lang['weekdays']) ? $lang['weekdays'] : '');
+    $short_weekdays = explode(',', isset($lang['short_weekdays']) ? $lang['short_weekdays'] : '');
+    $months = explode(',', isset($lang['months']) ? $lang['months'] : '');
+    $months_s = explode(',', isset($lang['months_s']) ? $lang['months_s'] : '');
+    $short_months = explode(',', isset($lang['short_months']) ? $lang['short_months'] : '');
     foreach ($weekdays as $name => $value) {
         $weekdays[$name] = preg_replace('/./', '\\\\\\0', $value);
     }
