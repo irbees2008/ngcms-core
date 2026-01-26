@@ -428,8 +428,8 @@
 					</td>
 					<td width="50%">
 						<select id="timezone" name="save_con[timezone]" class="custom-select">
-							{% for zone in list['timezoneList'] %}
-								<option value="{{ zone }}" {% if (config['timezone'] == zone) %} selected {% endif %}>{{ zone }}</option>
+							{% for zone, zoneName in list['timezoneList'] %}
+								<option value="{{ zone }}" {% if (config['timezone'] == zone) %} selected {% endif %}>{{ zoneName }}</option>
 							{% endfor %}
 						</select>
 					</td>
@@ -1125,7 +1125,7 @@
 		<button type="submit" class="btn btn-outline-success">{{ lang['save'] }}</button>
 	</div>
 </form>
-<script type="text/javascript">
+ <script type="text/javascript">
 	$("#mail_mode").on('change', toggleSmtp).trigger('change');
 function toggleSmtp(event) {
 $(".useSMTP").toggle("smtp" === $("#mail_mode option:selected").val());

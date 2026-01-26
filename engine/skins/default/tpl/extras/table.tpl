@@ -145,8 +145,10 @@
 				{% for entry in entries %}
 					<tr class="{{ entry.style }} all" id="plugin_{{ entry.id }}">
 						<td>
-							{% if entry.flags.isCompatible %}<img src="{{ skins_url }}/images/msg.png">
-								{% else %}
+							{% if entry.flags.isCompatible %}
+								<i class="fa fa-check-circle-o" aria-hidden="true" style="color: green;"></i>
+							{% else %}
+								<i class="fa fa-window-close-o" aria-hidden="true" style="color: red;"></i>
 							{% endif %}
 						</td>
 						<td nowrap>{{ entry.id }}

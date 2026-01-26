@@ -1,4 +1,4 @@
-<script type="text/javascript">
+ <script type="text/javascript">
 	// ============================
 // Комментарии: AJAX добавление / правка / удаление
 // Переписано: нормализованы уведомления, безопасный JSON парсинг, формат
@@ -147,152 +147,177 @@ form.scrollIntoView({behavior: 'smooth'});
 	</form>
 	<div id="new_comments"></div>
 	<div id="new_comments_rev"></div>
-	<script>
-		// Глобальная переменная для сохранения оригинального контента
-var original_comment_content = {};
-// Удаление комментария
-function delete_comment(comment_id, token) {
-if (!confirm('Удалить комментарий?'))
-return false;
-var dajax = new sack();
-dajax.setVar("id", comment_id);
-dajax.setVar("uT", token);
-dajax.setVar("ajax", "1");
-dajax.requestFile = "{{ delete_url }}";
-dajax.method = 'GET';
-dajax.onComplete = function () {
-if (dajax.responseStatus[0] == 200) {
-var result = null;
-try {
-result = JSON.parse(dajax.response);
-} catch (e) {
-if (typeof show_error === "function")
-show_error('Ошибка обработки ответа: ' + dajax.response);
-return;
-}
-if (result && result.status) {
-var el = document.getElementById('comment' + comment_id);
-if (el) {
-el.style.display = 'none';
-}
-if (typeof show_info === "function")
-show_info(result.data || 'Комментарий удалён');
-} else {
-if (typeof show_error === "function")
-show_error((result && result.data) ? result.data : 'Не удалось удалить комментарий');
-}
-} else {
-if (typeof show_error === "function")
-show_error('HTTP error. Code: ' + dajax.responseStatus[0]);
-}
-};
-dajax.runAJAX();
-}
-// Редактирование комментария
-function edit_comment(comment_id) {
-var comment_text_div = document.getElementById('comment_text_' + comment_id);
-if (! comment_text_div)
-return;
-original_comment_content[comment_id] = comment_text_div.innerHTML;
-var eajax = new sack();
-eajax.setVar("id", comment_id);
-eajax.setVar("action", "get");
-eajax.setVar("ajax", "1");
-eajax.requestFile = "{{ edit_url }}";
-eajax.method = 'GET';
-eajax.onComplete = function () {
-if (eajax.responseStatus[0] == 200) {
-try {
-var result = (function parseJSONSafe(text) {
-try {
-return JSON.parse(text);
-} catch (e) {
-try {
-return JSON.parse(String(text).replace(/^\uFEFF/, ''));
-} catch (e2) {
-return null;
-}
-}
-})(eajax.response);
-if (! result) {
-if (typeof show_error === "function")
-show_error('Ошибка обработки ответа: ' + eajax.response);
-return;
-}
-if (result['status'] == 1) {
-var edit_form = '<textarea id="edit_textarea_' + comment_id + '" style="width:100%; height:100px;">' + result['text'] + '</textarea><br/>' + '<button onclick="save_comment(' + comment_id + '); return false;">Сохранить</button> ' + '<button onclick="cancel_edit(' + comment_id + '); return false;">Отмена</button>';
-comment_text_div.innerHTML = edit_form;
-} else {
-if (typeof show_error === "function")
-show_error('Ошибка: ' + (
-result['data'] || 'Неизвестная ошибка'
-));
-}
-} catch (err) {
-if (typeof show_error === "function")
-show_error('Ошибка обработки ответа: ' + eajax.response);
-}
-}
-};
-eajax.runAJAX();
-}
-// Сохранение отредактированного комментария
-function save_comment(comment_id) {
-var textarea = document.getElementById('edit_textarea_' + comment_id);
-if (! textarea)
-return;
-var sajax = new sack();
-sajax.setVar("id", comment_id);
-sajax.setVar("text", textarea.value);
-sajax.setVar("action", "save");
-sajax.setVar("ajax", "1");
-sajax.requestFile = "{{ edit_url }}";
-sajax.method = 'POST';
-sajax.onComplete = function () {
-if (sajax.responseStatus[0] == 200) {
-try {
-var result = (function parseJSONSafe(text) {
-try {
-return JSON.parse(text);
-} catch (e) {
-try {
-return JSON.parse(String(text).replace(/^\uFEFF/, ''));
-} catch (e2) {
-return null;
-}
-}
-})(sajax.response);
-if (! result) {
-if (typeof show_error === "function")
-show_error('Ошибка обработки ответа: ' + sajax.response);
-return;
-}
-if (result['status'] == 1) {
-var comment_text_div = document.getElementById('comment_text_' + comment_id);
-comment_text_div.innerHTML = result['html'];
-if (typeof show_info === "function")
-show_info('Комментарий обновлён');
-} else {
-if (typeof show_error === "function")
-show_error('Ошибка: ' + (
-result['data'] || 'Неизвестная ошибка'
-));
-}
-} catch (err) {
-if (typeof show_error === "function")
-show_error('Ошибка обработки ответа: ' + sajax.response);
-}
-}
-};
-sajax.runAJAX();
-}
-// Отмена редактирования
-function cancel_edit(comment_id) {
-var comment_text_div = document.getElementById('comment_text_' + comment_id);
-if (comment_text_div && original_comment_content[comment_id]) {
-comment_text_div.innerHTML = original_comment_content[comment_id];
-delete original_comment_content[comment_id];
-}
-}
-	</script>
+	 <script>
+						// Глобальная переменная для сохранения оригинального контента
+				var original_comment_content = {};
+				// Удаление комментария
+				function delete_comment(comment_id, token) {
+				if (!confirm('Удалить комментарий?'))
+				return false;
+				var dajax = new sack();
+				dajax.setVar("id", comment_id);
+				dajax.setVar("uT", token);
+				dajax.setVar("ajax", "1");
+				dajax.requestFile = "{{ delete_url }}";
+				dajax.method = 'GET';
+				dajax.onComplete = function () {
+				if (dajax.responseStatus[0] == 200) {
+				var result = null;
+				try {
+				result = JSON.parse(dajax.response);
+				} catch (e) {
+				if (typeof show_error === "function")
+				show_error('Ошибка обработки ответа: ' + dajax.response);
+				return;
+				}
+				if (result && result.status) {
+				var el = document.getElementById('comment' + comment_id);
+				if (el) {
+				el.style.display = 'none';
+				}
+				if (result.data) {
+				// Если result.data - HTML блок, вставляем его
+				if (result.data.indexOf('<') !== -1) {
+				document.body.insertAdjacentHTML('beforeend', result.data);
+				} else {
+				// Иначе показываем через notify
+				notify('success', result.data);
+				}
+				} else {
+				notify('success', 'Комментарий удалён');
+				}
+				} else if (result && result.data) {
+				// Ошибка
+				if (result.data.indexOf('<') !== -1) {
+				document.body.insertAdjacentHTML('beforeend', result.data);
+				} else {
+				notify('error', result.data);
+				}
+				}
+				} else {
+				if (typeof show_error === "function")
+				show_error('HTTP error. Code: ' + dajax.responseStatus[0]);
+				}
+				};
+				dajax.runAJAX();
+				}
+				// Редактирование комментария
+				function edit_comment(comment_id) {
+				var comment_text_div = document.getElementById('comment_text_' + comment_id);
+				if (! comment_text_div)
+				return;
+				original_comment_content[comment_id] = comment_text_div.innerHTML;
+				var eajax = new sack();
+				eajax.setVar("id", comment_id);
+				eajax.setVar("action", "get");
+				eajax.setVar("ajax", "1");
+				eajax.requestFile = "{{ edit_url }}";
+				eajax.method = 'GET';
+				eajax.onComplete = function () {
+				if (eajax.responseStatus[0] == 200) {
+				try {
+				var result = (function parseJSONSafe(text) {
+				try {
+				return JSON.parse(text);
+				} catch (e) {
+				try {
+				return JSON.parse(String(text).replace(/^\uFEFF/, ''));
+				} catch (e2) {
+				return null;
+				}
+				}
+				})(eajax.response);
+				if (! result) {
+				if (typeof show_error === "function")
+				show_error('Ошибка обработки ответа: ' + eajax.response);
+				return;
+				}
+				if (result['status'] == 1) {
+				var edit_form = '<textarea id="edit_textarea_' + comment_id + '" style="width:100%; height:100px;">' + result['text'] + '</textarea><br/>' + '<button onclick="save_comment(' + comment_id + '); return false;">Сохранить</button> ' + '<button onclick="cancel_edit(' + comment_id + '); return false;">Отмена</button>';
+				comment_text_div.innerHTML = edit_form;
+				} else if (result['data']) {
+				// Показываем ошибку
+				if (result['data'].indexOf('<') !== -1) {
+				document.body.insertAdjacentHTML('beforeend', result['data']);
+				} else {
+				notify('error', result['data']);
+				}
+				}
+				} catch (err) {
+				if (typeof show_error === "function")
+				show_error('Ошибка обработки ответа: ' + eajax.response);
+				}
+				}
+				};
+				eajax.runAJAX();
+				}
+				// Сохранение отредактированного комментария
+				function save_comment(comment_id) {
+				var textarea = document.getElementById('edit_textarea_' + comment_id);
+				if (! textarea)
+				return;
+				var sajax = new sack();
+				sajax.setVar("id", comment_id);
+				sajax.setVar("text", textarea.value);
+				sajax.setVar("action", "save");
+				sajax.setVar("ajax", "1");
+				sajax.requestFile = "{{ edit_url }}";
+				sajax.method = 'POST';
+				sajax.onComplete = function () {
+				if (sajax.responseStatus[0] == 200) {
+				try {
+				var result = (function parseJSONSafe(text) {
+				try {
+				return JSON.parse(text);
+				} catch (e) {
+				try {
+				return JSON.parse(String(text).replace(/^\uFEFF/, ''));
+				} catch (e2) {
+				return null;
+				}
+				}
+				})(sajax.response);
+				if (! result) {
+				if (typeof show_error === "function")
+				show_error('Ошибка обработки ответа: ' + sajax.response);
+				return;
+				}
+				if (result['status'] == 1) {
+				var comment_text_div = document.getElementById('comment_text_' + comment_id);
+				comment_text_div.innerHTML = result['html'];
+				// Показываем уведомление об успехе
+				if (result['data']) {
+				if (result['data'].indexOf('<') !== -1) {
+				document.body.insertAdjacentHTML('beforeend', result['data']);
+				} else {
+				notify('success', result['data']);
+				}
+				} else {
+				notify('success', 'Комментарий обновлён');
+				}
+				} else if (result['data']) {
+				// Показываем ошибку
+				if (result['data'].indexOf('<') !== -1) {
+				document.body.insertAdjacentHTML('beforeend', result['data']);
+				} else {
+				notify('error', result['data']);
+				}
+				}
+				} catch (err) {
+				if (typeof show_error === "function")
+				show_error('Ошибка обработки ответа: ' + sajax.response);
+				}
+				}
+				};
+				sajax.runAJAX();
+				}
+				// Отмена редактирования
+				function cancel_edit(comment_id) {
+				var comment_text_div = document.getElementById('comment_text_' + comment_id);
+				if (comment_text_div && original_comment_content[comment_id]) {
+				comment_text_div.innerHTML = original_comment_content[comment_id];
+				delete original_comment_content[comment_id];
+				}
+				}
+					</script>
 </div>

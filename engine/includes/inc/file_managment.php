@@ -247,6 +247,7 @@ function manage_showlist($type)
         } else {
             $file_link = '<a href="' . $fileurl . '" title="' . $row['name'] . '" target="_blank">' . $row['orig_name'] . '</a> ';
         }
+
         // Создаем массив данных для текущего элемента
         $entryData = [
             'php_self'     => $PHP_SELF,
@@ -281,6 +282,7 @@ function manage_showlist($type)
         } else {
             $entryData['insert_file'] = '<a href="javascript:insertimage(\'' . $html_file . '\', \'' . $_REQUEST['ifield'] . '\')">' . $lang['insert'] . '</a>';
         }
+
         // Добавляем данные элемента в массив
         $entries[] = $entryData;
     }

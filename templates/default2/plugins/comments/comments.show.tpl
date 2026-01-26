@@ -29,13 +29,7 @@
 				{% endif %}
 			</div>
 			<div class="comment-text" id="comment_text_{{ id }}">
-				{{ comment_short|raw }}
-				{% if comment_full %}
-					<span id="comment_full{{ comnum }}" style="display: none;">{{ comment_full|raw }}</span>
-					<p style="text-align: right;">
-						<a href="javascript:ShowOrHide('comment_full{{ comnum }}');">{{ l_showhide }}</a>
-					</p>
-				{% endif %}
+				{{ text|raw }}
 				{% if answer %}
 					<br clear="all"/>--------------------<br/><i>{{ lang['comments:external.admin_answer'] }}</i>
 					<b>{{ name }}</b><br/>{{ answer|raw }}

@@ -144,6 +144,20 @@ function systemConfigEditForm()
     $cfgForTpl = $config;
     $cfgForTpl['auth_module'] = $currentAuthModule;
     $cfgForTpl['auth_db'] = $currentAuthDB;
+
+    // Format timezone list with UTC offset
+    $timezoneList = [];
+    foreach (timezone_identifiers_list() as $timezone) {
+        try {
+            $dateTime = new DateTime('now', new DateTimeZone($timezone));
+            $offset = $dateTime->format('P');
+            $displayName = "(UTC{$offset}) " . str_replace('_', ' ', $timezone);
+            $timezoneList[$timezone] = $displayName;
+        } catch (Exception $e) {
+            $timezoneList[$timezone] = $timezone;
+        }
+    }
+
     $tVars = [
         //	SYSTEM CONFIG is available via `config` variable
         'config'                => $cfgForTpl,
@@ -155,7 +169,7 @@ function systemConfigEditForm()
             'wm_image'     => ListFiles('trash', ['gif', 'png'], 2),
             'auth_module'  => $auth_modules,
             'auth_db'      => $auth_dbs,
-            'timezoneList' => timezone_identifiers_list(),
+            'timezoneList' => $timezoneList,
         ],
         'php_self'              => $PHP_SELF,
         'timestamp_active_now'  => LangDate($config['timestamp_active'], time()),

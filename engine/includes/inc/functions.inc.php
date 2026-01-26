@@ -102,19 +102,22 @@ function AutoBackup($delayed = false, $force = false)
         if (!$flagDoProcess) {
             return;
         }
-        // Try to open temp file for writing
+        // Try to open temp file for writing timestamp of last backup
         $fx = is_file($backupFlagFile) ? fopen($backupFlagFile, 'r+') : fopen($backupFlagFile, 'w+');
         if ($fx === false) {
-            $filename = root . 'backups/backup_' . date('Y_m_d_H_i', $time_now) . '.gz';
-            require_once root . '/includes/inc/lib_admin.php';
-            dbBackup($filename, 1);
-            // Здесь была ошибка: нельзя работать с $fx, если он false
+            // If we cannot open the flag file, still record timestamp best-effort
+            @file_put_contents($backupFlagFile, (string)$time_now);
         } else {
             rewind($fx);
             fwrite($fx, $time_now);
             ftruncate($fx, ftell($fx));
             fclose($fx);
         }
+
+        // Always perform backup when time threshold is met
+        $filename = root . 'backups/backup_' . date('Y_m_d_H_i', $time_now) . '.gz';
+        require_once root . '/includes/inc/lib_admin.php';
+        dbBackup($filename, 1);
         // Delete marker
         unlink($backupMarkerFile);
     }

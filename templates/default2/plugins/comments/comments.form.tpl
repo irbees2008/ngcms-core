@@ -38,7 +38,26 @@
 	function add_comment() {
 		var form = document.getElementById('comment');
 		if (!form) {
+			console.error('Форма не найдена');
 			return false;
+		}
+
+		// Проверка на пустой комментарий
+		if (!form.content || !form.content.value.trim()) {
+			notify('error', 'Введите текст комментария');
+			return false;
+		}
+
+		// Копируем значение из видимого input в скрытое поле ng_captcha_answer (для ng-advanced-captcha)
+		try {
+			var captchaInput = form.querySelector('.captcha-input');
+			var captchaAnswer = form.ng_captcha_answer;
+			if (captchaInput && captchaAnswer) {
+				captchaAnswer.value = captchaInput.value.trim();
+				console.log('Копирование капчи:', captchaInput.value, '→', captchaAnswer.value);
+			}
+		} catch (e) {
+			console.log('Капча не используется или ошибка:', e);
 		}
 
 		cajax.onShow("");
@@ -49,16 +68,34 @@
 				cajax.setVar("vcode", form.vcode.value);
 			{% endif %}
 		{% endif %}
-		cajax.setVar("content", form.content.value);
+
+		var contentValue = form.content.value.trim();
+		console.log('Отправка комментария. Текст:', contentValue, 'Длина:', contentValue.length);
+
+		cajax.setVar("content", contentValue);
 		cajax.setVar("newsid", form.newsid.value);
 		cajax.setVar("ajax", "1");
 		cajax.setVar("json", "1");
+
+		// Добавляем данные капчи (ng-advanced-captcha, ng-yandex-captcha, ng-turnstile) - только если поля существуют
+		try {
+			if (form.ng_captcha_answer) cajax.setVar("ng_captcha_answer", form.ng_captcha_answer.value);
+			if (form.ng_captcha_token) cajax.setVar("ng_captcha_token", form.ng_captcha_token.value);
+			if (form.ng_captcha_interactions) cajax.setVar("ng_captcha_interactions", form.ng_captcha_interactions.value);
+			if (form['smart-token']) cajax.setVar("smart-token", form['smart-token'].value);
+			if (form['cf-turnstile-response']) cajax.setVar("cf-turnstile-response", form['cf-turnstile-response'].value);
+		} catch (e) {
+			console.log('Ошибка при добавлении полей капчи:', e);
+		}
 		cajax.requestFile = "{{ post_url }}";
 		cajax.method = 'POST';
 		cajax.onComplete = function () {
 			if (cajax.responseStatus[0] == 200) {
 				try {
+					console.log('Ответ сервера (RAW):', cajax.response);
 					var resRX = parseJSONSafe(cajax.response);
+					console.log('Ответ сервера (JSON):', resRX);
+
 					if (!resRX) {
 						notify('error', 'Ошибка обработки ответа: ' + cajax.response);
 						return;
@@ -68,20 +105,25 @@
 						? document.getElementById('new_comments_rev')
 						: document.getElementById('new_comments');
 
-					if (resRX['status']) {
+					console.log('Проверка status:', resRX['status'], 'Тип:', typeof resRX['status']);
+
+					// Проверяем status как true/1/"1"
+					if (resRX['status'] == 1 || resRX['status'] === true || resRX['status'] === '1') {
 						if (resRX['data']) {
 							nc.innerHTML += resRX['data'];
 						}
 						form.content.value = '';
 
-						// Проверка на модерацию
-						if (resRX['moderation']) {
-							notify('info', 'Комментарий добавлен и будет опубликован после проверки модератором');
-						} else {
-							notify('success', 'Комментарий добавлен');
-						}
+						// Уведомление (как в default шаблоне)
+						{% if not_logged and use_moderation %}
+						notify('info', 'Комментарий отправлен на модерацию и будет опубликован после проверки.');
+						{% else %}
+						notify('success', 'Комментарий добавлен');
+						{% endif %}
 					} else {
-						notify('error', resRX['data'] || 'Ошибка при добавлении комментария');
+						var errorMsg = resRX['data'] || resRX['errorText'] || 'Ошибка при добавлении комментария';
+						console.error('Ошибка от сервера:', errorMsg, 'Полный ответ:', resRX);
+						notify('error', errorMsg);
 					}
 				} catch (err) {
 					notify('error', 'Ошибка обработки ответа: ' + cajax.response);
@@ -313,6 +355,11 @@
 			<div class="form-group">
 				<p>Ваш e-mail не будет опубликован. Убедительная просьба соблюдать правила этики. Администрация оставляет за собой право удалять сообщения без объяснения причин.</p>
 			</div>
+			{% if captcha_widget %}
+				<div class="form-group">
+					{{ captcha_widget|raw }}
+				</div>
+			{% endif %}
 		</fieldset>
 		<div class="form-group">
 			<button type="submit" id="sendComment" class="btn btn-primary">Написать</button>
