@@ -467,13 +467,23 @@ function convertDatabaseEncodingToUtf8mb4($db): void
             $tables = array_diff($tables, ['ng_tags_tmp_export']);
         }
         // 6. Обрабатываем остальные таблицы
-        // 5b. Обрабатываем таблицу ng_tags (устранение дубликатов перед конвертацией)
-        if (in_array('ng_tags', $tables)) {
+        // 5b. Обрабатываем все таблицы тегов (устранение дубликатов перед конвертацией)
+        // Ищем все таблицы формата *_tags (кроме временных *_tmp_*)
+        $tagTables = array_filter($tables, function ($table) {
+            return preg_match('/_tags$/', $table) && strpos($table, '_tmp_') === false;
+        });
+        foreach ($tagTables as $tagTable) {
             echo "<div class='action'>";
-            echo "<h4>Обработка таблицы тегов: ng_tags</h4>";
+            echo "<h4>Обработка таблицы тегов: {$tagTable}</h4>";
             try {
+                // Проверяем наличие поля tag
+                if (!columnExists($db, $tagTable, 'tag')) {
+                    echo "<div class='skipped'>Таблица не содержит поле 'tag', обычная обработка</div>";
+                    echo "</div>";
+                    continue;
+                }
                 // Определяем индекс по полю tag и его уникальность
-                $indexInfo = $db->query("SHOW INDEX FROM `ng_tags` WHERE Column_name = 'tag'");
+                $indexInfo = $db->query("SHOW INDEX FROM `{$tagTable}` WHERE Column_name = 'tag'");
                 $indexRows = [];
                 if (is_array($indexInfo)) {
                     $indexRows = $indexInfo;
@@ -498,12 +508,17 @@ function convertDatabaseEncodingToUtf8mb4($db): void
                 }
                 // Если индекс уникальный – временно снимаем его, чтобы можно было удалить дубликаты
                 if ($isUnique) {
-                    executeSqlWithReporting($db, "ALTER TABLE `ng_tags` DROP INDEX `{$keyName}`");
+                    executeSqlWithReporting($db, "ALTER TABLE `{$tagTable}` DROP INDEX `{$keyName}`");
                     echo "<div class='success'>Уникальный индекс по полю 'tag' временно удален</div>";
                 }
                 // Ищем и удаляем дубликаты значений tag, оставляя минимальный id
-                executeSqlWithReporting($db, "CREATE TEMPORARY TABLE temp_ng_tags_dedup AS \n                        SELECT MIN(id) as keep_id, tag, COUNT(*) as cnt\n                        FROM ng_tags\n                        GROUP BY tag\n                        HAVING COUNT(*) > 1");
-                $dupResult = $db->query("SELECT COUNT(*) as duplicate_count FROM temp_ng_tags_dedup");
+                $tempTable = "temp_" . str_replace('-', '_', $tagTable) . "_dedup";
+                executeSqlWithReporting($db, "CREATE TEMPORARY TABLE `{$tempTable}` AS
+                        SELECT MIN(id) as keep_id, tag, COUNT(*) as cnt
+                        FROM `{$tagTable}`
+                        GROUP BY tag
+                        HAVING COUNT(*) > 1");
+                $dupResult = $db->query("SELECT COUNT(*) as duplicate_count FROM `{$tempTable}`");
                 $dupCount = 0;
                 if (is_array($dupResult)) {
                     $dupCount = $dupResult[0]['duplicate_count'] ?? 0;
@@ -513,16 +528,18 @@ function convertDatabaseEncodingToUtf8mb4($db): void
                 }
                 echo "<div class='status'>Найдено дубликатов тегов: {$dupCount}</div>";
                 if ($dupCount > 0) {
-                    executeSqlWithReporting($db, "DELETE t1 FROM ng_tags t1\n                            INNER JOIN temp_ng_tags_dedup d ON t1.tag = d.tag\n                            WHERE t1.id <> d.keep_id");
-                    echo "<div class='success'>Дубликаты строк в ng_tags удалены</div>";
+                    executeSqlWithReporting($db, "DELETE t1 FROM `{$tagTable}` t1
+                            INNER JOIN `{$tempTable}` d ON t1.tag = d.tag
+                            WHERE t1.id <> d.keep_id");
+                    echo "<div class='success'>Дубликаты строк в {$tagTable} удалены</div>";
                 } else {
                     echo "<div class='skipped'>Дубликаты не обнаружены</div>";
                 }
-                executeSqlWithReporting($db, "DROP TEMPORARY TABLE temp_ng_tags_dedup");
+                executeSqlWithReporting($db, "DROP TEMPORARY TABLE `{$tempTable}`");
                 // Конвертируем таблицу в utf8mb4
-                executeSqlWithReporting($db, "ALTER TABLE `ng_tags` CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
+                executeSqlWithReporting($db, "ALTER TABLE `{$tagTable}` CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
                 // Пытаемся восстановить индекс по полю tag
-                $checkRes = $db->query("SELECT COUNT(*) as total, COUNT(DISTINCT tag) as unique_count FROM ng_tags");
+                $checkRes = $db->query("SELECT COUNT(*) as total, COUNT(DISTINCT tag) as unique_count FROM `{$tagTable}`");
                 $total = 0;
                 $unique = 0;
                 if (is_array($checkRes)) {
@@ -535,21 +552,21 @@ function convertDatabaseEncodingToUtf8mb4($db): void
                 }
                 if ($total === $unique) {
                     // Все значения уникальны – создаем уникальный индекс
-                    executeSqlWithReporting($db, "ALTER TABLE `ng_tags` ADD UNIQUE INDEX `tag` (`tag`)");
+                    executeSqlWithReporting($db, "ALTER TABLE `{$tagTable}` ADD UNIQUE INDEX `tag` (`tag`)");
                     echo "<div class='success'>Уникальный индекс по полю 'tag' восстановлен</div>";
                 } else {
                     // Есть дубликаты – создаем обычный индекс
-                    executeSqlWithReporting($db, "ALTER TABLE `ng_tags` ADD INDEX `tag` (`tag`)");
+                    executeSqlWithReporting($db, "ALTER TABLE `{$tagTable}` ADD INDEX `tag` (`tag`)");
                     echo "<div class='skipped'>Остались дубликаты значений 'tag' – создан обычный индекс</div>";
                 }
             } catch (Exception $e) {
-                echo "<div class='skipped'>Ошибка при обработке ng_tags: " . htmlspecialchars($e->getMessage()) . "</div>";
+                echo "<div class='skipped'>Ошибка при обработке {$tagTable}: " . htmlspecialchars($e->getMessage()) . "</div>";
                 // Продолжаем обработку остальных таблиц
             }
-            echo "<div class='success'>Таблица ng_tags успешно обработана</div>";
+            echo "<div class='success'>Таблица {$tagTable} успешно обработана</div>";
             echo "</div>";
             // Исключаем таблицу из общего списка, чтобы не обрабатывать её повторно
-            $tables = array_diff($tables, ['ng_tags']);
+            $tables = array_diff($tables, [$tagTable]);
         }
         // 6. Обрабатываем остальные таблицы
         foreach ($tables as $tableName) {
