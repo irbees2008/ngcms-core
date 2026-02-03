@@ -1,9 +1,9 @@
 name: Build source code
 on:
   push:
-    branches: [master, ng-test]  # или укажите ветку, при пуше в которую будет запускаться сборка
+    branches: [ng-test]  # или укажите ветку, при пуше в которую будет запускаться сборка
   pull_request:
-    branches: [master, ng-test]
+    branches: [ng-test]
 
 jobs:
   build:
