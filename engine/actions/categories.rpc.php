@@ -185,7 +185,7 @@ function admCategoryReorder($params = [])
 }
 function admCategoriesRPCmodify($params)
 {
-    global $userROW, $mysql, $catmap, $catz;
+    global $userROW, $mysql, $catmap, $catz, $lang;
     // Check for permissions
     if (!checkPermission(['plugin' => '#admin', 'item' => 'categories'], null, 'modify')) {
         // ACCESS DENIED
@@ -210,12 +210,12 @@ function admCategoriesRPCmodify($params)
             // Check if category have children
             $refCCount = $mysql->record('select count(*) as cnt from ' . prefix . '_category where parent = ' . intval($params['id']));
             if ($refCCount['cnt'] > 0) {
-                return ['status' => 0, 'errorCode' => 11, 'errorText' => 'Category have children, please delete news from this category first'];
+                return ['status' => 0, 'errorCode' => 11, 'errorText' => $lang['msge_havechildren'] ?? 'Category have children, please delete or move them first'];
             }
             // Check for news in category
             $refNCount = $mysql->record('select count(*) as cnt from ' . prefix . '_news_map where categoryID = ' . intval($params['id']));
             if ($refNCount['cnt'] > 0) {
-                return ['status' => 0, 'errorCode' => 12, 'errorText' => 'Category have news, please delete news from this category first'];
+                return ['status' => 0, 'errorCode' => 12, 'errorText' => $lang['msge_havenews'] ?? 'Category have news, please delete news from this category first'];
             }
             // Fine, now we can delete category!
             // * Delete
@@ -232,7 +232,7 @@ function admCategoriesRPCmodify($params)
             if ($data === false) {
                 $data = '[permission denied]';
             }
-            return ['status' => 1, 'errorCode' => 0, 'errorText' => 'Ok', 'infoCode' => 1, 'infoText' => 'Category was deleted', 'content' => $data];
+            return ['status' => 1, 'errorCode' => 0, 'errorText' => 'Ok', 'infoCode' => 1, 'infoText' => $lang['msgo_deleted'], 'content' => $data];
             // Move category UP/DOWN
         case 'up':
         case 'down':

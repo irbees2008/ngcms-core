@@ -22,7 +22,7 @@ if (!function_exists('safe_print_msg')) {
         }
         // Map type to msg levels
         $level = ($type == 'error') ? 'error' : (($type == 'success' || $type == 'update') ? 'info' : 'warning');
-        msg(['type' => $level, 'text' => $text]);
+
         // Try to redirect to provided target
         $url = null;
         if (is_array($target)) {
@@ -33,7 +33,14 @@ if (!function_exists('safe_print_msg')) {
         } else {
             $url = $target;
         }
+
         if ($url) {
+            // Save message to session for display after redirect
+            if (!isset($_SESSION)) {
+                @session_start();
+            }
+            $_SESSION['flash_msg'] = ['type' => $level, 'text' => $text];
+
             global $PHP_SELF;
             // Normalize url: allow full or relative (?mod=...)
             if ((strpos($url, 'http://') === 0) || (strpos($url, 'https://') === 0) || (strpos($url, 'admin.php') === 0)) {
@@ -44,6 +51,9 @@ if (!function_exists('safe_print_msg')) {
             }
             exit;
         }
+
+        // No redirect - display message immediately
+        msg(['type' => $level, 'text' => $text]);
         return '';
     }
 }
@@ -233,10 +243,12 @@ function admCategoryAdd()
             $mysql->query('update ' . prefix . '_category set image_id = ' . db_squote($up[0]) . ' where id = ' . db_squote($rowID['id']));
         }
     }
+    // Reorder categories to recalculate poslevel
+    admCategoryReorder();
     // Report about adding new category
-    msg(['type' => 'info', 'text' => $lang['msgo_added']]);
-    $catid = $mysql->lastid('category');
-    return safe_print_msg('success', $lang['category'], str_replace('%cat%', $SQL['name'], $lang['msgk_added']), array('?mod=categories&action=edit&catid=' . $catid . '' => $lang['edit'], '?mod=categories' => $lang['back']));
+    // Use the ID we already obtained from LAST_INSERT_ID()
+    $catid = $rowID['id'];
+    return safe_print_msg('success', $lang['category'], $lang['msgo_added'], array('?mod=categories&action=edit&catid=' . $catid . '' => $lang['edit'], '?mod=categories' => $lang['back']));
 }
 // ////////////////////////////////////////////////////////////////////////////
 // Processing functions :: form for editing category
@@ -438,13 +450,23 @@ function admCategoryEdit()
     }
     cacheStoreFile('LoadCategories.dat', '');
     $mysql->query('update ' . prefix . '_category set ' . implode(', ', $SQLout) . ' where id=' . db_squote($catid));
-    msg(['type' => 'info', 'text' => $lang['msgo_saved']]);
-    return safe_print_msg('update', $lang['category'], str_replace('%cat%', $SQL['name'], $lang['msgk_edit']), array('?mod=categories&action=edit&catid=' . $catid . '' => 'Редактировать', '?mod=categories' => 'Вернуться назад'));
+    // Reorder categories to recalculate poslevel
+    admCategoryReorder();
+    return safe_print_msg('update', $lang['category'], $lang['msgo_saved'], array('?mod=categories&action=edit&catid=' . $catid . '' => 'Редактировать', '?mod=categories' => 'Вернуться назад'));
 }
 // ////////////////////////////////////////////////////////////////////////////
 // MAIN ACTION
 // ///////////////////////////////////////////////////////////////////////////
 //
+// Check for flash message from previous redirect
+if (!isset($_SESSION)) {
+    @session_start();
+}
+if (isset($_SESSION['flash_msg']) && is_array($_SESSION['flash_msg'])) {
+    msg($_SESSION['flash_msg']);
+    unset($_SESSION['flash_msg']);
+}
+
 if ($action == 'edit') {
     admCategoryEditForm();
     if (!$main_admin) {

@@ -79,7 +79,7 @@
 		<!-- small box -->
 		<div class="small-box bg-info">
 			<div class="inner">
-				<h3>{{ news_draft + news_unapp + news }}</h3>
+				<h3>{{ (news_draft|default(0)) + (news_unapp|default(0)) + (news|default(0)) }}</h3>
 				<p>{{ lang['news'] }}</p>
 			</div>
 			<div class="icon">
@@ -96,7 +96,7 @@
 		<!-- small box -->
 		<div class="small-box bg-success">
 			<div class="inner">
-				<h3>{{ images }}</h3>
+				<h3>{{ images|default(0) }}</h3>
 				<p>{{ lang['images'] }}</p>
 			</div>
 			<div class="icon">
@@ -113,7 +113,7 @@
 		<!-- small box -->
 		<div class="small-box bg-warning">
 			<div class="inner">
-				<h3>{{ files }}</h3>
+				<h3>{{ files|default(0) }}</h3>
 				<p>{{ lang['files'] }}</p>
 			</div>
 			<div class="icon">
@@ -130,7 +130,7 @@
 		<!-- small box -->
 		<div class="small-box bg-danger">
 			<div class="inner">
-				<h3>{{ users }}</h3>
+				<h3>{{ users|default(0) }}</h3>
 				<p>{{ lang['users'] }}</p>
 			</div>
 			<div class="icon">
@@ -268,37 +268,37 @@
 				<tbody>
 					<tr>
 						<td>{{ lang['all_cats'] }}</td>
-						<td>{{ categories }}</td>
+						<td>{{ categories|default(0) }}</td>
 					</tr>
 					<tr>
 						<td>{{ lang['all_news'] }}</td>
 						<td>
-							<a href="{{ php_self }}?mod=news&status=1">{{ news_draft }}</a>
+							<a href="{{ php_self }}?mod=news&status=1">{{ news_draft|default(0) }}</a>
 							/
-							<a href="{{ php_self }}?mod=news&status=2">{{ news_unapp }}</a>
+							<a href="{{ php_self }}?mod=news&status=2">{{ news_unapp|default(0) }}</a>
 							/
-							<a href="{{ php_self }}?mod=news&status=3">{{ news }}</a>
+							<a href="{{ php_self }}?mod=news&status=3">{{ news|default(0) }}</a>
 						</td>
 					</tr>
 					<tr>
 						<td>{{ lang['all_comments'] }}</td>
-						<td>{{ comments }}</td>
+						<td>{{ comments|default(0) }}</td>
 					</tr>
 					<tr>
 						<td>{{ lang['all_users'] }}</td>
-						<td>{{ users }}</td>
+						<td>{{ users|default(0) }}</td>
 					</tr>
 					<tr>
 						<td>{{ lang['all_users_unact'] }}</td>
-						<td>{{ users_unact }}</td>
+						<td>{{ users_unact|default(0) }}</td>
 					</tr>
 					<tr>
 						<td>{{ lang['all_images'] }}</td>
-						<td>{{ images }}</td>
+						<td>{{ images|default(0) }}</td>
 					</tr>
 					<tr>
 						<td>{{ lang['all_files'] }}</td>
-						<td>{{ files }}</td>
+						<td>{{ files|default(0) }}</td>
 					</tr>
 				</tbody>
 			</table>
@@ -315,7 +315,7 @@
 		</form>
 	</div>
 </div>
-<script type="text/javascript">
+ <script type="text/javascript">
 	function getCacheSize() {
 $("#cacheFileCount").html('-');
 $("#cacheSize").html('-');
@@ -346,7 +346,7 @@ post('admin.statistics.coreVersionSync', {
 return false;
 }
 </script>
-<script>
+ <script>
 	$(function () {
 var reqReleas = "https://api.github.com/repos/irbees2008/ngcms-core/releases/latest";
 requestJSON(reqReleas, function (json) {

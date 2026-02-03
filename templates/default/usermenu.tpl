@@ -18,9 +18,21 @@
 						<li>
 							<a href="{{ addnews_link }}">{{ lang.add_news }}</a>
 						</li>
+						{% if pluginIsActive('bookmarks') %}
+							<li>
+								<a href="{{ p.bookmarks.link }}">
+									Мои закладки
+									{% if p.bookmarks.count > 0 %}
+										({{ p.bookmarks.count }})
+									{% endif %}
+								</a>
+							</li>
+						{% endif %}
+						{% if pluginIsActive('complain') %}
 							<li>
 								<a href="{{ p.complain.link|default(home ~ '/plugin/complain/?ajax=1') }}" class="complain-open" data-modal="true">Жалобы ({{ p.complain.new_count|default(0) }})</a>
 							</li>
+						{% endif %}
 					{% endif %}
 					{% if pluginIsActive('uprofile') %}
 						<li>
@@ -44,13 +56,12 @@
 		</div>
 	</div>
 {% else %}
-	<script language="javascript">
-		var set_login = 0;
-var set_pass = 0;
-	</script>
+	 <script language="javascript">
+			var set_login = 0;
+	var set_pass = 0;
+		</script>
 	<!-- .modal -->
-	<div class="modal" id="auth-modal">
-		<div class="modal-box">
+		<div class="modal" id="auth-modal"> <div class="modal-box">
 			<div class="modal-clouse"></div>
 			<div class="title">{{ lang.theme['login_title'] }}</div>
 			<div class="modal-content clearfix">
@@ -78,8 +89,9 @@ var set_pass = 0;
 				<div class="modal-footer">
 					Вход через социальные сети:
 					<br>
-					<div class="social-in-modal">
-						<script src="http://loginza.ru/js/widget.js" type="text/javascript"></script>
+					<div
+						class="social-in-modal">
+						 <script src="http://loginza.ru/js/widget.js" type="text/javascript"></script>
 						<a href="https://loginza.ru/api/widget?token_url={home}/plugin/auth_loginza/" class="loginza"><img src="{{ tpl_url }}/img/social/fb.png" alt="">
 							Facebook</a>
 						<a href="https://loginza.ru/api/widget?token_url={home}/plugin/auth_loginza/" class="loginza"><img src="{{ tpl_url }}/img/social/vk.png" alt="">

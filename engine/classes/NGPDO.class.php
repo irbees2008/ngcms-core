@@ -1,5 +1,4 @@
 <?php
-
 class NGPDO
 {
     protected $db = null;
@@ -10,205 +9,271 @@ class NGPDO
     protected $eventLogger = null;
     protected $errorHandler = null;
     protected $dbCharset = 'utf8mb4';
-
+    protected $connectionParams = [];
+    protected $reconnectAttempts = 0;
+    protected $maxReconnectAttempts = 3;
     public function __construct(array $params)
     {
+        // Save connection params for potential reconnection
+        $this->connectionParams = $params;
         // Init params
         if (isset($params['softErrors'])) {
             $this->softErrors = $params['softErrors'];
         }
-
         if (isset($params['errorSecurity'])) {
             $this->errorSecurity = $params['errorSecurity'];
         }
-
         if (!isset($params['user'])) {
             throw new Exception('NG_PDO: User is not specified');
         }
-
         if (!isset($params['pass'])) {
             throw new Exception('NG_PDO: Password is not specified');
         }
-
         if (!isset($params['host'])) {
             throw new Exception('NG_PDO: Host is not specified');
         }
-
         if (isset($params['eventLogger'])) {
             if (!($params['eventLogger'] instanceof NGEvents)) {
                 throw new Exception('NGPDO: Passed eventLogger is not an instance of NGEvents class');
             }
-
             $this->eventLogger = $params['eventLogger'];
         } else {
             $this->eventLogger = NGEngine::getInstance()->getEvents();
         }
-
         if (isset($params['errorHandler'])) {
             if (!($params['errorHandler'] instanceof NGErrorHandler)) {
                 throw new Exception('NGPDO: Passed eventLogger is not an instance of NGErrorHandler class');
             }
-
             $this->errorHandler = $params['errorHandler'];
         } else {
             $this->errorHandler = NGEngine::getInstance()->getErrorHandler();
         }
-
         if (isset($params['charset'])) {
             $this->dbCharset = strtolower($params['charset']) == 'utf8' ? 'utf8mb4' : $params['charset'];
         }
-
         // Mark start of DB connection procedure
         $tStart = $this->eventLogger->tickStart();
-
         try {
             $this->db = new PDO('mysql:host=' . $params['host'] . (isset($params['db']) ? ';dbname=' . $params['db'] : ''), $params['user'], $params['pass']);
             $this->db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
         } catch (PDOException $e) {
             throw new Exception('NG_PDO: Error connecting to DB (' . $e->getCode() . ') [' . $e->getMessage() . ']', $e->getCode());
         }
-
         // Try to switch CHARSET
         try {
             $this->db->exec("/*!40101 SET NAMES '" . $this->dbCharset . "' */");
         } catch (PDOException $e) {
             throw new Exception("NG_PDO: Error switching to charset '" . $this->dbCharset . "' (" . $e->getCode() . ') [' . $e->getMessage() . ']');
         }
-
         $this->eventLogger->registerEvent('NG_PDO', '', '* DB Connection established', $this->eventLogger->tickStop($tStart));
     }
-
+    /**
+     * Check if error is "MySQL server has gone away" and attempt to reconnect
+     * @param PDOException $e
+     * @return bool True if reconnected successfully
+     */
+    protected function handleGoneAwayError(PDOException $e)
+    {
+        $errorInfo = $e->getMessage();
+        $errorCode = $e->getCode();
+        // Check for "server has gone away" errors (2006 or 2013)
+        if (
+            strpos($errorInfo, 'server has gone away') !== false ||
+            strpos($errorInfo, 'MySQL server has gone away') !== false ||
+            in_array($errorCode, ['2006', '2013', 'HY000'])
+        ) {
+            if ($this->reconnectAttempts < $this->maxReconnectAttempts) {
+                $this->reconnectAttempts++;
+                try {
+                    // Close existing connection
+                    $this->db = null;
+                    // Attempt to reconnect
+                    $params = $this->connectionParams;
+                    $this->db = new PDO(
+                        'mysql:host=' . $params['host'] . (isset($params['db']) ? ';dbname=' . $params['db'] : ''),
+                        $params['user'],
+                        $params['pass']
+                    );
+                    $this->db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+                    $this->db->exec("/*!40101 SET NAMES '" . $this->dbCharset . "' */");
+                    // Reset reconnect counter on success
+                    $this->reconnectAttempts = 0;
+                    return true;
+                } catch (PDOException $reconnectException) {
+                    // Reconnection failed, will return false
+                }
+            }
+        }
+        return false;
+    }
     public function query(string $sql, array $params = [])
     {
         $tStart = $this->eventLogger->tickStart();
         $this->qCount++;
-
-        try {
-            // Check if we should prepare
-            if (is_array($params) && count($params)) {
-                $st = $this->db->prepare($sql);
-                $st->execute($params);
-                $r = $st->fetchAll(PDO::FETCH_ASSOC);
-            } else {
-                $r = $this->db->query($sql)->fetchAll(PDO::FETCH_ASSOC);
+        $maxAttempts = 2;
+        $attempt = 0;
+        while ($attempt < $maxAttempts) {
+            try {
+                // Check if we should prepare
+                if (is_array($params) && count($params)) {
+                    $st = $this->db->prepare($sql);
+                    $st->execute($params);
+                    $r = $st->fetchAll(PDO::FETCH_ASSOC);
+                } else {
+                    $r = $this->db->query($sql)->fetchAll(PDO::FETCH_ASSOC);
+                }
+                break; // Success, exit loop
+            } catch (PDOException $e) {
+                if ($attempt === 0 && $this->handleGoneAwayError($e)) {
+                    // Reconnected successfully, retry query
+                    $attempt++;
+                    continue;
+                }
+                // Failed or not a reconnectable error
+                $this->errorReport('query', $sql, $e);
+                $r = null;
+                break;
             }
-        } catch (PDOException $e) {
-            $this->errorReport('query', $sql, $e);
-            $r = null;
         }
         $duration = $this->eventLogger->tickStop($tStart);
         $this->eventLogger->registerEvent('NG_PDO', 'QUERY', $sql, $duration);
         $this->qList[] = ['query' => $sql, 'duration' => $duration, 'start' => $tStart];
-
         return $r;
     }
-
     public function record(string $sql, array $params = [])
     {
         $tStart = $this->eventLogger->tickStart();
         $this->qCount++;
-
-        try {
-            // Check if we should prepare
-            if (is_array($params) && count($params)) {
-                $st = $this->db->prepare($sql);
-                $st->execute($params);
-                $r = $st->fetch(PDO::FETCH_ASSOC);
-                $st->closeCursor();
-            } else {
-                $r = $this->db->query($sql)->fetch(PDO::FETCH_ASSOC);
+        $maxAttempts = 2;
+        $attempt = 0;
+        while ($attempt < $maxAttempts) {
+            try {
+                // Check if we should prepare
+                if (is_array($params) && count($params)) {
+                    $st = $this->db->prepare($sql);
+                    $st->execute($params);
+                    $r = $st->fetch(PDO::FETCH_ASSOC);
+                    $st->closeCursor();
+                } else {
+                    $r = $this->db->query($sql)->fetch(PDO::FETCH_ASSOC);
+                }
+                break; // Success, exit loop
+            } catch (PDOException $e) {
+                if ($attempt === 0 && $this->handleGoneAwayError($e)) {
+                    // Reconnected successfully, retry query
+                    $attempt++;
+                    continue;
+                }
+                // Failed or not a reconnectable error
+                $this->errorReport('record', $sql, $e);
+                $r = null;
+                break;
             }
-        } catch (PDOException $e) {
-            $this->errorReport('record', $sql, $e);
-            $r = null;
         }
         $duration = $this->eventLogger->tickStop($tStart);
         $this->eventLogger->registerEvent('NG_PDO', 'RECORD', $sql, $duration);
         $this->qList[] = ['query' => $sql, 'duration' => $duration];
-
         return $r;
     }
-
     public function exec(string $sql, array $params = [])
     {
         $tStart = $this->eventLogger->tickStart();
         $this->qCount++;
-
         $r = null;
-
-        try {
-            // Check if we should prepare
-            if (is_array($params) && count($params)) {
-                $st = $this->db->prepare($sql);
-                $st->execute($params);
-                $st->closeCursor();
-            } else {
-                $r = $this->db->query($sql);
+        $maxAttempts = 2;
+        $attempt = 0;
+        while ($attempt < $maxAttempts) {
+            try {
+                // Check if we should prepare
+                if (is_array($params) && count($params)) {
+                    $st = $this->db->prepare($sql);
+                    $st->execute($params);
+                    $st->closeCursor();
+                } else {
+                    $r = $this->db->query($sql);
+                }
+                break; // Success, exit loop
+            } catch (PDOException $e) {
+                if ($attempt === 0 && $this->handleGoneAwayError($e)) {
+                    // Reconnected successfully, retry query
+                    $attempt++;
+                    continue;
+                }
+                // Failed or not a reconnectable error
+                $this->errorReport('exec', $sql, $e);
+                $r = null;
+                break;
             }
-        } catch (PDOException $e) {
-            $this->errorReport('exec', $sql, $e);
-            $r = null;
         }
         $duration = $this->eventLogger->tickStop($tStart);
         $this->eventLogger->registerEvent('NG_PDO', 'EXEC', $sql, $duration);
         $this->qList[] = ['query' => $sql, 'duration' => $duration];
-
         return $r;
     }
-
     public function result(string $sql, array $params = [])
     {
         $tStart = $this->eventLogger->tickStart();
         $this->qCount++;
-
-        try {
-            // Check if we should prepare
-            if (is_array($params) && count($params)) {
-                $st = $this->db->prepare($sql);
-                $st->execute($params);
-                $r = $st->fetch(PDO::FETCH_ASSOC);
-                $st->closeCursor();
-            } else {
-                $r = $this->db->query($sql)->fetch(PDO::FETCH_ASSOC);
+        $maxAttempts = 2;
+        $attempt = 0;
+        while ($attempt < $maxAttempts) {
+            try {
+                // Check if we should prepare
+                if (is_array($params) && count($params)) {
+                    $st = $this->db->prepare($sql);
+                    $st->execute($params);
+                    $r = $st->fetch(PDO::FETCH_ASSOC);
+                    $st->closeCursor();
+                } else {
+                    $r = $this->db->query($sql)->fetch(PDO::FETCH_ASSOC);
+                }
+                break; // Success, exit loop
+            } catch (PDOException $e) {
+                if ($attempt === 0 && $this->handleGoneAwayError($e)) {
+                    // Reconnected successfully, retry query
+                    $attempt++;
+                    continue;
+                }
+                // Failed or not a reconnectable error
+                $this->errorReport('result', $sql, $e);
+                $r = null;
+                break;
             }
-        } catch (PDOException $e) {
-            $this->errorReport('result', $sql, $e);
-            $r = null;
         }
         $duration = $this->eventLogger->tickStop($tStart);
         $this->eventLogger->registerEvent('NG_PDO', 'RESULT', $sql, $duration);
         $this->qList[] = ['query' => $sql, 'duration' => $duration];
-
-        if (count($r)) {
+        if ($r !== null && count($r)) {
             return $r[array_shift(array_keys($r))];
         }
-
         return null;
     }
-
-    public function num_rows(PDOStatement $st)
+    public function num_rows(?PDOStatement $st)
     {
+        if ($st === null) {
+            return 0;
+        }
         try {
             $r = $st->fetchColumn();
         } catch (PDOException $e) {
             $this->errorReport('num_rows', $st->queryString, $e);
             $r = null;
         }
-
         return $r;
     }
-
-    public function fetch_row(PDOStatement $st)
+    public function fetch_row(?PDOStatement $st)
     {
+        if ($st === null) {
+            return false;
+        }
         try {
             $r = $st->fetch(PDO::FETCH_NUM);
         } catch (PDOException $e) {
             $this->errorReport('fetch_row', $st->queryString, $e);
+            $r = false;
         }
-
         return $r;
     }
-
     public function lastid(string $table = '')
     {
         try {
@@ -216,25 +281,25 @@ class NGPDO
                 return $this->db->lastInsertId();
             } else {
                 $r = $this->record('SHOW TABLE STATUS LIKE \'' . prefix . '_' . $table . '\'');
-
                 return $r['Auto_increment'] - 1;
             }
         } catch (PDOException $e) {
             $this->errorReport('lastid', 'lastid', $e);
         }
     }
-
-    public function affected_rows(PDOStatement $st)
+    public function affected_rows(?PDOStatement $st)
     {
+        if ($st === null) {
+            return 0;
+        }
         try {
             $r = $st->rowCount();
         } catch (PDOException $e) {
             $this->errorReport('affected_rows', 'affected_rows', $e);
+            $r = 0;
         }
-
         return $r;
     }
-
     public function close()
     {
         try {
@@ -245,7 +310,6 @@ class NGPDO
             $this->errorReport('close', 'close', $e);
         }
     }
-
     public function db_errno()
     {
         try {
@@ -254,7 +318,6 @@ class NGPDO
             $this->errorReport('db_errno', 'db_errno', $e);
         }
     }
-
     /**
      * @param $string
      *
@@ -264,7 +327,6 @@ class NGPDO
     {
         return mb_substr($this->db->quote($string), 1, -1);
     }
-
     /**
      * @return string
      */
@@ -272,7 +334,6 @@ class NGPDO
     {
         return 'PDO';
     }
-
     /**
      * @return PDO Instance of PDO driver for low level access
      */
@@ -280,7 +341,6 @@ class NGPDO
     {
         return $this->db;
     }
-
     /**
      * @return string
      */
@@ -288,7 +348,6 @@ class NGPDO
     {
         return $this->getDriver()->getAttribute(constant('PDO::ATTR_SERVER_VERSION'));
     }
-
     /**
      * // Report an SQL error.
      *
@@ -306,19 +365,15 @@ class NGPDO
         }
         $this->errorHandler->throwError('SQL', ['errNo' => $errNo, 'errMsg' => $errMsg, 'type' => $type, 'query' => $query], $e);
     }
-
     public function getQueryCount()
     {
         return $this->qCount;
     }
-
     public function getQueryList()
     {
         return $this->qList;
     }
-
     // Cursor based operations
-
     /**
      * @param $query
      * @param array $params
@@ -334,10 +389,8 @@ class NGPDO
             }
         }
         $cursor->execute();
-
         return $cursor;
     }
-
     /**
      * @param PDOStatement $cursor
      *
@@ -347,12 +400,10 @@ class NGPDO
     {
         return $cursor->fetch(PDO::FETCH_ASSOC);
     }
-
     public function closeCursor(PDOStatement $cursor)
     {
         return $cursor->closeCursor();
     }
-
     public function tableExists(string $name)
     {
         return is_array($this->record('show tables like :name', ['name' => $name]));

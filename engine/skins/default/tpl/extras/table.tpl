@@ -157,10 +157,10 @@
 						<td>{{ entry.type }}</td>
 						<td>{{ entry.version }}</td>
 						<td nowrap>
-							<a href="{{ entry.readme }}" title="Документация">
+							<a href="#" class="mr-2 open-modal" data-toggle="modal" data-target="#readmeModal" data-url="{{ entry.readme }}" title="{{ lang['entry.readme'] }}">
 								<i class="fa fa-file-word-o" aria-hidden="true"></i>
 							</a>|
-							<a href="{{ entry.history }}" title="История">
+							<a href="#" class="open-modal" data-toggle="modal" data-target="#historyModal" data-url="{{ entry.history }}" title="{{ lang['entry.history'] }}">
 								<i class="fa fa-history" aria-hidden="true"></i>
 							</a>
 						</td>
