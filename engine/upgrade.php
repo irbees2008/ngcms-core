@@ -40,6 +40,10 @@ $upgradeMatrix = [
     7 => [
         "UPDATE " . prefix . "_config SET value = 7 WHERE name = 'database.engine.revision'",
     ],
+    8 => [
+        // Проверка и добавление поля cat_show выполняется в doUpgrade()
+        "UPDATE " . prefix . "_config SET value = 8 WHERE name = 'database.engine.revision'",
+    ],
 ];
 // Получаем текущую версию БД
 $currentVersion = getCurrentDBVersion();
@@ -219,6 +223,19 @@ function doUpgrade(int $fromVersion, int $toVersion): void
             if ($version != 6 && !empty($upgradeMatrix[$version])) {
                 foreach ($upgradeMatrix[$version] as $sql) {
                     executeSqlWithReporting($db, $sql);
+                }
+            }
+            // Специальная обработка для версии 8
+            if ($version == 8) {
+                echo "<h4>Обновление таблицы категорий</h4>";
+                $categoryTable = prefix . '_category';
+                // Проверяем наличие поля 'cat_show'
+                if (!columnExists($db, $categoryTable, 'cat_show')) {
+                    echo "<div class='action'><div class='status'>Поле 'cat_show' не найдено, добавляем...</div></div>";
+                    executeSqlWithReporting($db, "ALTER TABLE `{$categoryTable}` ADD COLUMN `cat_show` TINYINT(1) NOT NULL DEFAULT 0 AFTER `poslevel`");
+                    echo "<div class='action'><div class='success'>Поле 'cat_show' успешно добавлено</div></div>";
+                } else {
+                    echo "<div class='action'><div class='skipped'>Поле 'cat_show' уже существует, пропускаем</div></div>";
                 }
             }
             // В функции doUpgrade, внутри блока версии 7, после repairPlugdataFile():
