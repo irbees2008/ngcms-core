@@ -267,3 +267,15 @@ CREATE TABLE `XPREFIX_news_view` (
 	`cnt` INT(11) DEFAULT '0',
 	PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+-- --------------------------------------------------------
+--
+-- Table `XPREFIX_users_sessions`
+--
+CREATE TABLE `XPREFIX_users_sessions` (
+  `userID` int NOT NULL,
+  `ip` varchar(15) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '0',
+  `last` int NOT NULL DEFAULT '0',
+  `authcookie` varchar(50) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  KEY `userUpdate` (`userID`,`authcookie`),
+  KEY `users_auth` (`authcookie`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
