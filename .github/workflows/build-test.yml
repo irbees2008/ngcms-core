@@ -34,11 +34,20 @@ jobs:
           # Клонируем плагины из ветки ng-test_plugins
           git clone --depth=1 --branch=ng-test_plugins https://github.com/irbees2008/ngcms-plugins ~/build/engine/plugins/
           
-          # Проверяем, что ветки выбраны правильно
-          echo "Checking core branch:"
+          # Проверяем, что ветки выбраны правильно и показываем последние изменения
+          echo "=== Core (ng-test branch) ==="
+          echo "Branch:"
           cd ~/build && git branch -a
-          echo "Checking plugins branch:"
+          echo "Latest commit:"
+          git log -1 --pretty=format:"Commit: %H%nAuthor: %an%nDate: %ad%nMessage: %s" --date=iso
+          echo ""
+          
+          echo "=== Plugins (ng-test_plugins branch) ==="
+          echo "Branch:"
           cd ~/build/engine/plugins && git branch -a
+          echo "Latest commit:"
+          git log -1 --pretty=format:"Commit: %H%nAuthor: %an%nDate: %ad%nMessage: %s" --date=iso
+          echo ""
       
       - name: Install libraries via composer
         run: |
@@ -48,6 +57,12 @@ jobs:
       
       - name: Cleanup and prepare
         run: |
+          # Сохраняем информацию о коммитах до удаления .git
+          cd ~/build
+          CORE_COMMIT=$(git log -1 --pretty=format:"%H - %s (%ad)" --date=iso)
+          cd ~/build/engine/plugins
+          PLUGINS_COMMIT=$(git log -1 --pretty=format:"%H - %s (%ad)" --date=iso)
+          
           cd ~/build
           rm -rf .git .github engine/plugins/.git
           
@@ -66,7 +81,10 @@ jobs:
           echo "FOLDER_NAME=$FOLDER_NAME" >> $GITHUB_ENV
           echo "Built from: ng-test branches" >> ~/$FOLDER_NAME/build-info.txt
           echo "Core: ng-test" >> ~/$FOLDER_NAME/build-info.txt
+          echo "Core commit: $CORE_COMMIT" >> ~/$FOLDER_NAME/build-info.txt
           echo "Plugins: ng-test_plugins" >> ~/$FOLDER_NAME/build-info.txt
+          echo "Plugins commit: $PLUGINS_COMMIT" >> ~/$FOLDER_NAME/build-info.txt
+          echo "Build date: $(date -u +"%Y-%m-%d %H:%M:%S UTC")" >> ~/$FOLDER_NAME/build-info.txt
       
       - name: Upload artifact
         uses: actions/upload-artifact@v4
