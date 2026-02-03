@@ -28,17 +28,41 @@ jobs:
       - name: Download source code from ng-test branches
         run: |
           mkdir -p ~/build
-          # Клонируем ядро из ветки ng-test
-          git clone --depth=1 --branch=ng-test https://github.com/irbees2008/ngcms-core ~/build/
+          # Клонируем ядро из ветки ng-test (берем больше истории для отображения изменений)
+          git clone --depth=10 --branch=ng-test https://github.com/irbees2008/ngcms-core ~/build/
           
           # Клонируем плагины из ветки ng-test_plugins
-          git clone --depth=1 --branch=ng-test_plugins https://github.com/irbees2008/ngcms-plugins ~/build/engine/plugins/
+          git clone --depth=10 --branch=ng-test_plugins https://github.com/irbees2008/ngcms-plugins ~/build/engine/plugins/
           
-          # Проверяем, что ветки выбраны правильно
-          echo "Checking core branch:"
-          cd ~/build && git branch -a
-          echo "Checking plugins branch:"
-          cd ~/build/engine/plugins && git branch -a
+          # Показываем последние изменения в ядре
+          echo "=========================================="
+          echo "=== Core (ng-test branch) ==="
+          echo "=========================================="
+          cd ~/build
+          echo "Branch: $(git branch --show-current)"
+          echo ""
+          echo "Last 5 commits:"
+          git log -5 --pretty=format:"  %h - %s (%an, %ar)" --date=relative
+          echo ""
+          echo ""
+          echo "Latest commit details:"
+          git log -1 --pretty=format:"  Commit: %H%n  Author: %an <%ae>%n  Date: %ad%n  Message: %s%n" --date=iso
+          echo ""
+          
+          # Показываем последние изменения в плагинах
+          echo "=========================================="
+          echo "=== Plugins (ng-test_plugins branch) ==="
+          echo "=========================================="
+          cd ~/build/engine/plugins
+          echo "Branch: $(git branch --show-current)"
+          echo ""
+          echo "Last 5 commits:"
+          git log -5 --pretty=format:"  %h - %s (%an, %ar)" --date=relative
+          echo ""
+          echo ""
+          echo "Latest commit details:"
+          git log -1 --pretty=format:"  Commit: %H%n  Author: %an <%ae>%n  Date: %ad%n  Message: %s%n" --date=iso
+          echo ""
       
       - name: Install libraries via composer
         run: |
@@ -48,6 +72,14 @@ jobs:
       
       - name: Cleanup and prepare
         run: |
+          # Сохраняем информацию о коммитах до удаления .git
+          cd ~/build
+          CORE_COMMIT=$(git log -1 --pretty=format:"%h - %s (%an, %ad)" --date=short)
+          CORE_COMMIT_FULL=$(git log -1 --pretty=format:"%H")
+          cd ~/build/engine/plugins
+          PLUGINS_COMMIT=$(git log -1 --pretty=format:"%h - %s (%an, %ad)" --date=short)
+          PLUGINS_COMMIT_FULL=$(git log -1 --pretty=format:"%H")
+          
           cd ~/build
           rm -rf .git .github engine/plugins/.git
           
@@ -62,11 +94,34 @@ jobs:
           cd ~
           mv build "$FOLDER_NAME"
           
-          # Сохраняем имя папки для следующего шага
+          # Сохраняем имя папки и детальную информацию о сборке
           echo "FOLDER_NAME=$FOLDER_NAME" >> $GITHUB_ENV
-          echo "Built from: ng-test branches" >> ~/$FOLDER_NAME/build-info.txt
-          echo "Core: ng-test" >> ~/$FOLDER_NAME/build-info.txt
-          echo "Plugins: ng-test_plugins" >> ~/$FOLDER_NAME/build-info.txt
+          
+          # Создаем build-info.txt с подробной информацией
+          cat > ~/$FOLDER_NAME/build-info.txt << EOF
+          ==========================================
+          NGCMS Build Information
+          ==========================================
+          Built from: ng-test branches
+          Build date: $(date -u +"%Y-%m-%d %H:%M:%S UTC")
+          
+          Core Repository:
+            Branch: ng-test
+            Commit: $CORE_COMMIT_FULL
+            Details: $CORE_COMMIT
+          
+          Plugins Repository:
+            Branch: ng-test_plugins
+            Commit: $PLUGINS_COMMIT_FULL
+            Details: $PLUGINS_COMMIT
+          
+          Workflow triggered by:
+            Repository: ${{ github.repository }}
+            Branch: ${{ github.ref_name }}
+            Event: ${{ github.event_name }}
+            SHA: ${{ github.sha }}
+          ==========================================
+          EOF
       
       - name: Upload artifact
         uses: actions/upload-artifact@v4
