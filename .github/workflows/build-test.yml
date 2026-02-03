@@ -41,14 +41,12 @@ jobs:
           echo "Latest commit:"
           git log -1 --pretty=format:"Commit: %H%nAuthor: %an%nDate: %ad%nMessage: %s" --date=iso
           echo ""
-          echo ""
           
           echo "=== Plugins (ng-test_plugins branch) ==="
           echo "Branch:"
           cd ~/build/engine/plugins && git branch -a
           echo "Latest commit:"
           git log -1 --pretty=format:"Commit: %H%nAuthor: %an%nDate: %ad%nMessage: %s" --date=iso
-          echo ""
           echo ""
       
       - name: Install libraries via composer
