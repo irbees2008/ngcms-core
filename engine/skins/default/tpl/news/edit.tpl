@@ -1,20 +1,15 @@
 <!-- Оставляем эти скрипты и формы так как ими могут пользоваться плагины -->
-<script type="text/javascript" src="{{ home }}/lib/ajax.js"></script>
-<script type="text/javascript" src="{{ home }}/lib/libsuggest.js"></script>
-
+ <script type="text/javascript" src="{{ home }}/lib/ajax.js"></script>
+ <script type="text/javascript" src="{{ home }}/lib/libsuggest.js"></script>
 <!-- Preload JS/CSS for plugins -->
 {{ preloadRAW }}
 <!-- /end preload -->
-
 <!-- Hidden SUGGEST div -->
-<!-- <div id="suggestWindow" class="suggestWindow">
-	<table id="suggestBlock" cellspacing="0" cellpadding="0" width="100%"></table>
-	<a href="#" align="right" id="suggestClose">close</a>
-</div> -->
-
-	<form name="DATA_tmp_storage" action="" id="DATA_tmp_storage"> <input type="hidden" name="area" value=""/>
+	<!-- <div id="suggestWindow" class="suggestWindow">
+			<table id="suggestBlock" cellspacing="0" cellpadding="0" width="100%"></table>
+			<a href="#" align="right" id="suggestClose">close</a>
+		</div> --> <form name="DATA_tmp_storage" action=""id="DATA_tmp_storage"> <input type="hidden" name="area" value=""/>
 </form>
-
 <div class="container-fluid">
 	<div class="row mb-2">
 		<div class="col-sm-6 d-none d-md-block ">
@@ -39,7 +34,6 @@
 	<!-- /.row -->
 </div>
 <!-- /.container-fluid -->
-
 {% if (flags['params.lost']) %}
 	<div class="alert alert-warning">
 		<p>Обратите внимание – у вас недостаточно прав для полноценного редактирования новости.</p>
@@ -70,7 +64,6 @@
 		</ul>
 	</div>
 {% endif %}
-
 <!-- Main content form -->
 <form id="postForm" name="form" enctype="multipart/form-data" method="post" action="{{ php_self }}" target="_self">
 	<input type="hidden" name="token" value="{{ token }}"/>
@@ -78,13 +71,11 @@
 	<input type="hidden" name="action" value="edit"/>
 	<input type="hidden" name="subaction" value="submit"/>
 	<input type="hidden" name="id" value="{{ id }}"/>
-
 	<div
 		class="row">
 		<!-- Left edit column -->
 		<div
 			class="col-lg-8">
-
 			<!-- MAIN CONTENT -->
 			<div id="maincontent" class="card mb-4">
 				<div class="card-header">
@@ -110,14 +101,12 @@
 							{% endif %}
 						</div>
 					</div>
-
 					<div class="form-row mb-3">
 						<label class="col-lg-3 col-form-label">{{ lang.editnews['alt_name'] }}</label>
 						<div class="col-lg-9">
 							<input type="text" name="alt_name" value="{{ alt_name }}" {% if flags['altname.disabled'] %} disabled="disabled" {% endif %} class="form-control"/>
 						</div>
 					</div>
-
 					<div class="form-row mb-3">
 						<label class="col-lg-3 col-form-label">
 							{{ lang.editnews['category'] }}
@@ -133,7 +122,14 @@
 							</div>
 						</div>
 					</div>
-
+					<div class="form-row mb-3">
+						<div class="col-lg-12">
+							<div class="custom-control custom-switch">
+								<input id="autoHeightToggle" type="checkbox" class="custom-control-input" onchange="toggleEditorHeight()"/>
+								<label for="autoHeightToggle" class="custom-control-label">{{ lang.editnews['editor.autoheight'] ?? 'Авторазмер редактора (без прокрутки)' }}</label>
+							</div>
+						</div>
+					</div>
 					{% if (not flags.disableTagsSmilies) %}
 						{{ quicktags }}
 						<!-- SMILES -->
@@ -156,14 +152,12 @@
 							</div>
 						</div>
 					{% endif %}
-
 					{% if (flags.edit_split) %}
 						<div class="mb-3">
 							<div id="container.content.short" class="contentActive">
 								<textarea id="ng_news_content_short" name="ng_news_content_short" onclick="changeActive('short');" onfocus="changeActive('short');" class="{{ editorClassName ? editorClassName : 'form-control' }}" rows="10">{{ content.short }}</textarea>
 							</div>
 						</div>
-
 						{% if (flags.extended_more) %}
 							<div class="form-row mb-3">
 								<label class="col-lg-3 col-form-label">{{ lang.editnews['editor.divider'] }}</label>
@@ -172,7 +166,6 @@
 								</div>
 							</div>
 						{% endif %}
-
 						<div class="mb-3">
 							<div id="container.content.full" class="contentInactive">
 								<textarea id="ng_news_content_full" name="ng_news_content_full" onclick="changeActive('full');" onfocus="changeActive('full');" class="{{ editorClassName ? editorClassName : 'form-control' }}" rows="10">{{ content.full }}</textarea>
@@ -183,7 +176,6 @@
 							<textarea id="ng_news_content" name="ng_news_content" class="{{ editorClassName ? editorClassName : 'form-control' }}" rows="10">{{ content.short }}</textarea>
 						</div>
 					{% endif %}
-
 					{% if (flags.meta) %}
 						<div class="form-row mb-3">
 							<label class="col-lg-3 col-form-label">{{ lang.editnews['description'] }}</label>
@@ -191,7 +183,6 @@
 								<textarea name="description" cols="80" class="form-control">{{ description }}</textarea>
 							</div>
 						</div>
-
 						<div class="form-row mb-3">
 							<label class="col-lg-3 col-form-label">{{ lang.editnews['keywords'] }}</label>
 							<div class="col-lg-9">
@@ -203,7 +194,6 @@
 						{% endif %}
 					{% endif %}
 				</div>
-
 				{% if (pluginIsActive('xfields')) %}
 					<table class="table table-sm mb-0">
 						<tbody>
@@ -214,7 +204,6 @@
 					</table>
 				{% endif %}
 			</div>
-
 			<!-- ADDITIONAL -->
 			<div id="additional" class="accordion mb-4">
 				<div class="card">
@@ -223,7 +212,6 @@
 							{{ lang.editnews['bar.additional'] }}
 						</a>
 					</div>
-
 					<div id="collapseNewsAdditional" class="collapse" aria-labelledby="headingOne" data-parent="#additional">
 						<table class="table table-sm mb-0">
 							<tbody>
@@ -249,7 +237,6 @@
 					</div>
 				</div>
 			</div>
-
 			<!-- ATTACHES -->
 			<div id="attaches" class="accordion mb-4">
 				<div class="card">
@@ -259,7 +246,6 @@
 							({{ attachCount }})
 						</a>
 					</div>
-
 					<div
 						id="collapseNewsAttaches" class="collapse" aria-labelledby="headingTwo" data-parent="#attaches">
 						<!-- <span class="f15">{{ lang.editnews['attach.list'] }}</span> -->
@@ -307,7 +293,6 @@
 				</div>
 			</div>
 		</div>
-
 		<!-- Right edit column -->
 		<div id="rightBar" class="col col-lg-4">
 			<div class="card mb-4">
@@ -343,16 +328,14 @@
 					</ul>
 				</div>
 			</div>
-
-{% if extcat|trim is not empty %}
-	<div class="card mb-4">
-		<div class="card-header">{{ lang['editor.extcat'] }}</div>
-		<div class="card-body">
-			<div style="overflow: auto; height: 150px;">{{ extcat }}</div>
-		</div>
-	</div>
-{% endif %}
-
+			{% if extcat|trim is not empty %}
+				<div class="card mb-4">
+					<div class="card-header">{{ lang['editor.extcat'] }}</div>
+					<div class="card-body">
+						<div style="overflow: auto; height: 150px;">{{ extcat }}</div>
+					</div>
+				</div>
+			{% endif %}
 			<div class="card mb-4">
 				<div class="card-header">{{ lang['editor.configuration'] }}</div>
 				<div class="card-body">
@@ -360,27 +343,22 @@
 						<input id="mainpage" type="checkbox" name="mainpage" value="1" {% if (flags.mainpage) %} checked {% endif %} {% if flags['mainpage.disabled'] %} disabled {% endif %}/>
 						{{ lang.editnews['mainpage'] }}
 					</label>
-
 					<label class="col-form-label d-block">
 						<input id="pinned" type="checkbox" name="pinned" value="1" {% if (flags.pinned) %} checked {% endif %} {% if flags['pinned.disabled'] %} disabled {% endif %}/>
 						{{ lang.editnews['add_pinned'] }}
 					</label>
-
 					<label class="col-form-label d-block">
 						<input id="catpinned" type="checkbox" name="catpinned" value="1" {% if (flags.catpinned) %} checked {% endif %} {% if flags['catpinned.disabled'] %} disabled {% endif %}/>
 						{{ lang.editnews['add_catpinned'] }}
 					</label>
-
 					<label class="col-form-label d-block">
 						<input id="favorite" type="checkbox" name="favorite" value="1" {% if (flags.favorite) %} checked {% endif %} {% if flags['favorite.disabled'] %} disabled {% endif %}/>
 						{{ lang.editnews['add_favorite'] }}
 					</label>
-
 					<label class="col-form-label d-block">
 						<input id="flag_HTML" type="checkbox" name="flag_HTML" value="1" {% if (flags['html']) %} checked {% endif %} {% if (flags['html.disabled']) %} disabled {% endif %}/>
 						{{ lang.editnews['flag_html'] }}
 					</label>
-
 					<label class="col-form-label d-block">
 						<input id="flag_RAW" type="checkbox" name="flag_RAW" value="1" {% if (flags['raw']) %} checked {% endif %} {% if (flags['html.disabled']) %} disabled {% endif %}/>
 						{{ lang.editnews['flag_raw'] }}
@@ -388,7 +366,6 @@
 					</label>
 				</div>
 			</div>
-
 			<div class="card mb-4">
 				<div class="card-header">{{ lang.editnews['set_views'] }}</div>
 				<div class="card-body">
@@ -402,7 +379,6 @@
 					</div>
 				</div>
 			</div>
-
 			{% if not flags['customdate.disabled'] %}
 				<div class="card mb-4">
 					<div class="card-header">{{ lang.editnews['custom_date'] }}</div>
@@ -411,19 +387,16 @@
 							<input id="setdate_current" type="checkbox" name="setdate_current" value="1" onclick="document.getElementById('setdate_custom').checked=false;"/>
 							{{ lang.editnews['date.setcurrent'] }}
 						</label>
-
 						<label class="col-form-label d-block">
 							<input id="setdate_custom" type="checkbox" name="setdate_custom" value="1" onclick="document.getElementById('setdate_current').checked=false;">
 							{{ lang.editnews['date.setdate'] }}
 						</label>
-
 						<div class="form-group">
 							<input id="cdate" type="text" name="cdate" value="{{ cdate }}" class="form-control" pattern="[0-9]{2}\.[0-9]{2}\.[0-9]{4} [0-9]{2}:[0-9]{2}" placeholder="{{ "now" | date('d.m.Y H:i') }}" autocomplete="off">
 						</div>
 					</div>
 				</div>
 			{% endif %}
-
 			{% if (pluginIsActive('comments')) %}
 				<div class="card mb-4">
 					<div class="card-header">{{ lang['comments:mode.header'] }}</div>
@@ -438,7 +411,6 @@
 			{% endif %}
 		</div>
 	</div>
-
 	<div class="row">
 		<div class="col col-lg-8">
 			<div class="row">
@@ -449,7 +421,6 @@
 						</span>
 						<span class="d-none d-xl-block">{{ lang.addnews['preview'] }}</span>
 					</button>
-
 					{% if flags.deleteable %}
 						<button type="button" class="btn btn-outline-danger" onclick="confirmit('{{ php_self }}?mod=news&action=manage&subaction=mass_delete&selected_news[]={{ id }}&token={{ token }}', '{{ lang.editnews['sure_del'] }}')">
 							<span class="d-xl-none">
@@ -459,7 +430,6 @@
 						</button>
 					{% endif %}
 				</div>
-
 				<div class="col-md-6 mt-4">
 					{% if flags.editable %}
 						<div class="input-group">
@@ -488,7 +458,6 @@
 			</div>
 		</div>
 	</div>
-
 	{% if (pluginIsActive('xfields')) %}
 		<!-- XFields [GENERAL] -->
 		{{ plugin.xfields.general }}
@@ -505,7 +474,6 @@
 					({{ plugin.comments.count }})
 				</a>
 			</div>
-
 			<div id="collapseThree" class="collapse" aria-labelledby="headingThree" data-parent="#additional">
 				<form id="commentsForm" name="commentsForm" action="{{ php_self }}?mod=news" method="post">
 					<input type="hidden" name="token" value="{{ token }}"/>
@@ -514,7 +482,6 @@
 					<input type="hidden" name="subaction" value="mass_com_delete"/>
 					<input
 					type="hidden" name="id" value="{{ id }}"/>
-
 					<!-- COMMENTS -->
 					<div id="comments" class="table-responsive">
 						<table class="table table-sm mb-0">
@@ -547,29 +514,57 @@
 		</div>
 	</div>
 {% endif %}
-<script type="text/javascript">
+ <script type="text/javascript">
 	// Global variable: ID of current active input area
 var currentInputAreaID = 'ng_news_content{{ flags.edit_split ? '_short' : '' }}';
-
+// Toggle editor height function
+function toggleEditorHeight() {
+	var isAutoHeight = document.getElementById('autoHeightToggle').checked;
+	var editors = document.querySelectorAll('textarea[id^="ng_news_content"]');
+	editors.forEach(function(editor) {
+		if (isAutoHeight) {
+			editor.style.height = 'auto';
+			editor.style.minHeight = '200px';
+			editor.style.overflow = 'hidden';
+			// Adjust height to content
+			editor.style.height = (editor.scrollHeight) + 'px';
+			// Add event listener for auto-resize on input
+			editor.addEventListener('input', autoResizeEditor);
+		} else {
+			editor.style.height = '';
+			editor.style.minHeight = '';
+			editor.style.overflow = '';
+			editor.removeEventListener('input', autoResizeEditor);
+		}
+	});
+	// Save preference
+	localStorage.setItem('editorAutoHeight', isAutoHeight);
+}
+function autoResizeEditor(e) {
+	e.target.style.height = 'auto';
+	e.target.style.height = (e.target.scrollHeight) + 'px';
+}
+// Restore saved preference on load
+window.addEventListener('DOMContentLoaded', function() {
+	var savedPref = localStorage.getItem('editorAutoHeight');
+	if (savedPref === 'true') {
+		document.getElementById('autoHeightToggle').checked = true;
+		setTimeout(toggleEditorHeight, 100);
+	}
+});
 function preview() {
 var form = document.getElementById("postForm");
-
 if (form.querySelector('[name*=ng_news_content]').value == '' || form.title.value == '') {
 alert('{{ lang.addnews['msge_preview'] }}');
-
 return false;
 }
-
 form['mod'].value = "preview";
 form.target = "_blank";
 form.submit();
-
 form['mod'].value = "news";
 form.target = "_self";
-
 return true;
 }
-
 function changeActive(name) {
 if (name == 'full') {
 document.getElementById('container.content.full').className = 'contentActive';
@@ -582,17 +577,15 @@ currentInputAreaID = 'ng_news_content_short';
 }
 }
 </script>
-<script type="text/javascript">
+ <script type="text/javascript">
 	function attachAddRow() {
 var tbl = document.getElementById('attachFilelist');
 var lastRow = tbl.rows.length;
 var row = tbl.insertRow(lastRow - 1);
-
 // Add cells
 row.insertCell(-1).innerHTML = '*';
 row.insertCell(-1).innerHTML = '{{ lang.editnews['attach.new_file'] }}';
 row.insertCell(-1).innerHTML = '';
-
 // Add file input
 var el = document.createElement('input');
 el.setAttribute('type', 'file');
@@ -600,11 +593,9 @@ el.setAttribute('name', 'userfile[' + (
 ++ attachAbsoluteRowID
 ) + ']');
 el.setAttribute('size', '80');
-
 var xCell = row.insertCell(-1);
 xCell.colSpan = 2;
 xCell.appendChild(el);
-
 el = document.createElement('input');
 el.setAttribute('type', 'button');
 el.setAttribute('onclick', 'document.getElementById("attachFilelist").deleteRow(this.parentNode.parentNode.rowIndex);');
@@ -612,7 +603,6 @@ el.setAttribute('value', '-');
 el.setAttribute('class', 'btn btn-sm btn-outline-danger');
 row.insertCell(-1).appendChild(el);
 }
-
 // Add first row
 var attachAbsoluteRowID = 0;
 attachAddRow();
