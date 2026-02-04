@@ -317,7 +317,7 @@ function doWelcome()
     $lang_select = mkLanguageSelect(['values' => $langs, 'value' => $currentLanguage, 'id' => 'language', 'name' => 'language']);
     $tvars['vars']['lang_select'] = $lang_select;
     // Load license
-    $license = file_get_contents(root . '../license.html');
+    $license = file_get_contents(root . '../license.md');
     if (!$license) {
         $license = $lang['msg.nolicense'];
         $tvars['vars']['ad'] = 'disabled="disabled" ';
@@ -935,7 +935,7 @@ function doInstall()
         }
         // 1.6 Сохраняем конфигурационные переменные database.engine.version, database.engine.revision
         $mysql->query('insert into `' . $_POST['reg_dbprefix'] . "_config` (name, value) values ('database.engine.version', '0.9.8 Release')");
-        $mysql->query('insert into `' . $_POST['reg_dbprefix'] . "_config` (name, value) values ('database.engine.revision', '7')");
+        $mysql->query('insert into `' . $_POST['reg_dbprefix'] . "_config` (name, value) values ('database.engine.revision', '8')");
         // Вычищаем лишний перевод строки из 'home_url'
         if (substr($_POST['home_url'], -1, 1) == '/') {
             $_POST['home_url'] = substr($_POST['home_url'], 0, -1);
@@ -1013,6 +1013,7 @@ function doInstall()
             'crypto_salt'         => substr(md5(uniqid(rand(), 1)), 0, 8),
             '404_mode'            => 0,
             'debug'               => 1,
+            'sql_error_show'      => 2,
             'news_multicat_url'   => '1',
             'UUID'                => md5(mt_rand() . mt_rand()) . md5(mt_rand() . mt_rand()),
         ];
