@@ -68,12 +68,11 @@
 				</div>
 			{% endif %}
 		{% endfor %}
-		{% if (flags.captcha) %}
-			<div class="label label-table captcha pull-left">
-				<label for="captcha">Введите код безопасности:</label>
-				<input type="text" name="vcode" class="input"/>
-				<img id="img_captcha" onclick="this.src='{{ captcha_url }}&rand='+Math.random();" src="{{ captcha_url }}&rand={{ captcha_rand }}" style="cursor: pointer;" alt="captcha"/>
-				<div class="label-desc">Вам предстоит специальный код для подтверждения вашего действия.</div>
+	{% if captcha_widget %}
+		<div class="label label-table captcha pull-left">
+			<label>Защита от роботов:</label>
+			<div class="clearfix"></div>
+			{{ captcha_widget|raw }}
 			</div>
 		{% endif %}
 		{% if (flags.recipients) %}

@@ -262,6 +262,13 @@ if (!isset($_SESSION['ua_fingerprint'])) {
 include_once root . 'includes/inc/consts.inc.php';
 include_once root . 'includes/inc/functions.inc.php';
 include_once root . 'includes/inc/extras.inc.php';
+
+// Early load ng-helpers to make functions available for all plugins
+$ngHelpersFile = root . 'engine/plugins/ng-helpers/src/helpers.php';
+if (file_exists($ngHelpersFile)) {
+    require_once $ngHelpersFile;
+}
+
 include_once 'includes/classes/templates.class.php';
 include_once 'includes/classes/parse.class.php';
 include_once 'includes/classes/uhandler.class.php';

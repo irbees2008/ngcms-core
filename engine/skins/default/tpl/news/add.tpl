@@ -1,9 +1,11 @@
 <!-- Оставляем эти скрипты и формы так как ими могут пользоваться плагины -->
  <script type="text/javascript" src="{{ home }}/lib/ajax.js"></script>
  <script type="text/javascript" src="{{ home }}/lib/libsuggest.js"></script>
+
 <!-- Preload JS/CSS for plugins -->
 {{ preloadRAW }}
 <!-- /end preload -->
+
 <!-- Hidden SUGGEST div -->
 <!-- <div id="suggestWindow" class="suggestWindow">
 	<table id="suggestBlock" cellspacing="0" cellpadding="0" width="100%"></table>
@@ -21,6 +23,7 @@
 		});
 		} else
 		$('#news_relates').fadeOut(300);
+	
 		return false;
 		}
 		});
@@ -51,17 +54,20 @@
 	<!-- /.row -->
 </div>
 <!-- /.container-fluid -->
+
 <!-- Main content form -->
 <form id="postForm" name="form" enctype="multipart/form-data" method="post" action="{{ php_self }}" target="_self">
 	<input type="hidden" name="token" value="{{ token }}"/>
 	<input type="hidden" name="mod" value="news"/>
 	<input type="hidden" name="action" value="add"/>
 	<input type="hidden" name="subaction" value="submit"/>
+
 	<div
 		class="row">
 		<!-- Left edit column -->
 		<div
 			class="col-lg-8">
+
 			<!-- MAIN CONTENT -->
 			<div id="maincontent" class="card mb-4">
 				<div class="card-header">
@@ -75,6 +81,7 @@
 							<ul id="news_relates"></ul>
 						</div>
 					</div>
+
 					{% if not flags['altname.disabled'] %}
 						<div class="form-row mb-3">
 							<label class="col-lg-3 col-form-label">{{ lang.addnews['alt_name'] }}</label>
@@ -83,6 +90,7 @@
 							</div>
 						</div>
 					{% endif %}
+
 					<div class="form-row mb-3">
 						<label class="col-lg-3 col-form-label">
 							{{ lang.addnews['category'] }}
@@ -98,6 +106,7 @@
 							</div>
 						</div>
 					</div>
+
 					<div class="form-row mb-3">
 						<div class="col-lg-12">
 							<div class="custom-control custom-switch">
@@ -106,6 +115,7 @@
 							</div>
 						</div>
 					</div>
+
 					{% if (not flags.disableTagsSmilies) %}
 						{{ quicktags }}
 						<!-- SMILES -->
@@ -128,12 +138,14 @@
 							</div>
 						</div>
 					{% endif %}
+
 					{% if (flags.edit_split) %}
 						<div class="mb-3">
 							<div id="container.content.short">
 								<textarea id="ng_news_content_short" name="ng_news_content_short" onclick="changeActive('short');" onfocus="changeActive('short');" class="{{ editorClassName ? editorClassName : 'form-control' }}" rows="10"></textarea>
 							</div>
 						</div>
+
 						{% if (flags.extended_more) %}
 							<div class="form-row mb-3">
 								<label class="col-lg-3 col-form-label">{{ lang.addnews['editor.divider'] }}</label>
@@ -142,6 +154,7 @@
 								</div>
 							</div>
 						{% endif %}
+
 						<div class="mb-3">
 							<div id="container.content.full">
 								<textarea id="ng_news_content_full" name="ng_news_content_full" onclick="changeActive('full');" onfocus="changeActive('full');" class="{{ editorClassName ? editorClassName : 'form-control' }}" rows="10"></textarea>
@@ -152,6 +165,7 @@
 							<textarea id="ng_news_content" name="ng_news_content" class="{{ editorClassName ? editorClassName : 'form-control' }}" rows="10"></textarea>
 						</div>
 					{% endif %}
+
 					{% if (flags.meta) %}
 						<div class="form-row mb-3">
 							<label class="col-lg-3 col-form-label">{{ lang.addnews['description'] }}</label>
@@ -159,6 +173,7 @@
 								<textarea name="description" cols="80" class="form-control"></textarea>
 							</div>
 						</div>
+
 						<div class="form-row mb-3">
 							<label class="col-lg-3 col-form-label">{{ lang.addnews['keywords'] }}</label>
 							<div class="col-lg-9">
@@ -170,6 +185,7 @@
 						{% endif %}
 					{% endif %}
 				</div>
+
 				{% if (pluginIsActive('xfields')) %}
 					<table class="table table-sm mb-0">
 						<tbody>
@@ -179,7 +195,9 @@
 						</tbody>
 					</table>
 				{% endif %}
+
 			</div>
+
 			<!-- ADDITIONAL -->
 			<div id="additional" class="accordion mb-4">
 				<div class="card">
@@ -188,6 +206,7 @@
 							{{ lang.addnews['bar.additional'] }}
 						</a>
 					</div>
+
 					<div id="collapseNewsAdditional" class="collapse" aria-labelledby="headingOne" data-parent="#additional">
 						<table class="table table-sm mb-0">
 							<tbody>
@@ -213,6 +232,7 @@
 					</div>
 				</div>
 			</div>
+
 			<!-- ATTACHES -->
 			<div id="attaches" class="accordion mb-4">
 				<div class="card">
@@ -221,6 +241,7 @@
 							{{ lang.addnews['bar.attaches'] }}
 						</a>
 					</div>
+
 					<div
 						id="collapseNewsAttaches" class="collapse" aria-labelledby="headingTwo" data-parent="#attaches">
 						<!-- <span class="f15">{{ lang.addnews['attach.list'] }}</span> -->
@@ -247,6 +268,7 @@
 				</div>
 			</div>
 		</div>
+
 		<!-- Right edit column -->
 		<div id="rightBar" class="col col-lg-4">
 			{% if flags['multicat.show'] and extcat is not empty %}
@@ -257,6 +279,7 @@
 					</div>
 				</div>
 			{% endif %}
+
 			<div class="card mb-4">
 				<div class="card-header">{{ lang['editor.configuration'] }}</div>
 				<div class="card-body">
@@ -264,28 +287,34 @@
 						<input id="mainpage" type="checkbox" name="mainpage" value="1" {% if (flags.mainpage) %} checked {% endif %} {% if flags['mainpage.disabled'] %} disabled {% endif %}/>
 						{{ lang.addnews['mainpage'] }}
 					</label>
+
 					<label class="col-form-label d-block">
 						<input id="pinned" type="checkbox" name="pinned" value="1" {% if (flags.pinned) %} checked {% endif %} {% if flags['pinned.disabled'] %} disabled {% endif %}/>
 						{{ lang.addnews['add_pinned'] }}
 					</label>
+
 					<label class="col-form-label d-block">
 						<input id="catpinned" type="checkbox" name="catpinned" value="1" {% if (flags.catpinned) %} checked {% endif %} {% if flags['catpinned.disabled'] %} disabled {% endif %}/>
 						{{ lang.addnews['add_catpinned'] }}
 					</label>
+
 					<label class="col-form-label d-block">
 						<input id="favorite" type="checkbox" name="favorite" value="1" {% if (flags.favorite) %} checked {% endif %} {% if flags['favorite.disabled'] %} disabled {% endif %}/>
 						{{ lang.addnews['add_favorite'] }}
 					</label>
+
 					<label class="col-form-label d-block">
 						<input id="flag_HTML" type="checkbox" name="flag_HTML" value="1" {% if (flags['html']) %} checked {% endif %} {% if (flags['html.disabled']) %} disabled {% endif %}/>
 						{{ lang.addnews['flag_html'] }}
 					</label>
+
 					<label class="col-form-label d-block">
 						<input id="flag_RAW" type="checkbox" name="flag_RAW" value="1" {% if (flags['raw']) %} checked {% endif %} {% if (flags['html.disabled']) %} disabled {% endif %}/>
 						{{ lang.addnews['flag_raw'] }}
 					</label>
 				</div>
 			</div>
+
 			{% if not flags['customdate.disabled'] %}
 				<div class="card mb-4">
 					<div class="card-header">{{ lang.addnews['custom_date'] }}</div>
@@ -296,12 +325,14 @@
 							<!-- setdate_custom -->
 							{{ lang.editnews['date.setdate'] }}
 						</label>
+
 						<div class="form-group">
 							<input id="cdate" type="text" name="cdate" value="" class="form-control" pattern="[0-9]{2}\.[0-9]{2}\.[0-9]{4} [0-9]{2}:[0-9]{2}" placeholder="{{ "now" | date('d.m.Y H:i') }}" autocomplete="off">
 						</div>
 					</div>
 				</div>
 			{% endif %}
+
 			{% if (pluginIsActive('comments')) %}
 				<div class="card mb-4">
 					<div class="card-header">{{ lang['comments:mode.header'] }}</div>
@@ -316,6 +347,7 @@
 			{% endif %}
 		</div>
 	</div>
+
 	<div class="row">
 		<div class="col col-lg-8">
 			<div class="row">
@@ -327,6 +359,7 @@
 						<span class="d-none d-xl-block">{{ lang.addnews['preview'] }}</span>
 					</button>
 				</div>
+
 				<div class="col mt-4">
 					<div class="input-group">
 						<select name="approve" class="custom-select">
@@ -349,19 +382,23 @@
 			</div>
 		</div>
 	</div>
+
 	{% if (pluginIsActive('xfields')) %}
 		<!-- XFields [GENERAL] -->
 		{{ plugin.xfields.general }}
 		<!-- /XFields [GENERAL] -->
 	{% endif %}
 </form>
+
  <script type="text/javascript">
 	// Global variable: ID of current active input area
 var currentInputAreaID = 'ng_news_content{{ flags.edit_split ? '_short' : '' }}';
+
 // Toggle editor height function
 function toggleEditorHeight() {
 	var isAutoHeight = document.getElementById('autoHeightToggle').checked;
 	var editors = document.querySelectorAll('textarea[id^="ng_news_content"]');
+
 	editors.forEach(function(editor) {
 		if (isAutoHeight) {
 			editor.style.height = 'auto';
@@ -378,13 +415,16 @@ function toggleEditorHeight() {
 			editor.removeEventListener('input', autoResizeEditor);
 		}
 	});
+
 	// Save preference
 	localStorage.setItem('editorAutoHeight', isAutoHeight);
 }
+
 function autoResizeEditor(e) {
 	e.target.style.height = 'auto';
 	e.target.style.height = (e.target.scrollHeight) + 'px';
 }
+
 // Restore saved preference on load
 window.addEventListener('DOMContentLoaded', function() {
 	var savedPref = localStorage.getItem('editorAutoHeight');
@@ -393,19 +433,26 @@ window.addEventListener('DOMContentLoaded', function() {
 		setTimeout(toggleEditorHeight, 100);
 	}
 });
+
 function preview() {
 var form = document.getElementById("postForm");
+
 if (form.querySelector('[name*=ng_news_content]').value == '' || form.title.value == '') {
 alert('{{ lang.addnews['msge_preview'] }}');
+
 return false;
 }
+
 form['mod'].value = "preview";
 form.target = "_blank";
 form.submit();
+
 form['mod'].value = "news";
 form.target = "_self";
+
 return true;
 }
+
 function changeActive(name) {
 if (name == 'full') {
 document.getElementById('container.content.full').className = 'contentActive';
@@ -418,6 +465,7 @@ currentInputAreaID = 'ng_news_content_short';
 }
 }
 </script>
+
  <script type="text/javascript">
 	// Restore variables if needed
 var jev = {{ JEV }};
@@ -442,14 +490,17 @@ form[i].checked = (jev[i] ? true : false);
 }
 }
 </script>
+
  <script type="text/javascript">
 	function attachAddRow() {
 var tbl = document.getElementById('attachFilelist');
 var lastRow = tbl.rows.length;
 var row = tbl.insertRow(lastRow - 1);
+
 // Add cells
 row.insertCell(0).innerHTML = '*';
 row.insertCell(1).innerHTML = '{{ lang.editnews['attach.new_file'] }}';
+
 // Add file input
 var el = document.createElement('input');
 el.setAttribute('type', 'file');
@@ -457,9 +508,11 @@ el.setAttribute('name', 'userfile[' + (
 ++ attachAbsoluteRowID
 ) + ']');
 el.setAttribute('size', '80');
+
 var xCell = row.insertCell(2);
 xCell.colSpan = 2;
 xCell.appendChild(el);
+
 el = document.createElement('input');
 el.setAttribute('type', 'button');
 el.setAttribute('onclick', 'document.getElementById("attachFilelist").deleteRow(this.parentNode.parentNode.rowIndex);');
@@ -467,6 +520,7 @@ el.setAttribute('value', '-');
 el.setAttribute('class', 'btn btn-sm btn-outline-danger');
 row.insertCell(3).appendChild(el);
 }
+
 // Add first row
 var attachAbsoluteRowID = 0;
 attachAddRow();

@@ -44,13 +44,6 @@ return null;
 }
 }
 var cajax = new sack();
-// Перезагрузка капчи
-function reload_captcha() {
-var captc = document.getElementById('img_captcha');
-if (captc) {
-captc.src = "{{ captcha_url }}?rand=" + Date.now();
-}
-}
 // Добавление комментария (AJAX)
 function add_comment() {
 var form = document.getElementById('comment');
@@ -69,7 +62,7 @@ answerField.value = captchaInput.value.trim();
 }
 
 cajax.onShow("");{% if not_logged %}cajax.setVar("name", form.name.value);
-cajax.setVar("mail", form.mail.value);{% if use_captcha %}cajax.setVar("vcode", form.vcode.value);{% endif %}{% endif %}cajax.setVar("content", form.content.value);
+cajax.setVar("mail", form.mail.value);{% endif %}cajax.setVar("content", form.content.value);
 cajax.setVar("newsid", form.newsid.value);
 cajax.setVar("module", form.module ? form.module.value : '');
 cajax.setVar("ajax", "1");
@@ -111,7 +104,6 @@ notify('error', res.data || 'Ошибка при добавлении комме
 } catch (ex) {
 notify('error', 'Исключение: ' + ex);
 } finally {
-{% if use_captcha %}reload_captcha();{% endif %}
 }
 };
 cajax.runAJAX();
@@ -183,13 +175,7 @@ form.scrollIntoView({behavior: 'smooth'});
 			<label></label>
 			<textarea onkeypress="if(event.keyCode==10 || (event.ctrlKey && event.keyCode==13)) { return add_comment(); }" name="content" id="content" class="textarea"></textarea>
 		</div>
-		{% if use_captcha %}
-			<div class="label captcha pull-left">
-				<label for="captcha">{{ lang['comments:form.captcha'] }}</label>
-				<input type="text" name="vcode" id="captcha" class="input">
-				<img id="img_captcha" onclick="reload_captcha();" src="{{ captcha_url }}?rand={{ rand }}" alt="captcha"/>
-			</div>
-		{% endif %}
+
 		{% if captcha_widget %}
 			<div class="form-group">
 				{{ captcha_widget|raw }}

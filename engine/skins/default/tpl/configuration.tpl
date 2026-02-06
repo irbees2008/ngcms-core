@@ -197,22 +197,6 @@
 					</td>
 				</tr>
 				<tr>
-					<td width="50%">{{ lang['use_captcha'] }}
-						<small class="form-text text-muted">{{ lang['use_captcha_desc'] }}</small>
-					</td>
-					<td width="50%">
-						{{ mkSelectYN({'name' : 'save_con[use_captcha]', 'value' : config['use_captcha'] }) }}
-					</td>
-				</tr>
-				<tr>
-					<td width="50%">{{ lang['captcha_font'] }}
-						<small class="form-text text-muted">{{ lang['captcha_font_desc'] }}</small>
-					</td>
-					<td width="50%">
-						{{ mkSelect({'name' : 'save_con[captcha_font]', 'value' : config['captcha_font'], 'values' : list['captcha_font'] }) }}
-					</td>
-				</tr>
-				<tr>
 					<td width="50%">{{ lang['use_cookies'] }}
 						<small class="form-text text-muted">{{ lang['use_cookies_desc'] }}</small>
 					</td>
