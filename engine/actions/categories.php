@@ -22,7 +22,6 @@ if (!function_exists('safe_print_msg')) {
         }
         // Map type to msg levels
         $level = ($type == 'error') ? 'error' : (($type == 'success' || $type == 'update') ? 'info' : 'warning');
-
         // Try to redirect to provided target
         $url = null;
         if (is_array($target)) {
@@ -33,14 +32,12 @@ if (!function_exists('safe_print_msg')) {
         } else {
             $url = $target;
         }
-
         if ($url) {
             // Save message to session for display after redirect
             if (!isset($_SESSION)) {
                 @session_start();
             }
             $_SESSION['flash_msg'] = ['type' => $level, 'text' => $text];
-
             global $PHP_SELF;
             // Normalize url: allow full or relative (?mod=...)
             if ((strpos($url, 'http://') === 0) || (strpos($url, 'https://') === 0) || (strpos($url, 'admin.php') === 0)) {
@@ -51,7 +48,6 @@ if (!function_exists('safe_print_msg')) {
             }
             exit;
         }
-
         // No redirect - display message immediately
         msg(['type' => $level, 'text' => $text]);
         return '';
@@ -205,13 +201,19 @@ function admCategoryAdd()
     cacheStoreFile('LoadCategories.dat', '');
     // Add new record into SQL table
     $mysql->query('insert into ' . prefix . '_category (' . implode(', ', array_keys($SQLout)) . ') values (' . implode(', ', array_values($SQLout)) . ')');
-    $rowID = $mysql->record('select LAST_INSERT_ID() as id');
+    // Get the ID of newly inserted category
+    $newCatId = $mysql->lastid();
+    if (!$newCatId) {
+        // Fallback to LAST_INSERT_ID() if lastid() doesn't work
+        $rowID = $mysql->record('select LAST_INSERT_ID() as id');
+        $newCatId = $rowID['id'] ?? 0;
+    }
     $fmanager = new file_managment();
     $imanager = new image_managment();
     // Check if new image was attached
     if (isset($_FILES) && isset($_FILES['image']) && is_array($_FILES['image']) && isset($_FILES['image']['error']) && ($_FILES['image']['error'] == 0)) {
         // new file is uploaded
-        $up = $fmanager->file_upload(['dsn' => true, 'linked_ds' => 2, 'linked_id' => $rowID['id'], 'type' => 'image', 'http_var' => 'image', 'http_varnum' => 0]);
+        $up = $fmanager->file_upload(['dsn' => true, 'linked_ds' => 2, 'linked_id' => $newCatId, 'type' => 'image', 'http_var' => 'image', 'http_varnum' => 0]);
         //print "OUT: <pre>".var_export($up, true)."</pre>";
         if (is_array($up)) {
             // Image is uploaded. Let's update image params
@@ -240,14 +242,22 @@ function admCategoryAdd()
             // Update table 'images'
             $mysql->query('update ' . prefix . '_images set width=' . db_squote($img_width) . ', height=' . db_squote($img_height) . ', preview=' . db_squote($img_preview) . ', p_width=' . db_squote($img_pwidth) . ', p_height=' . db_squote($img_pheight) . ' where id = ' . db_squote($up[0]));
             // Update table 'categories'
-            $mysql->query('update ' . prefix . '_category set image_id = ' . db_squote($up[0]) . ' where id = ' . db_squote($rowID['id']));
+            $mysql->query('update ' . prefix . '_category set image_id = ' . db_squote($up[0]) . ' where id = ' . db_squote($newCatId));
         }
     }
     // Reorder categories to recalculate poslevel
     admCategoryReorder();
+    // Reload categories to update global arrays
+    if (function_exists('ngLoadCategories')) {
+        ngLoadCategories();
+    }
     // Report about adding new category
-    // Use the ID we already obtained from LAST_INSERT_ID()
-    $catid = $rowID['id'];
+    // Use the ID we already obtained
+    $catid = $newCatId;
+    if (!$catid || $catid == 0) {
+        msg(['type' => 'error', 'text' => 'Failed to get new category ID', 'info' => 'newCatId=' . var_export($newCatId, true)]);
+        return safe_print_msg('error', $lang['category'], 'Failed to get new category ID', '?mod=categories');
+    }
     return safe_print_msg('success', $lang['category'], $lang['msgo_added'], array('?mod=categories&action=edit&catid=' . $catid . '' => $lang['edit'], '?mod=categories' => $lang['back']));
 }
 // ////////////////////////////////////////////////////////////////////////////
@@ -264,10 +274,15 @@ function admCategoryEditForm()
         msg(['type' => 'error', 'text' => $lang['perm.denied']]);
         return safe_print_msg('warning', $lang['category'], $lang['perm.denied'], '?mod=categories');
     }
-    $catid = intval($_REQUEST['catid']);
+    $catid = intval($_REQUEST['catid'] ?? 0);
+    if ($catid === 0) {
+        msg(['type' => 'error', 'text' => $lang['msge_id'], 'info' => 'catid is missing or zero']);
+        return safe_print_msg('warning', $lang['category'], $lang['msge_id'], '?mod=categories');
+    }
     if (!is_array($row = $mysql->record('select nc.*, ni.id as icon_id, ni.name as icon_name, ni.storage as icon_storage, ni.folder as icon_folder, ni.preview as icon_preview, ni.width as icon_width, ni.height as icon_height, ni.p_width as icon_pwidth, ni.p_height as icon_pheight from `' . prefix . '_category` as nc left join `' . prefix . '_images` ni on nc.image_id = ni.id where nc.id = ' . db_squote($catid) . ' order by nc.posorder asc'))) {
-        msg(['type' => 'error', 'text' => $lang['msge_id'], 'info' => sprintf($lang['msgi_id'], $PHP_SELF . '?mod=categories')]);
-        return safe_print_msg('warning', $lang['category'], '' . $lang['msge_id'] . '<br>' . $lang['msgi_ids'] . '', '?mod=categories');
+        $errorInfo = sprintf($lang['msgi_id'], $PHP_SELF . '?mod=categories') . '<br>catid=' . $catid . ', REQUEST=' . var_export($_REQUEST['catid'] ?? 'missing', true);
+        msg(['type' => 'error', 'text' => $lang['msge_id'], 'info' => $errorInfo]);
+        return safe_print_msg('warning', $lang['category'], $lang['msge_id'] . '<br>' . $errorInfo, '?mod=categories');
     }
     $tpl_list = '<option value="">* ' . $lang['cat_tpldefault'] . " *</option>\n";
     foreach (listSubdirs(tpl_site . 'ncustom/') as $k) {
@@ -352,11 +367,16 @@ function admCategoryEdit()
     $SQL['flags'] = intval($_REQUEST['cat_show']) ? '1' : '0';
     $SQL['flags'] .= (string) (abs(intval($_REQUEST['show_link']) <= 2) ? abs(intval($_REQUEST['show_link'])) : '0');
     $SQL['flags'] .= (string) (abs(intval($_REQUEST['template_mode']) <= 2) ? abs(intval($_REQUEST['template_mode'])) : '0');
-    $catid = intval($_REQUEST['catid']);
+    $catid = intval($_REQUEST['catid'] ?? 0);
     // Check for permissions
     if (!checkPermission(['plugin' => '#admin', 'item' => 'categories'], null, 'modify')) {
         msg(['type' => 'error', 'text' => $lang['perm.denied']]);
-        return safe_print_msg('error', $lang['category'], '' . $lang['perm.denied'] . '', '?mod=categories');
+        return safe_print_msg('warning', $lang['category'], $lang['perm.denied'], '?mod=categories');
+    }
+    // Check if catid is valid
+    if ($catid === 0) {
+        msg(['type' => 'error', 'text' => $lang['msge_id'], 'info' => 'catid is missing or zero in edit form']);
+        return safe_print_msg('error', $lang['category'], $lang['msge_id'], '?mod=categories');
     }
     // Check for security token
     if ((!isset($_REQUEST['token'])) || ($_REQUEST['token'] != genUToken('admin.categories'))) {
@@ -452,6 +472,10 @@ function admCategoryEdit()
     $mysql->query('update ' . prefix . '_category set ' . implode(', ', $SQLout) . ' where id=' . db_squote($catid));
     // Reorder categories to recalculate poslevel
     admCategoryReorder();
+    // Reload categories to update global arrays
+    if (function_exists('ngLoadCategories')) {
+        ngLoadCategories();
+    }
     return safe_print_msg('update', $lang['category'], $lang['msgo_saved'], array('?mod=categories&action=edit&catid=' . $catid . '' => 'Редактировать', '?mod=categories' => 'Вернуться назад'));
 }
 // ////////////////////////////////////////////////////////////////////////////
@@ -466,12 +490,8 @@ if (isset($_SESSION['flash_msg']) && is_array($_SESSION['flash_msg'])) {
     msg($_SESSION['flash_msg']);
     unset($_SESSION['flash_msg']);
 }
-
 if ($action == 'edit') {
-    admCategoryEditForm();
-    if (!$main_admin) {
-        $main_admin = admCategoryEditForm();
-    }
+    $main_admin = admCategoryEditForm();
 } elseif ($action == 'add') {
     $main_admin = admCategoryAddForm();
 } else {

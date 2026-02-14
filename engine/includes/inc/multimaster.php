@@ -10,11 +10,21 @@ function multi_multisites()
     global $config, $siteDomainName, $multiDomainName, $multiconfig, $multimaster;
     $siteDomainName = '';
     $multiDomainName = '';
-    // Анализируем мультидоменную конфигурацию
-    if (!is_file(root . 'conf/multiconfig.php')) {
+
+    // Проверяем, включен ли мультисайт в настройках
+    // ВАЖНО: на первом вызове (до загрузки config.php) пропускаем эту проверку
+    if (isset($config['use_multisite']) && empty($config['use_multisite'])) {
         return;
     }
-    @include root . 'conf/multiconfig.php';
+
+    // Определяем путь к конфигу (используем engine/conf вместо root/conf)
+    $multiconfigPath = defined('confroot') ? confroot . 'multiconfig.php' : root . 'conf/multiconfig.php';
+
+    // Анализируем мультидоменную конфигурацию
+    if (!is_file($multiconfigPath)) {
+        return;
+    }
+    @include $multiconfigPath;
     if (!is_array($multiconfig)) {
         return;
     }
@@ -68,6 +78,10 @@ function multi_multidomains()
     global $config, $siteDomainName, $multiDomainName, $multimaster, $multiconfig, $multimaster, $SYSTEM_FLAGS;
     $newdomain = '';
     $SYSTEM_FLAGS['mydomains'] = [];
+
+    // Базовая мультидоменность работает всегда (для переменной {domain})
+    // Полный мультисайт требует включения через use_multisite
+
     // Анализируем параметр конфига mydomains
     $domlist = null;
     if (isset($config['mydomains'])) {

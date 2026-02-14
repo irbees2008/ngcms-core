@@ -1,7 +1,13 @@
 <div class="container-fluid">
 	<div class="row mb-2">
 		<div class="col-sm-6 d-none d-md-block ">
-			<h1 class="m-0 text-dark">{{ lang['configuration_title'] }}</h1>
+			<h1 class="m-0 text-dark">
+				{{ lang['configuration_title'] }}
+				{% if currentSite %}
+					<small class="text-muted">-
+						{{ currentSite }}</small>
+				{% endif %}
+			</h1>
 		</div>
 		<!-- /.col -->
 		<div class="col-12 col-sm-12 col-md-6 ">
@@ -17,6 +23,14 @@
 		<!-- /.col -->
 	</div>
 	<!-- /.row -->
+	{% if currentSite %}
+		<div class="alert alert-info">
+			<i class="fa fa-info-circle"></i>
+			{{ lang['multisite_editing_site'] }}:
+			<strong>{{ currentSite }}</strong>
+			<a href="admin.php?mod=configuration" class="btn btn-sm btn-secondary float-right">{{ lang['multisite_back_to_main'] }}</a>
+		</div>
+	{% endif %}
 </div>
 <!-- /.container-fluid -->
 <form action="{{ php_self }}" method="post">
@@ -25,6 +39,9 @@
 	<input type="hidden" name="subaction" value="save"/>
 	<input type="hidden" name="save" value=""/>
 	<input id="selectedOption" type="hidden" name="selectedOption"/>
+	{% if siteId %}
+		<input type="hidden" name="site_id" value="{{ siteId }}"/>
+	{% endif %}
 	<ul class="nav nav-tabs nav-fill mb-3 d-md-flex d-block" role="tablist">
 		<li class="nav-item">
 			<a href="#userTabs-db" class="nav-link active" data-toggle="tab">{{ lang['db'] }}</a>
@@ -1014,45 +1031,61 @@
 					<td colspan="2" class="h3 font-weight-light">{{ lang['multisite'] }}</td>
 				</tr>
 				<tr>
-					<td colspan="2">
-						<table class="table table-sm">
-							<thead>
-								<tr>
-									<th>{{ lang['status'] }}</th>
-									<th>{{ lang['title'] }}</th>
-									<th>{{ lang['domains'] }}</th>
-									<th>{{ lang['flags'] }}</th>
-								</tr>
-							</thead>
-							<tbody>
-								{% for MR in multiConfig %}
-									<tr>
-										<td>
-											{% if (MR['active']) %}On{% else %}Off
-											{% endif %}
-										</td>
-										<td>{{ MR['key'] }}</td>
-										<td>
-											{% for domain in MR['domains'] %}
-												{{ domain }}
-												{% else %}-
-												{{ lang['not_specified'] }}
-												-
-											{% endfor %}
-										</td>
-										<td>&nbsp;</td>
-									</tr>
-								{% else %}
-									<tr>
-										<td colspan="4">-
-											{{ lang['not_used'] }}
-											-</td>
-									</tr>
-								{% endfor %}
-							</tbody>
-						</table>
+					<td width="50%">{{ lang['use_multisite'] }}
+						<small class="form-text text-muted">{{ lang['use_multisite_desc'] }}</small>
+					</td>
+					<td width="50%">
+						{{ mkSelectYN({'name' : 'save_con[use_multisite]', 'value' : config['use_multisite'] }) }}
 					</td>
 				</tr>
+				{% if isMainSite %}
+					<tr>
+						<td colspan="2">
+							<div class="mb-3">
+								<a href="admin.php?mod=configuration&action=multisite_manage" class="btn btn-primary">
+									<i class="fa fa-globe"></i>
+									{{ lang['multisite_manage'] }}
+								</a>
+							</div>
+							<table class="table table-sm">
+								<thead>
+									<tr>
+										<th>{{ lang['status'] }}</th>
+										<th>{{ lang['title'] }}</th>
+										<th>{{ lang['domains'] }}</th>
+										<th>{{ lang['flags'] }}</th>
+									</tr>
+								</thead>
+								<tbody>
+									{% for MR in multiConfig %}
+										<tr>
+											<td>
+												{% if (MR['active']) %}On{% else %}Off
+												{% endif %}
+											</td>
+											<td>{{ MR['key'] }}</td>
+											<td>
+												{% for domain in MR['domains'] %}
+													{{ domain }}
+													{% else %}-
+													{{ lang['not_specified'] }}
+													-
+												{% endfor %}
+											</td>
+											<td>&nbsp;</td>
+										</tr>
+									{% else %}
+										<tr>
+											<td colspan="4">-
+												{{ lang['not_used'] }}
+												-</td>
+										</tr>
+									{% endfor %}
+								</tbody>
+							</table>
+						</td>
+					</tr>
+				{% endif %}
 			</table>
 		</div>
 		<!-- ########################## CACHE TAB ########################## -->

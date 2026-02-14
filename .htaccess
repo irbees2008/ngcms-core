@@ -16,6 +16,12 @@ deny from all
 RewriteEngine On
 #RewriteBase /
 
+# Allow robots-debug.php (before checking file existence)
+RewriteCond %{REQUEST_URI} !^/robots-debug\.php$
+
+# Dynamic robots.txt for multisite
+RewriteRule ^robots\.txt$ robots.php [L]
+
 RewriteCond %{REQUEST_FILENAME} -f [OR]
 RewriteCond %{REQUEST_FILENAME} -d
 RewriteRule ^.*$ - [S=35]
