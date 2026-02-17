@@ -12,63 +12,63 @@
 		 <script src="{{ skins_url }}/public/js/app.js" type="text/javascript"></script>
 		 <script src="{{ skins_url }}/public/js/notify.js" type="text/javascript"></script>
 		 <script type="text/javascript">
-							// Переопределяем глобальную post(), чтобы уважать флаг notify (тихий режим) и исключить двойные уведомления
-				window.post = function (methodName, params, notify) {
-				var n = (arguments.length < 3 || typeof notify === 'undefined') ? true : !! notify;
-				var token = $('input[name="token"]').val();
-				return $.ajax({
-				method: 'POST',
-				url: NGCMS.admin_url + '/rpc.php',
-				dataType: 'json',
-				headers: {
-				'X-CSRF-TOKEN': token,
-				'X-Requested-With': 'XMLHttpRequest'
-				},
-				data: {
-				json: 1,
-				token: token,
-				methodName: methodName,
-				params: JSON.stringify(params || {})
-				},
-				beforeSend: function () {
-				if (typeof window.ngShowLoading === 'function')
-				window.ngShowLoading();
-				}
-				}).then(function (resp) {
-				if (! resp || ! resp.status) {
-				var ex = {
-				message: 'Error [' + (
-				resp && resp.errorCode
-				) + ']: ' + (
-				resp && resp.errorText
-				),
-				response: resp
-				};
-				return $.Deferred().reject(ex).promise();
-				}
-				return resp;
-				}).done(function (resp) {
-				if (n && typeof window.ngNotifySticker === 'function') {
-				window.ngNotifySticker(resp.errorText, {
-				className: 'alert-success',
-				closeBTN: true
-				});
-				}
-				return resp;
-				}).fail(function (err) {
-				if (n && typeof window.ngNotifySticker === 'function') {
-				var fallbackMsg = (window.NGCMS && NGCMS.lang && NGCMS.lang.rpc_httpError) || 'Request error';
-				window.ngNotifySticker(err.message || fallbackMsg, {
-				className: 'alert-danger',
-				closeBTN: true
-				});
-				}
-				}).always(function () {
-				if (typeof window.ngHideLoading === 'function')
-				window.ngHideLoading();
-				});
-				};
-						</script>
+									// Переопределяем глобальную post(), чтобы уважать флаг notify (тихий режим) и исключить двойные уведомления
+						window.post = function (methodName, params, notify) {
+						var n = (arguments.length < 3 || typeof notify === 'undefined') ? true : !! notify;
+						var token = $('input[name="token"]').val();
+						return $.ajax({
+						method: 'POST',
+						url: NGCMS.admin_url + '/rpc.php',
+						dataType: 'json',
+						headers: {
+						'X-CSRF-TOKEN': token,
+						'X-Requested-With': 'XMLHttpRequest'
+						},
+						data: {
+						json: 1,
+						token: token,
+						methodName: methodName,
+						params: JSON.stringify(params || {})
+						},
+						beforeSend: function () {
+						if (typeof window.ngShowLoading === 'function')
+						window.ngShowLoading();
+						}
+						}).then(function (resp) {
+						if (! resp || ! resp.status) {
+						var ex = {
+						message: 'Error [' + (
+						resp && resp.errorCode
+						) + ']: ' + (
+						resp && resp.errorText
+						),
+						response: resp
+						};
+						return $.Deferred().reject(ex).promise();
+						}
+						return resp;
+						}).done(function (resp) {
+						if (n && typeof window.ngNotifySticker === 'function') {
+						window.ngNotifySticker(resp.errorText, {
+						className: 'alert-success',
+						closeBTN: true
+						});
+						}
+						return resp;
+						}).fail(function (err) {
+						if (n && typeof window.ngNotifySticker === 'function') {
+						var fallbackMsg = (window.NGCMS && NGCMS.lang && NGCMS.lang.rpc_httpError) || 'Request error';
+						window.ngNotifySticker(err.message || fallbackMsg, {
+						className: 'alert-danger',
+						closeBTN: true
+						});
+						}
+						}).always(function () {
+						if (typeof window.ngHideLoading === 'function')
+						window.ngHideLoading();
+						});
+						};
+								</script>
 	</head>
 	<body>
 		<div id="loading-layer" style="display:none">
@@ -158,11 +158,6 @@
 								{% if (perm.static) %}
 									<li>
 										<a href="{{ php_self }}?mod=static">{{ lang['static'] }}</a>
-									</li>
-								{% endif %}
-								{% if (perm.addnews) %}
-									<li>
-										<a href="{{ php_self }}?mod=news&action=add">{{ lang['news.add'] }}</a>
 									</li>
 								{% endif %}
 								<li>
@@ -411,184 +406,184 @@
 				</div>
 			</div>
 			 <script type="text/javascript">
-										{% set encode_lang = lang | json_encode(constant('JSON_PRETTY_PRINT') b-or constant('JSON_UNESCAPED_UNICODE')) %}
-						window.NGCMS = {
-						admin_url: '{{ admin_url }}',
-						home: '{{ home }}',
-						lang: {{ encode_lang ?: '{}' }},
-						langcode: '{{ lang['langcode'] }}',
-						php_self: '{{ php_self }}',
-						skins_url: '{{ skins_url }}'
-						};
-						$('#menu-content .sub-menu').on('show.bs.collapse', function () {
-						$('#menu-content .sub-menu.show').not(this).removeClass('show');
-						});
-						// Очистка кэшей браузера: localStorage, sessionStorage, Cache Storage
-						async function clearBrowserCaches() {
-						try {
-						try {
-						window.localStorage && window.localStorage.clear();
-						} catch (e) {}
-						try {
-						window.sessionStorage && window.sessionStorage.clear();
-						} catch (e) {}
-						if (window.caches && caches.keys) {
-						const keys = await caches.keys();
-						await Promise.all(keys.map((k) => caches.delete(k)));
-						}
-						return true;
-						} catch (e) {
-						return false;
-						}
-						}
-						// Хендлер кнопки очистки кэша
-						// Универсальный показ уведомлений: showToast -> $.notify -> ngNotifySticker -> alert
-						function showNotify(message, type) { // 1) Предпочитаем наши тосты (vanilla, без зависимостей)
-						try {
-						if (typeof window.showToast === 'function') {
-						var map = {
-						danger: 'error',
-						error: 'error',
-						warning: 'warning',
-						success: 'success',
-						info: 'info'
-						};
-						var t = map[(type || 'info')] || 'info';
-						var titles = {
-						error: 'Ошибка',
-						warning: 'Внимание',
-						success: 'Готово',
-						info: 'Info'
-						};
-						window.showToast(String(message), {
-						type: t,
-						title: titles[t] || '',
-						sticked: t === 'error'
-						});
-						return;
-						}
-						} catch (e) {}
-						// 2) Fallback на bootstrap-notify (если подключён)
-						try {
-						if (window.$ && typeof $.notify === 'function') {
-						$.notify({
-						message: String(message)
-						}, {
-						type: type || 'info'
-						});
-						return;
-						}
-						} catch (e) {}
-						// 3) Fallback на старый ngNotifySticker
-						try {
-						if (typeof ngNotifySticker === 'function') {
-						var cls = 'alert-' + (
-						type || 'info'
-						);
-						ngNotifySticker(String(message), {
-						className: cls,
-						closeBTN: true
-						});
-						return;
-						}
-						} catch (e) {}
-						// 4) Самый простой fallback
-						try {
-						alert(String(message));
-						} catch (e) {}
-						}
-						async function handleTopbarClearCacheClick(ev) {
-						ev && ev.preventDefault && ev.preventDefault();
-						const browserOk = await clearBrowserCaches();
-						// Вызов RPC admin.statistics.cleanCache
-						try {
-						const resp = await $.ajax({
-						method: 'POST',
-						url: NGCMS.admin_url + '/rpc.php',
-						dataType: 'json',
-						data: {
-						json: 1,
-						methodName: 'admin.statistics.cleanCache',
-						params: JSON.stringify(
-						{token: '{{ token_statistics|e('js') }}'}
-						)
-						}
-						});
-						if (resp && resp.status) {
-						showNotify('{{ lang['notify.cache.server_ok']|e('js') }}', 'success');
-						} else {
-						showNotify('{{ lang['notify.cache.server_fail']|e('js') }}', 'danger');
-						}
-						} catch (e) {
-						showNotify('{{ lang['notify.cache.server_fail']|e('js') }}', 'danger');
-						}
-						// Браузер
-						if (browserOk) {
-						showNotify('{{ lang['notify.cache.browser_ok']|e('js') }}', 'success');
-						} else {
-						showNotify('{{ lang['notify.cache.browser_fail']|e('js') }}', 'warning');
-						}
-						return false;
-						}
-						document.addEventListener('DOMContentLoaded', function () {
-						var btn = document.getElementById('btn-clear-cache');
-						if (btn) {
-						btn.addEventListener('click', handleTopbarClearCacheClick);
-						}
-						// Инициализация Bootstrap tooltip
-						if (typeof $.fn.tooltip !== 'undefined') {
-						$('[data-bs-toggle="tooltip"]').tooltip();
-						}
-						});
-									</script>
+													{% set encode_lang = lang | json_encode(constant('JSON_PRETTY_PRINT') b-or constant('JSON_UNESCAPED_UNICODE')) %}
+									window.NGCMS = {
+									admin_url: '{{ admin_url }}',
+									home: '{{ home }}',
+									lang: {{ encode_lang ?: '{}' }},
+									langcode: '{{ lang['langcode'] }}',
+									php_self: '{{ php_self }}',
+									skins_url: '{{ skins_url }}'
+									};
+									$('#menu-content .sub-menu').on('show.bs.collapse', function () {
+									$('#menu-content .sub-menu.show').not(this).removeClass('show');
+									});
+									// Очистка кэшей браузера: localStorage, sessionStorage, Cache Storage
+									async function clearBrowserCaches() {
+									try {
+									try {
+									window.localStorage && window.localStorage.clear();
+									} catch (e) {}
+									try {
+									window.sessionStorage && window.sessionStorage.clear();
+									} catch (e) {}
+									if (window.caches && caches.keys) {
+									const keys = await caches.keys();
+									await Promise.all(keys.map((k) => caches.delete(k)));
+									}
+									return true;
+									} catch (e) {
+									return false;
+									}
+									}
+									// Хендлер кнопки очистки кэша
+									// Универсальный показ уведомлений: showToast -> $.notify -> ngNotifySticker -> alert
+									function showNotify(message, type) { // 1) Предпочитаем наши тосты (vanilla, без зависимостей)
+									try {
+									if (typeof window.showToast === 'function') {
+									var map = {
+									danger: 'error',
+									error: 'error',
+									warning: 'warning',
+									success: 'success',
+									info: 'info'
+									};
+									var t = map[(type || 'info')] || 'info';
+									var titles = {
+									error: 'Ошибка',
+									warning: 'Внимание',
+									success: 'Готово',
+									info: 'Info'
+									};
+									window.showToast(String(message), {
+									type: t,
+									title: titles[t] || '',
+									sticked: t === 'error'
+									});
+									return;
+									}
+									} catch (e) {}
+									// 2) Fallback на bootstrap-notify (если подключён)
+									try {
+									if (window.$ && typeof $.notify === 'function') {
+									$.notify({
+									message: String(message)
+									}, {
+									type: type || 'info'
+									});
+									return;
+									}
+									} catch (e) {}
+									// 3) Fallback на старый ngNotifySticker
+									try {
+									if (typeof ngNotifySticker === 'function') {
+									var cls = 'alert-' + (
+									type || 'info'
+									);
+									ngNotifySticker(String(message), {
+									className: cls,
+									closeBTN: true
+									});
+									return;
+									}
+									} catch (e) {}
+									// 4) Самый простой fallback
+									try {
+									alert(String(message));
+									} catch (e) {}
+									}
+									async function handleTopbarClearCacheClick(ev) {
+									ev && ev.preventDefault && ev.preventDefault();
+									const browserOk = await clearBrowserCaches();
+									// Вызов RPC admin.statistics.cleanCache
+									try {
+									const resp = await $.ajax({
+									method: 'POST',
+									url: NGCMS.admin_url + '/rpc.php',
+									dataType: 'json',
+									data: {
+									json: 1,
+									methodName: 'admin.statistics.cleanCache',
+									params: JSON.stringify(
+									{token: '{{ token_statistics|e('js') }}'}
+									)
+									}
+									});
+									if (resp && resp.status) {
+									showNotify('{{ lang['notify.cache.server_ok']|e('js') }}', 'success');
+									} else {
+									showNotify('{{ lang['notify.cache.server_fail']|e('js') }}', 'danger');
+									}
+									} catch (e) {
+									showNotify('{{ lang['notify.cache.server_fail']|e('js') }}', 'danger');
+									}
+									// Браузер
+									if (browserOk) {
+									showNotify('{{ lang['notify.cache.browser_ok']|e('js') }}', 'success');
+									} else {
+									showNotify('{{ lang['notify.cache.browser_fail']|e('js') }}', 'warning');
+									}
+									return false;
+									}
+									document.addEventListener('DOMContentLoaded', function () {
+									var btn = document.getElementById('btn-clear-cache');
+									if (btn) {
+									btn.addEventListener('click', handleTopbarClearCacheClick);
+									}
+									// Инициализация Bootstrap tooltip
+									if (typeof $.fn.tooltip !== 'undefined') {
+									$('[data-bs-toggle="tooltip"]').tooltip();
+									}
+									});
+												</script>
 			 <script>
-										$(document).ready(function () { // Функция для определения ширины скроллбара
-						function getScrollbarWidth() {
-						var outer = document.createElement("div");
-						outer.style.visibility = "hidden";
-						outer.style.width = "100px";
-						outer.style.msOverflowStyle = "scrollbar"; // needed for WinJS apps
-						document.body.appendChild(outer);
-						var widthNoScroll = outer.offsetWidth;
-						// force scrollbars
-						outer.style.overflow = "scroll";
-						// add inner div
-						var inner = document.createElement("div");
-						inner.style.width = "100%";
-						outer.appendChild(inner);
-						var widthWithScroll = inner.offsetWidth;
-						// remove divs
-						outer.parentNode.removeChild(outer);
-						return widthNoScroll - widthWithScroll;
-						}
-						// Сохраняем ширину скроллбара в переменную
-						var scrollbarWidth = getScrollbarWidth();
-						// При открытии модального окна
-						$('.modal').on('show.bs.modal', function () {
-						if ($('body').height() > $(window).height()) {
-						$('body').addClass('modal-scrollbar-compensate');
-						}
-						$('body').addClass('modal-open-no-scroll');
-						});
-						// При закрытии модального окна
-						$('.modal').on('hidden.bs.modal', function () {
-						$('body').removeClass('modal-scrollbar-compensate');
-						$('body').removeClass('modal-open-no-scroll');
-						});
-						// Добавляем компенсацию ширины скроллбара
-						$(window).on('resize', function () {
-						if ($('body').hasClass('modal-scrollbar-compensate')) {
-						if (scrollbarWidth) {
-						$('body').css('margin-right', scrollbarWidth);
-						} else {
-						$('body').css('margin-right', '17px'); // Задаём стандартное значение на случай если не удалось определить ширину скроллбара
-						}
-						} else {
-						$('body').css('margin-right', '0');
-						}
-						}).trigger('resize');
-						});
-									</script>
+													$(document).ready(function () { // Функция для определения ширины скроллбара
+									function getScrollbarWidth() {
+									var outer = document.createElement("div");
+									outer.style.visibility = "hidden";
+									outer.style.width = "100px";
+									outer.style.msOverflowStyle = "scrollbar"; // needed for WinJS apps
+									document.body.appendChild(outer);
+									var widthNoScroll = outer.offsetWidth;
+									// force scrollbars
+									outer.style.overflow = "scroll";
+									// add inner div
+									var inner = document.createElement("div");
+									inner.style.width = "100%";
+									outer.appendChild(inner);
+									var widthWithScroll = inner.offsetWidth;
+									// remove divs
+									outer.parentNode.removeChild(outer);
+									return widthNoScroll - widthWithScroll;
+									}
+									// Сохраняем ширину скроллбара в переменную
+									var scrollbarWidth = getScrollbarWidth();
+									// При открытии модального окна
+									$('.modal').on('show.bs.modal', function () {
+									if ($('body').height() > $(window).height()) {
+									$('body').addClass('modal-scrollbar-compensate');
+									}
+									$('body').addClass('modal-open-no-scroll');
+									});
+									// При закрытии модального окна
+									$('.modal').on('hidden.bs.modal', function () {
+									$('body').removeClass('modal-scrollbar-compensate');
+									$('body').removeClass('modal-open-no-scroll');
+									});
+									// Добавляем компенсацию ширины скроллбара
+									$(window).on('resize', function () {
+									if ($('body').hasClass('modal-scrollbar-compensate')) {
+									if (scrollbarWidth) {
+									$('body').css('margin-right', scrollbarWidth);
+									} else {
+									$('body').css('margin-right', '17px'); // Задаём стандартное значение на случай если не удалось определить ширину скроллбара
+									}
+									} else {
+									$('body').css('margin-right', '0');
+									}
+									}).trigger('resize');
+									});
+												</script>
 		</body>
 	</body>
 </html>
