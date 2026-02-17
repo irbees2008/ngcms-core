@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Инструмент обновления базы данных NGCMS
  *
@@ -186,6 +187,7 @@ function doUpgrade(int $fromVersion, int $toVersion): void
                 } catch (Exception $e) {
                     echo "<div class='action'><div class='status error'>Ошибка при обновлении плагина комментариев: " . htmlspecialchars($e->getMessage()) . "</div></div>";
                 }
+
                 // Создание таблицы сессий пользователей
                 echo "<h4>Проверка таблицы сессий пользователей</h4>";
                 $sessionsTable = prefix . '_users_sessions';
@@ -197,6 +199,7 @@ function doUpgrade(int $fromVersion, int $toVersion): void
                     } elseif ($tableExistsResult) {
                         $tableExists = $tableExistsResult->rowCount() > 0;
                     }
+
                     if (!$tableExists) {
                         echo "<div class='action'><div class='status'>Таблица `{$sessionsTable}` не найдена, создаем...</div></div>";
                         $createTableSql = "CREATE TABLE `{$sessionsTable}` (
@@ -936,7 +939,7 @@ function renderSuccessMessage(): string
     <div class="success-message">
         <h2><i class="icon-success"></i> Обновление успешно завершено!</h2>
         <p>База данных была успешно обновлена до последней версии.</p>
-        <a href="/engine/" class="btn">Перейти на сайт</a>
+        <a href="/" class="btn">Перейти на сайт</a>
     </div>
     HTML;
 }
@@ -978,7 +981,7 @@ function renderNoUpgradeNeeded(): string
             <div class="success">✓</div>
             <h2>Обновление не требуется</h2>
             <p>Ваша база данных уже актуальна.</p>
-            <a href="/engine/" style="display: inline-block; margin-top: 20px; padding: 10px 20px; background: #3498db; color: white; text-decoration: none; border-radius: 5px;">Перейти на сайт</a>
+            <a href="/" style="display: inline-block; margin-top: 20px; padding: 10px 20px; background: #3498db; color: white; text-decoration: none; border-radius: 5px;">Перейти на сайт</a>
         </div>
     </body>
     </html>

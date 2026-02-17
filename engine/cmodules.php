@@ -77,6 +77,16 @@ function coreRegisterUser()
             $values[$param['name']] = filter_input(INPUT_POST, $param['name'], FILTER_SANITIZE_STRING) ?? null;
         }
         $msg = '';
+        // Check captcha
+        if ($config['use_captcha']) {
+            // Read user input from POST
+            $captcha = filter_input(INPUT_POST, 'vcode', FILTER_SANITIZE_STRING);
+            // Captcha image is generated via captcha.php?id=registration, which stores code in $_SESSION['captcha.registration']
+            $sessionCode = $_SESSION['captcha.registration'] ?? ($_SESSION['captcha'] ?? null);
+            if (!$captcha || !$sessionCode || ($sessionCode != $captcha)) {
+                $msg = $lang['msge_vcode'];
+            }
+        }
         // Execute filters - check if user is allowed to register
         if (!$msg && is_array($PFILTERS['core.registerUser'])) {
             foreach ($PFILTERS['core.registerUser'] as $k => $v) {
@@ -161,10 +171,15 @@ function generate_reg_page($params, $values = [], $msg = '')
     // Execute filters - add additional variables
     if (!empty($PFILTERS['core.registerUser'])) {
         foreach ($PFILTERS['core.registerUser'] as $k => $v) {
-            if (method_exists($v, 'registerUserForm')) {
-                $v->registerUserForm($tVars);
-            }
+            $v->registerUserForm($tVars);
         }
+    }
+    // Generate captcha for registration if enabled (was missing, causing always invalid captcha)
+    if ($config['use_captcha']) {
+        $_SESSION['captcha'] = random_int(10000, 99999);
+        $tVars['flags']['hasCaptcha'] = true;
+    } else {
+        $tVars['flags']['hasCaptcha'] = false;
     }
     // Generate inputs
     foreach ($tVars['entries'] as &$param) {
@@ -241,6 +256,13 @@ function coreRestorePassword()
             $values[$param['name']] = $_POST[$param['name']];
         }
         $msg = '';
+        // Check captcha
+        if ($config['use_captcha']) {
+            $captcha = $_REQUEST['vcode'];
+            if (!$captcha || ($_SESSION['captcha'] != $captcha)) {
+                $msg = $lang['msge_vcode']; // Fail
+            }
+        }
         // Trying password recovery
         if ($msg === '' && $auth->restorepw($params, $values, $msg)) {
             // OK
@@ -307,14 +329,14 @@ function generate_restorepw_page(array $params, array $values = [], string $msg 
     }
     $tvars = [
         'entries' => $entries,
+        'captcha_source_url' => admin_url . '/captcha.php',
+        'flags' => [
+            'hasCaptcha' => false,
+        ],
     ];
-    // Execute filters - add additional variables (captcha widget etc.)
-    if (!empty($PFILTERS['core.registerUser'])) {
-        foreach ($PFILTERS['core.registerUser'] as $k => $v) {
-            if (method_exists($v, 'registerUserForm')) {
-                $v->registerUserForm($tvars);
-            }
-        }
+    if ($config['use_captcha']) {
+        $_SESSION['captcha'] = random_int(10000, 99999);
+        $tvars['flags']['hasCaptcha'] = true;
     }
     $formActionParams = checkLinkAvailable('core', 'lostpassword') ?
         ['core', 'lostpassword', []] :

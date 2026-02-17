@@ -125,8 +125,93 @@ if (preg_match("#^(.+?):\d+$#", $host, $m)) {
     $host = $m[1]; // убираем порт
 }
 $hostParts = explode('.', $host);
+// Список составных доменов верхнего уровня (compound TLDs)
+$compoundTLDs = [
+    // com.*
+    'com.ua',
+    'com.br',
+    'com.au',
+    'com.tr',
+    'com.mx',
+    'com.ar',
+    'com.co',
+    'com.pl',
+    'com.sg',
+    'com.my',
+    'com.pk',
+    'com.eg',
+    'com.pe',
+    'com.vn',
+    'com.sa',
+    'com.ph',
+    'com.ng',
+    'com.bd',
+    // co.*
+    'co.uk',
+    'co.jp',
+    'co.in',
+    'co.za',
+    'co.kr',
+    'co.il',
+    'co.nz',
+    'co.th',
+    'co.id',
+    'co.ke',
+    // org.*
+    'org.uk',
+    'org.au',
+    'org.in',
+    'org.br',
+    'org.za',
+    'org.ua',
+    'org.nz',
+    'org.il',
+    'org.tr',
+    // net.*
+    'net.ua',
+    'net.au',
+    'net.br',
+    'net.in',
+    'net.nz',
+    'net.za',
+    'net.tr',
+    // gov.*
+    'gov.uk',
+    'gov.au',
+    'gov.br',
+    'gov.in',
+    'gov.za',
+    'gov.tr',
+    // edu.*
+    'edu.au',
+    'edu.br',
+    'edu.in',
+    'edu.tr',
+    'edu.za',
+    // ac.*
+    'ac.uk',
+    'ac.za',
+    'ac.jp',
+    'ac.in',
+    'ac.th',
+    'ac.nz',
+    // Другие популярные
+    'ne.jp',
+    'or.jp',
+    'go.jp',
+    'gr.jp',
+    'lg.jp',
+];
 if (count($hostParts) >= 2) {
-    $ngCookieDomain = '.' . $hostParts[count($hostParts) - 2] . '.' . $hostParts[count($hostParts) - 1];
+    // Проверяем, является ли домен составным (например, .com.ua)
+    $lastTwo = $hostParts[count($hostParts) - 2] . '.' . $hostParts[count($hostParts) - 1];
+    if (count($hostParts) >= 3 && in_array($lastTwo, $compoundTLDs)) {
+        // Для составных доменов типа .com.ua берем последние 3 части: .footballtransfer.com.ua
+        $ngCookieDomain = '.' . $hostParts[count($hostParts) - 3] . '.' . $lastTwo;
+    } else {
+        // Для обычных доменов берем последние 2 части: .footballtransfer.ru
+        $ngCookieDomain = '.' . $lastTwo;
+    }
 } else {
     // Для одночастных доменов (например, localhost) безопаснее не указывать домен вовсе
     $ngCookieDomain = '';
@@ -210,9 +295,19 @@ include_once confroot . 'config.php';
 if (!isset($config['uprefix'])) {
     $config['uprefix'] = $config['prefix'];
 }
+// Make sure date_adjust is always treated as an integer offset (PHP 8 disallows string * int)
+$config['date_adjust'] = (isset($config['date_adjust']) && is_numeric($config['date_adjust'])) ? intval($config['date_adjust']) : 0;
 // Set up default timezone [ default: Europe/Moscow ]
 date_default_timezone_set($config['timezone'] ?? 'Europe/Moscow');
+
+// Call multisites processor again with loaded config (полноценный мультисайт)
+multi_multisites();
+// Call multidomains processor (базовая мультидоменность + замена переменных {domain})
+multi_multidomains();
+//print "siteDomainName [".$siteDomainName."]<br/>\n";
+
 // Define template paths early so they're available for plugins
+// ВАЖНО: делаем это ПОСЛЕ замены {domain}, чтобы в константах были правильные пути
 if (!defined('tpl_site')) {
     define('tpl_site', site_root . 'templates/' . $config['theme'] . '/');
 }
@@ -221,9 +316,6 @@ if (!defined('tpl_url')) {
 }
 // [[MARKER]] Configuration file is loaded
 $timer->registerEvent('Config file is loaded');
-// Call multidomains processor
-multi_multidomains();
-//print "siteDomainName [".$siteDomainName."]<br/>\n";
 // Initiate session - корректные параметры cookie (учёт HTTP/HTTPS, домен, срок)
 //print "<pre>".var_export($_SERVER, true).var_export($_COOKIE, true)."</pre>";
 $isHttps = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') || (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https');
@@ -301,6 +393,9 @@ $timer->registerEvent('Template engine is activated');
 // Add global variables to TWIG before runtime is initialized
 $twig->addGlobal('tpl_url', tpl_url);
 $twig->addGlobal('scriptLibrary', scriptLibrary);
+// Add domain variables for multisite support
+$twig->addGlobal('domain', $siteDomainName ?: $_SERVER['HTTP_HOST']);
+$twig->addGlobal('domainid', $multiDomainName ?: '');
 // Expose engine name/version to Twig templates for <meta name="generator">
 if (!isset($template) || !is_array($template)) {
     $template = [];

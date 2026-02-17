@@ -43,9 +43,6 @@ class NGTwigExtension extends AbstractExtension implements GlobalsInterface
             new TwigFunction('getCategoryTree', 'twigGetCategoryTree'),
             new TwigFunction('engineMSG', 'twigEngineMSG'),
             new TwigFunction('avatarUrl', 'twigAvatarUrl'),
-            // ng-helpers functions
-            new TwigFunction('sanitize', 'Plugins\\sanitize'),
-            new TwigFunction('array_get', 'Plugins\\array_get'),
         ];
     }
     public function getGlobals(): array

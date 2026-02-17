@@ -972,6 +972,8 @@ function doInstall()
             'auto_backup_time'    => '48',
             'x_ng_headers'        => '1',
             'use_gzip'            => '0',
+            'use_captcha'         => '1',
+            'captcha_font'        => 'verdana',
             'use_cookies'         => '0',
             'use_sessions'        => '1',
             'number'              => '8',
