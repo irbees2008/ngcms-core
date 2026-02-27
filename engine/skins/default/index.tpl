@@ -168,7 +168,7 @@
 								</li>
 								{% if comments_moderation_enabled and pluginIsActive('comments') %}
 									<li>
-										<a href="{{ php_self }}?plugin=comments&handler=moderation">Модерация комментариев</a>
+										<a href="{{ php_self }}?plugin=comments&handler=moderation">{{ lang['moderation.comments'] }}</a>
 									</li>
 								{% endif %}
 							</ul>
@@ -259,17 +259,17 @@
 							<li>
 								<a href="{{ php_self }}?mod=docs">
 									<i class="fa fa-book" aria-hidden="true"></i>
-									Документация</a>
+									{{ lang['docs'] }}</a>
 							</li>
 							<li>
 								<a href="https://forum.ngcms.org" target="_blank">
 									<i class="fa fa-comments-o" aria-hidden="true"></i>
-									Форум поддержки</a>
+									{{ lang['forum'] }}</a>
 							</li>
 							<li>
 								<a href="https://ngcms.org/" target="_blank">
 									<i class="fa fa-globe fa-lg"></i>
-									Официальный сайт</a>
+									{{ lang['site'] }}</a>
 							</li>
 							<li>
 								<a href="https://github.com/irbees2008/ngcms-core" target="_blank">
@@ -296,7 +296,8 @@
 			<div class="modal-dialog" role="document">
 				<div class="modal-content">
 					<div class="modal-header">
-						<h5 class="modal-title" id="notificationsModalLabel">Уведомления -
+						<h5 class="modal-title" id="notificationsModalLabel">{{ lang['notifications']|default('Уведомления') }}
+							-
 							{{ unnAppText }}</h5>
 						<button type="button" class="close" data-dismiss="modal" aria-label="Close">
 							<span aria-hidden="true">&times;</span>
@@ -322,7 +323,7 @@
 			<div class="modal-dialog" role="document">
 				<div class="modal-content">
 					<div class="modal-header">
-						<h5 class="modal-title" id="addContentModalLabel">Добавить контент</h5>
+						<h5 class="modal-title" id="addContentModalLabel">{{ lang['content.add']|default('Добавить контент') }}</h5>
 						<button type="button" class="close" data-dismiss="modal" aria-label="Close">
 							<span aria-hidden="true">&times;</span>
 						</button>

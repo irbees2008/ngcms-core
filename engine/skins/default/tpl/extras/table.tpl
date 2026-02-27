@@ -30,8 +30,8 @@
 <div class="mb-3">
 	<div class="custom-control custom-switch py-2">
 		<input id="tableViewSwitch" type="checkbox" class="custom-control-input"/>
-		<label for="tableViewSwitch" class="custom-control-label">Табличный вид</label>
-	</div>
+		<label for="tableViewSwitch" class="custom-control-label">{{ lang['table.view'] }}</label>
+</div>
 </div>
 <!-- Карточный вид -->
 <div id="cardsView" class="container">
@@ -93,7 +93,9 @@
 						</div>
 					</div>
 					<div class="card-footer text-muted">
-						{{ entry.url }}
+						<a href="{{ entry.url }}" class="btn btn-outline-primary btn-sm" title="{{ lang['settings'] }}" data-bs-toggle="tooltip">
+							<i class="fa fa-cog" aria-hidden="true"></i>
+						</a>
 						{{ entry.link }}
 						{{ entry.install }}
 					</div>
@@ -132,7 +134,6 @@
 				<tr>
 					<th></th>
 					<th>{{ lang['id'] }}</th>
-					<th>{{ lang['title'] }}</th>
 					<th>{{ lang['type'] }}</th>
 					<th>{{ lang['version'] }}</th>
 					<th>&nbsp;</th>
@@ -153,21 +154,25 @@
 						</td>
 						<td nowrap>{{ entry.id }}
 							{{ entry.new }}</td>
-						<td>{{ entry.url }}</td>
 						<td>{{ entry.type }}</td>
 						<td>{{ entry.version }}</td>
 						<td nowrap>
-							<a href="#" class="mr-2 open-modal" data-toggle="modal" data-target="#readmeModal" data-url="{{ entry.readme }}" title="{{ lang['entry.readme'] }}">
+							<a href="#" class="mr-2 open-modal" data-toggle="modal" data-target="#readmeModal" data-url="{{ entry.readme }}" title="{{ lang['entry.readme'] }}" data-bs-toggle="tooltip">
 								<i class="fa fa-file-word-o" aria-hidden="true"></i>
 							</a>|
-							<a href="#" class="open-modal" data-toggle="modal" data-target="#historyModal" data-url="{{ entry.history }}" title="{{ lang['entry.history'] }}">
+							<a href="#" class="open-modal" data-toggle="modal" data-target="#historyModal" data-url="{{ entry.history }}" title="{{ lang['entry.history'] }}" data-bs-toggle="tooltip">
 								<i class="fa fa-history" aria-hidden="true"></i>
 							</a>
 						</td>
 						<td>{{ entry.description }}</td>
 						<td>{{ entry.author_url }}</td>
-						<td nowrap>{{ entry.link }}
-							{{ entry.install }}</td>
+						<td nowrap>
+<a href="{{ entry.url }}" class="btn btn-outline-primary btn-sm" title="{{ lang['settings'] }}" data-bs-toggle="tooltip">
+	<i class="fa fa-cog" aria-hidden="true"></i>
+</a>
+						{{ entry.link }}
+							{{ entry.install }}
+							</td>
 					</tr>
 				{% endfor %}
 			</tbody>
@@ -188,7 +193,7 @@
 				<iframe id="readmeContent" src="" style="width: 100%; height: 500px; border: none;"></iframe>
 			</div>
 			<div class="modal-footer">
-				<button type="button" class="btn btn-secondary" data-dismiss="modal">{{ lang['action.close'] }}</button>
+				<button type="button" class="btn btn-secondary" data-dismiss="modal">{{ lang['entry.close'] }}</button>
 			</div>
 		</div>
 	</div>
@@ -207,7 +212,7 @@
 				<iframe id="historyContent" src="" style="width: 100%; height: 500px; border: none;"></iframe>
 			</div>
 			<div class="modal-footer">
-				<button type="button" class="btn btn-secondary" data-dismiss="modal">{{ lang['action.close'] }}</button>
+				<button type="button" class="btn btn-secondary" data-dismiss="modal">{{ lang['entry.close'] }}</button>
 			</div>
 		</div>
 	</div>

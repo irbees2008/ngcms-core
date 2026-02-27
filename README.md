@@ -1,5 +1,4 @@
-ngcms-core
-==========
+# ngcms-core
 
 [![Join the chat at https://gitter.im/irbees2008/ngcms-core](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/irbees2008/ngcms-core?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
@@ -7,18 +6,28 @@ ngcms-core
 Не забывайте, что ядро не может работать самостоятельно без набора необходимых плагинов.
 
 # Установка вариант 1
+
 1. Скачать содержимое данного репозитория в корневой каталог WEB сервера.
 2. Скачать содержимое репозитория (полностью, либо выбранные плагины) https://github.com/irbees2008/ngcms-plugins в каталог engine/plugins/
 3. Установить composer (если он ещё не установлен)
 4. Выполнить установку зависимостей composer'а командой composer install
 5. Открыть в WEB сервере ваш будущий сайт и следовать по указанным шагам.
-   
+
 # Установка вариант 2
+
 1. Зайти во вкладку Actions https://github.com/irbees2008/ngcms-core/actions
 2. Выбрать в All workflows любой Build source code нажать .
 3. Вследующем окне выбрать ngcms-current-build и скачать .
 4. Скачиваем,рапаковываем,заливаем на хостинг , устанавливаем .
-------------------------------------------------------------------------------------
+
+---
+
+## Лицензия
+
+NGCMS распространяется по лицензии [GNU GPL v2](license.md).
+
+---
+
 <h2>Администрирование сайта:</h2>
 <p>Для администрирования сайта необходимо любой из современных браузеров.</p>
 

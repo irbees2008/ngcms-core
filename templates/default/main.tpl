@@ -128,9 +128,7 @@
 							</ul>
 							<div class="tab-content tab-bordered">
 								<div class="tab-pane active" id="tab-1">
-									{% if pluginIsActive('xnews') %}
-										{{ callPlugin('xnews.show', {'order' : 'last', 'count': '6', 'template' : 'xnews1'}) }}
-									{% endif %}
+{plugin_jchat}
 								</div>
 								<div class="tab-pane" id="tab-2">
 									{% if pluginIsActive('xnews') %}

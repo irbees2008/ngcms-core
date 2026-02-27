@@ -257,7 +257,7 @@ if (is_array($userROW)) {
         // Fallback: get count directly from database if PM table exists
         try {
             $result = $mysql->query("SHOW TABLES LIKE '" . $config['prefix'] . "_pm'");
-            if ($mysql->num_rows($result) > 0 && is_array($userROW) && $userROW['id']) {
+            if ($result !== null && $mysql->num_rows($result) > 0 && is_array($userROW) && $userROW['id']) {
                 $newpm = intval($mysql->result("SELECT COUNT(*) FROM " . $config['prefix'] . "_pm WHERE to_id = " . intval($userROW['id']) . " AND folder='inbox' AND viewed = '0'"));
                 $newpmText = ($newpm > 0) ? $newpm . ' новых сообщений' : $lang['head_pm_no'];
             }

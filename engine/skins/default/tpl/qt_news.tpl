@@ -221,6 +221,7 @@
 		</button>
 	</div>
 	<!-- Dropdown: вставка [code=язык]...[/code] -->
+{% if pluginIsActive('code_highlight') %}
 	{% if callPlugin('code_highlight.hasAnyEnabled', {}) %}
 		<div class="btn-group btn-group-sm mr-2">
 			<button id="tags-code" type="button" class="btn btn-outline-dark dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" title="Код с подсветкой (выбрать язык)">
@@ -292,6 +293,7 @@
 			</div>
 		</div>
 	{% endif %}
+{% endif %}
 </div>
 <!-- Modal: Insert URL -->
 <div id="modal-insert-url" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="url-modal-label" aria-hidden="true">

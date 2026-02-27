@@ -3,6 +3,7 @@
 	<span class="meta">{{ news.date }} | {% if pluginIsActive('uprofile') %}
 		<a href="{{ news.author.url }}">{% endif %}{{ news.author.name }}{% if pluginIsActive('uprofile') %}</a>{% endif %}</span>
 	<p>{{ news.short }}{{ news.full }}</p>
+{{plugin_bookmarks_news}}
 	{% if (news.flags.hasPagination) %}
 		<div class="pagination">
 			<ul>

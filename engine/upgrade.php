@@ -39,6 +39,10 @@ $upgradeMatrix = [
     7 => [
         "UPDATE " . prefix . "_config SET value = 7 WHERE name = 'database.engine.revision'",
     ],
+    8 => [
+        // Проверка и добавление поля cat_show выполняется в doUpgrade()
+        "UPDATE " . prefix . "_config SET value = 8 WHERE name = 'database.engine.revision'",
+    ],
 ];
 // Получаем текущую версию БД
 $currentVersion = getCurrentDBVersion();
@@ -182,11 +186,91 @@ function doUpgrade(int $fromVersion, int $toVersion): void
                 } catch (Exception $e) {
                     echo "<div class='action'><div class='status error'>Ошибка при обновлении плагина комментариев: " . htmlspecialchars($e->getMessage()) . "</div></div>";
                 }
+                // Создание таблицы сессий пользователей
+                echo "<h4>Проверка таблицы сессий пользователей</h4>";
+                $sessionsTable = prefix . '_users_sessions';
+                try {
+                    $tableExistsResult = $db->query("SHOW TABLES LIKE '{$sessionsTable}'");
+                    $tableExists = false;
+                    if (is_array($tableExistsResult)) {
+                        $tableExists = count($tableExistsResult) > 0;
+                    } elseif ($tableExistsResult) {
+                        $tableExists = $tableExistsResult->rowCount() > 0;
+                    }
+                    if (!$tableExists) {
+                        echo "<div class='action'><div class='status'>Таблица `{$sessionsTable}` не найдена, создаем...</div></div>";
+                        $createTableSql = "CREATE TABLE `{$sessionsTable}` (
+                            `userID` int NOT NULL,
+                            `ip` varchar(15) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '0',
+                            `last` int NOT NULL DEFAULT '0',
+                            `authcookie` varchar(50) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+                            KEY `userUpdate` (`userID`,`authcookie`),
+                            KEY `users_auth` (`authcookie`)
+                        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci";
+                        executeSqlWithReporting($db, $createTableSql);
+                        echo "<div class='action'><div class='success'>Таблица `{$sessionsTable}` успешно создана</div></div>";
+                    } else {
+                        echo "<div class='action'><div class='skipped'>Таблица `{$sessionsTable}` уже существует</div></div>";
+                    }
+                } catch (Exception $e) {
+                    echo "<div class='action'><div class='status error'>Ошибка при создании таблицы сессий: " . htmlspecialchars($e->getMessage()) . "</div></div>";
+                }
             }
             // Стандартная обработка для других версий (кроме 6, который обрабатывается отдельно)
             if ($version != 6 && !empty($upgradeMatrix[$version])) {
                 foreach ($upgradeMatrix[$version] as $sql) {
                     executeSqlWithReporting($db, $sql);
+                }
+            }
+            // Специальная обработка для версии 8
+            if ($version == 8) {
+                echo "<h4>Обновление таблицы категорий</h4>";
+                $categoryTable = prefix . '_category';
+                // Проверяем наличие поля 'cat_show'
+                if (!columnExists($db, $categoryTable, 'cat_show')) {
+                    echo "<div class='action'><div class='status'>Поле 'cat_show' не найдено, добавляем...</div></div>";
+                    executeSqlWithReporting($db, "ALTER TABLE `{$categoryTable}` ADD COLUMN `cat_show` TINYINT(1) NOT NULL DEFAULT 0 AFTER `poslevel`");
+                    echo "<div class='action'><div class='success'>Поле 'cat_show' успешно добавлено</div></div>";
+                } else {
+                    echo "<div class='action'><div class='skipped'>Поле 'cat_show' уже существует, пропускаем</div></div>";
+                }
+            }
+            // Конвертация таблиц плагина jchat в utf8mb4 + исправление типов столбцов
+            if ($version == 7) {
+                echo "<h4>Обновление таблиц плагина jChat</h4>";
+                $jchatTable       = prefix . '_jchat';
+                $jchatEventsTable = prefix . '_jchat_events';
+                try {
+                    $jchatExists = false;
+                    $r = $db->query("SHOW TABLES LIKE '{$jchatTable}'");
+                    if (is_array($r)) {
+                        $jchatExists = !empty($r);
+                    } elseif ($r) {
+                        $jchatExists = $r->rowCount() > 0;
+                    }
+                    if ($jchatExists) {
+                        echo "<div class='action'><div class='status'>Таблица `{$jchatTable}` найдена, выполняем обновление...</div></div>";
+                        executeSqlWithReporting($db, "ALTER TABLE `{$jchatTable}` CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
+                        executeSqlWithReporting($db, "ALTER TABLE `{$jchatTable}` MODIFY COLUMN `author` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT ''");
+                        executeSqlWithReporting($db, "ALTER TABLE `{$jchatTable}` MODIFY COLUMN `text`   text         CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL");
+                        executeSqlWithReporting($db, "ALTER TABLE `{$jchatTable}` MODIFY COLUMN `ip`     varchar(45)  NOT NULL DEFAULT ''");
+                        echo "<div class='action'><div class='success'>Таблица `{$jchatTable}` успешно конвертирована в utf8mb4</div></div>";
+                    } else {
+                        echo "<div class='action'><div class='skipped'>Плагин jChat не установлен (таблица `{$jchatTable}` не найдена). Пропускаем.</div></div>";
+                    }
+                    $jchatEventsExists = false;
+                    $r2 = $db->query("SHOW TABLES LIKE '{$jchatEventsTable}'");
+                    if (is_array($r2)) {
+                        $jchatEventsExists = !empty($r2);
+                    } elseif ($r2) {
+                        $jchatEventsExists = $r2->rowCount() > 0;
+                    }
+                    if ($jchatEventsExists) {
+                        executeSqlWithReporting($db, "ALTER TABLE `{$jchatEventsTable}` CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
+                        echo "<div class='action'><div class='success'>Таблица `{$jchatEventsTable}` успешно конвертирована в utf8mb4</div></div>";
+                    }
+                } catch (Exception $e) {
+                    echo "<div class='action'><div class='error'>Ошибка при обновлении таблиц jChat: " . htmlspecialchars($e->getMessage()) . "</div></div>";
                 }
             }
             // В функции doUpgrade, внутри блока версии 7, после repairPlugdataFile():
