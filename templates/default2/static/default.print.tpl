@@ -19,7 +19,7 @@
     <table border="0" width="100%" cellspacing="1" cellpadding="3">
         <tr></tr><td width="100%" class="header"><a href="{{ home }}"> {{ home_title }}</a> &raquo; <a href="javascript:history.go(-1)">{{ staticTitle }}</a><hr></td></tr>
         <tr><td width="100%">{{ staticContent }}</td></tr>
-        <tr><td width="100%"><hr><p class="footer">Дата: {{ staticDateStamp | cdate  }} <b style="float:right!important;">{{ home }}</b></p><hr></td>
+        <tr><td width="100%"><hr><p class="footer">Дата: {{ staticDateStamp | date  }} <b style="float:right!important;">{{ home }}</b></p><hr></td>
         </tr>
     </table>
 </body>

@@ -12,7 +12,6 @@
         </div>
     </div>
 </header>
-
 <!-- Page Content -->
 <div class="container">
     <div class="row justify-content-center">
@@ -20,7 +19,7 @@
             <article>
                 {{ staticContent }}
                 <hr class="alert-info" />
-                <small title="{{ staticDate }}"><i class="fa fa-calendar"></i>&nbsp;{{ staticDateStamp | cdate  }}</small>
+                <small title="{{ staticDate }}"><i class="fa fa-calendar"></i>&nbsp;{{ staticDateStamp | date  }}</small>
                 <a href="{{ staticPrintLink }}" rel="nofollow" class="pull-right btn btn-sm btn-outline-secondary"><i class="fa fa-print"></i></a>
             </article>
         </div>
