@@ -1,4 +1,3 @@
-
 <!-- Page Header -->
 <header class="intro-header" style="background-image: url('{{ (p.xfields.poster.entries[0].purl ?? null)?: (news.embed.images[0] ?? null)?: tpl_url ~ '/img/home-bg.jpg' }}		')">
 	<div class="container">
@@ -18,7 +17,7 @@
 	<div class="container">
 		<div class="row justify-content-center">
 			<div class="col-lg-8 col-md-10">
-				<p>{{ news.short|striptags }}</p>
+				<p>{{ news.short }}</p>
 				<p class="post-meta clearfix">
 					<span class="pull-left">
 						{% if pluginIsActive('uprofile') %}
@@ -66,4 +65,3 @@
 		</div>
 	</div>
 </div>
-

@@ -17,7 +17,7 @@
 	<p class="post-img">
 		<img src="{{ (p.xfields.poster.entries[0].purl ?? null) ?: (news.embed.images[0] ?? null) ?: tpl_url ~ '/img/img-none.png' }}" class="img-fluid"/>
 	</p>
-	<p class="post-body">{{ news.short|truncateHTML(450,'...')|striptags }}<br>
+	<p class="post-body">{{ news.short|truncateHTML(450,'...') }}<br>
 		<a href="{{ news.url.full }}" class="btn btn-outline-info btn-sm btn-block">
 			<b>подробнее...</b>
 		</a>
