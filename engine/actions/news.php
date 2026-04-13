@@ -10,6 +10,7 @@ if (!defined('NGCMS')) {
     exit('HAL');
 }
 @include_once root . 'includes/classes/upload.class.php';
+@include_once root . 'includes/multilang.php';
 LoadLang('editnews', 'admin');
 LoadLang('editnews', 'admin', 'editnews');
 LoadLang('addnews', 'admin', 'addnews');
@@ -199,6 +200,75 @@ function editNewsForm()
             $v->editNewsForm($id, $row, $tVars);
         }
     }
+
+    // Load multilingual translation data
+    if (function_exists('getCurrentSiteLanguage') && function_exists('getActiveLanguageSites')) {
+        // Check if multilang is enabled for current site
+        global $multiDomainName, $multiconfig;
+
+        // Load multiconfig if not loaded
+        if (empty($multiconfig) && is_file(confroot . 'multiconfig.php')) {
+            include confroot . 'multiconfig.php';
+        }
+
+        // Check if multilang is enabled for this site (default: enabled for backward compatibility)
+        $multilangEnabled = true;
+        if (!empty($multiDomainName) && isset($multiconfig[$multiDomainName]['multilang_enabled'])) {
+            $multilangEnabled = (bool)$multiconfig[$multiDomainName]['multilang_enabled'];
+        } elseif (empty($multiDomainName) && isset($multiconfig['main']['multilang_enabled'])) {
+            $multilangEnabled = (bool)$multiconfig['main']['multilang_enabled'];
+        }
+
+        if ($multilangEnabled) {
+            $currentLang = getCurrentSiteLanguage();
+            $allLangSites = getActiveLanguageSites();
+
+            // Get translations for this news
+            $translations = [];
+            $translationGroupId = $row['translation_group_id'] ?? '';
+
+            if ($translationGroupId && function_exists('getNewsTranslations')) {
+                $translations = getNewsTranslations($translationGroupId, $id);
+            }
+
+            // Find available languages (not yet translated)
+            $availableLangs = [];
+            $existingLangs = [$currentLang];
+            foreach ($translations as $trans) {
+                $existingLangs[] = $trans['lang_code'];
+            }
+
+            foreach ($allLangSites as $langSite) {
+                if (!in_array($langSite['lang'], $existingLangs)) {
+                    $availableLangs[] = $langSite;
+                }
+            }
+
+            // Add translation data to template vars
+            $tVars['currentLang'] = [
+                'code' => $currentLang,
+                'label' => getLanguageName($currentLang),
+                'domain' => $_SERVER['HTTP_HOST'] ?? ''
+            ];
+            $tVars['translations'] = $translations;
+            $tVars['availableLangs'] = $availableLangs;
+            $tVars['translationGroupId'] = $translationGroupId;
+
+            // Add language label to each translation
+            foreach ($tVars['translations'] as &$trans) {
+                $trans['lang_label'] = getLanguageName($trans['lang_code']);
+                // Find site info
+                foreach ($allLangSites as $site) {
+                    if ($site['lang'] == $trans['lang_code']) {
+                        $trans['site_label'] = $site['label'];
+                        $trans['site_domain'] = $site['domain'];
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
     $xt = $twig->loadTemplate('skins/' . $config['admin_skin'] . '/tpl/news/edit.tpl');
     return $xt->render($tVars);
 }

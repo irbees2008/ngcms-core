@@ -144,11 +144,12 @@ registrationValidator.validateFields();
 			<div class="label-desc" id="{{ entry.id }}">{{ entry.descr }}</div>
 		</div>
 	{% endfor %}
-	{% if captcha_widget %}
+	{% if flags.hasCaptcha %}
 		<div class="label label-table captcha pull-left">
-			<label>{{ lang.captcha }}:</label>
-			<div class="clearfix"></div>
-			{{ captcha_widget|raw }}
+			<label for="reg_capcha">{{ lang.captcha }}:</label>
+			<input id="reg_capcha" type="text" name="vcode" class="input">
+			<img src="{{ admin_url }}/captcha.php?id=registration&force=1&rand={{ random() }}" onclick="reload_captcha();" id="img_captcha" alt="{{ lang.captcha }}" style="cursor: pointer;">
+			<div class="label-desc">{{ lang.captcha_desc }}</div>
 		</div>
 	{% endif %}
 	<div class="clearfix"></div>
@@ -165,5 +166,12 @@ window.alert('{{ lang.theme['registration.check_rules'] }}');
 return false;
 }
 return true;
+}
+var ADMIN_URL = "{{ admin_url }}";
+function reload_captcha() {
+let img = document.getElementById('img_captcha');
+if (img) {
+img.src = ADMIN_URL + '/captcha.php?id=registration&force=1&rand=' + Math.random();
+}
 }
 </script>

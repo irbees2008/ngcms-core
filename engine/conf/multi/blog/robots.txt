@@ -1,0 +1,40 @@
+User-agent: *
+Disallow: /engine/
+Disallow: /templates/
+Allow: /uploads/
+
+User-agent: Yandex
+Disallow: /engine/
+Disallow: /templates/
+Allow: /uploads/
+
+User-agent: Googlebot
+Disallow: /engine/
+Disallow: /templates/
+Allow: /uploads/
+
+# AI Search боты (разрешены)
+User-agent: OAI-SearchBot
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+# AI Training боты (блокированы для обучения)
+User-agent: GPTBot
+Disallow: /
+
+User-agent: ClaudeBot
+Disallow: /
+
+User-agent: Google-Extended
+Disallow: /
+
+User-agent: Meta-ExternalAgent
+Disallow: /
+
+# Sitemaps для blog
+Sitemap: {SITE_URL}/sitemap.xml
+Sitemap: {SITE_URL}/gsmg.xml
+
+Host: {DOMAIN}
