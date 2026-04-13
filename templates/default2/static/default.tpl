@@ -24,7 +24,7 @@
 				{{ content }}
 				<hr class="alert-info"/>
 				<small title="{{ Date }}">
-					<i class="fa fa-calendar"></i>&nbsp;{{ Date | date  }}</small>
+					<i class="fa fa-calendar"></i>&nbsp;{{ date  }}</small>
 				<a href="{{ print_static_url }}" rel="nofollow" class="pull-right btn btn-sm btn-outline-secondary">
 					<i class="fa fa-print"></i>
 				</a>
