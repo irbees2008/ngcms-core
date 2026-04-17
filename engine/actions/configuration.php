@@ -520,23 +520,23 @@ function multisiteAdd()
             if ($dbType === 'separate') {
                 // Separate database
                 $configContent = preg_replace(
-                    "/'db_host'\s*=>\s*'[^']*'/",
-                    "'db_host' => '{$dbConfig['host']}'",
+                    "/'dbhost'\s*=>\s*'[^']*'/",
+                    "'dbhost' => '{$dbConfig['host']}'",
                     $configContent
                 );
                 $configContent = preg_replace(
-                    "/'db_name'\s*=>\s*'[^']*'/",
-                    "'db_name' => '{$dbConfig['name']}'",
+                    "/'dbname'\s*=>\s*'[^']*'/",
+                    "'dbname' => '{$dbConfig['name']}'",
                     $configContent
                 );
                 $configContent = preg_replace(
-                    "/'db_user'\s*=>\s*'[^']*'/",
-                    "'db_user' => '{$dbConfig['user']}'",
+                    "/'dbuser'\s*=>\s*'[^']*'/",
+                    "'dbuser' => '{$dbConfig['user']}'",
                     $configContent
                 );
                 $configContent = preg_replace(
-                    "/'db_pass'\s*=>\s*'[^']*'/",
-                    "'db_pass' => '{$dbConfig['password']}'",
+                    "/'dbpasswd'\s*=>\s*'[^']*'/",
+                    "'dbpasswd' => '{$dbConfig['password']}'",
                     $configContent
                 );
                 $configContent = preg_replace(
