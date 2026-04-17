@@ -1269,3 +1269,129 @@ function dbCheckUpgradeRequired(): bool
 
     return false;
 }
+
+/**
+ * Clear Twig cache for multisite
+ * @param string $siteId Site ID to clear cache for (empty = current site, 'all' = all sites)
+ * @return int Number of deleted files
+ */
+function clearTwigCache($siteId = '')
+{
+    global $multiDomainName;
+
+    $deletedCount = 0;
+    $cacheBasePath = root . 'cache/twig/';
+
+    // Determine which sites to clear
+    if ($siteId === 'all') {
+        // Clear all multisites cache
+        $sites = [];
+        if (is_dir($cacheBasePath)) {
+            $dirs = @scandir($cacheBasePath);
+            if ($dirs) {
+                foreach ($dirs as $dir) {
+                    if ($dir != '.' && $dir != '..' && is_dir($cacheBasePath . $dir)) {
+                        $sites[] = $dir;
+                    }
+                }
+            }
+        }
+        // Also clear root cache for backward compatibility
+        if (empty($sites)) {
+            $sites = [''];
+        }
+    } else {
+        // Clear specific site cache (or current if empty)
+        $sites = [$siteId ?: ($multiDomainName ?: 'main')];
+    }
+
+    // Clear cache for each site
+    foreach ($sites as $site) {
+        $cachePath = $site ? $cacheBasePath . $site . '/' : $cacheBasePath;
+        $deletedCount += clearCacheDirectory($cachePath);
+    }
+
+    return $deletedCount;
+}
+
+/**
+ * Clear all cache for multisite (Twig, plugins, auth, etc.)
+ * @param string $siteId Site ID to clear cache for (empty = current site, 'all' = all sites)
+ * @return int Number of deleted files
+ */
+function clearAllCache($siteId = '')
+{
+    global $multiDomainName;
+
+    $deletedCount = 0;
+    $cacheBasePath = root . 'cache/';
+
+    // Determine which sites to clear
+    if ($siteId === 'all') {
+        // Clear cache for all multisites
+        $sites = [];
+        if (is_dir($cacheBasePath)) {
+            $dirs = @scandir($cacheBasePath);
+            if ($dirs) {
+                foreach ($dirs as $dir) {
+                    if ($dir != '.' && $dir != '..' && is_dir($cacheBasePath . $dir)) {
+                        $sites[] = $dir;
+                    }
+                }
+            }
+        }
+    } else {
+        // Clear specific site cache (or current if empty)
+        $sites = [$siteId ?: ($multiDomainName ?: 'main')];
+    }
+
+    // Clear cache for each site
+    foreach ($sites as $site) {
+        $cachePath = $cacheBasePath . $site . '/';
+        if (is_dir($cachePath)) {
+            $deletedCount += clearCacheDirectory($cachePath);
+        }
+    }
+
+    return $deletedCount;
+}
+
+/**
+ * Recursively clear cache directory
+ * @param string $dir Directory path
+ * @return int Number of deleted files
+ */
+function clearCacheDirectory($dir)
+{
+    $deletedCount = 0;
+
+    if (!is_dir($dir)) {
+        return 0;
+    }
+
+    $files = @scandir($dir);
+    if (!$files) {
+        return 0;
+    }
+
+    foreach ($files as $file) {
+        if ($file == '.' || $file == '..') {
+            continue;
+        }
+
+        $filePath = $dir . DIRECTORY_SEPARATOR . $file;
+
+        if (is_dir($filePath)) {
+            // Recursively delete subdirectory
+            $deletedCount += clearCacheDirectory($filePath);
+            @rmdir($filePath);
+        } else {
+            // Delete file
+            if (@unlink($filePath)) {
+                $deletedCount++;
+            }
+        }
+    }
+
+    return $deletedCount;
+}

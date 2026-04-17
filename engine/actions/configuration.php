@@ -1083,12 +1083,23 @@ if (isset($_REQUEST['subaction']) && ($_REQUEST['subaction'] == 'save') && ($_SE
     @include confroot . 'config.php';
     // Clear cache
     if (isset($_REQUEST['clear_cache']) && $_REQUEST['clear_cache'] == '1') {
-        $cacheDir = root . 'cache/';
-        if (is_dir($cacheDir)) {
-            $files = glob($cacheDir . '*');
-            foreach ($files as $file) {
-                if (is_file($file)) {
-                    @unlink($file);
+        // Clear all cache for all multisites (Twig, plugins, auth, etc.)
+        if (function_exists('clearAllCache')) {
+            clearAllCache('all');
+        } else {
+            // Fallback: clear Twig cache only
+            if (function_exists('clearTwigCache')) {
+                clearTwigCache('all');
+            }
+
+            // Clear other cache files in root cache directory (old behavior)
+            $cacheDir = root . 'cache/';
+            if (is_dir($cacheDir)) {
+                $files = glob($cacheDir . '*');
+                foreach ($files as $file) {
+                    if (is_file($file)) {
+                        @unlink($file);
+                    }
                 }
             }
         }

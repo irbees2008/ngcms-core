@@ -381,9 +381,15 @@ set_error_handler('ngErrorHandler');
 register_shutdown_function('ngShutdownHandler');
 // Initialize TWIG engine
 $twigLoader = new NGTwigLoader(root);
+// Configure cache path for multisite (separate cache for each domain)
+$twigCachePath = root . 'cache/twig/' . ($multiDomainName ?: 'main') . '/';
+// Create cache directory if not exists
+if (!is_dir($twigCachePath)) {
+    @mkdir($twigCachePath, 0755, true);
+}
 // Configure environment and general parameters
 $twig = new NGTwigEnvironment($twigLoader, [
-    'cache'       => root . 'cache/twig/',
+    'cache'       => $twigCachePath,
     'auto_reload' => true,
     'autoescape'  => false,
     'charset'     => 'UTF-8',

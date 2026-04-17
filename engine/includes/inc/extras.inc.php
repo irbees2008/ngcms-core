@@ -974,19 +974,28 @@ function get_plugcache_dir($plugin)
     global $multiDomainName, $multimaster;
 
     $dir = root . 'cache/';
-    if ($multiDomainName && $multimaster && ($multiDomainName != $multimaster)) {
-        $dir .= 'multi/';
-        if ((!is_dir($dir)) && (!mkdir($dir))) {
-            echo "Can't create multi cache dir!<br>\n";
 
+    // Create separate cache directory for each multisite
+    if ($multiDomainName && $multimaster && ($multiDomainName != $multimaster)) {
+        // Use domain-specific cache directory
+        $dir .= $multiDomainName . '/';
+        if ((!is_dir($dir)) && (!@mkdir($dir, 0755, true))) {
+            echo "Can't create cache dir for multisite '$multiDomainName'!<br>\n";
+            return '';
+        }
+    } else {
+        // Main site uses 'main' subdirectory for consistency
+        $dir .= 'main/';
+        if ((!is_dir($dir)) && (!@mkdir($dir, 0755, true))) {
+            echo "Can't create main cache dir!<br>\n";
             return '';
         }
     }
+
     if ($plugin) {
         $dir .= $plugin . '/';
-        if ((!is_dir($dir)) && (!mkdir($dir))) {
+        if ((!is_dir($dir)) && (!@mkdir($dir, 0755, true))) {
             echo "Can't create cache for plugin '$plugin'<br>\n";
-
             return '';
         }
     }

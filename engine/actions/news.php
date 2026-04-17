@@ -9,6 +9,15 @@
 if (!defined('NGCMS')) {
     exit('HAL');
 }
+
+// Load ng-helpers if not loaded
+if (!function_exists('Plugins\\array_get')) {
+    $ngHelpersPath = __DIR__ . '/../plugins/ng-helpers/ng-helpers.php';
+    if (file_exists($ngHelpersPath)) {
+        require_once $ngHelpersPath;
+    }
+}
+
 @include_once root . 'includes/classes/upload.class.php';
 @include_once root . 'includes/multilang.php';
 LoadLang('editnews', 'admin');

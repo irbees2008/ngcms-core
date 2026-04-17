@@ -17,8 +17,9 @@ function multi_multisites()
         return;
     }
 
-    // Определяем путь к конфигу (используем engine/conf вместо root/conf)
-    $multiconfigPath = defined('confroot') ? confroot . 'multiconfig.php' : root . 'conf/multiconfig.php';
+    // Определяем путь к конфигу multiconfig.php
+    // ВАЖНО: root уже указывает на корень движка, conf/ находится напрямую там
+    $multiconfigPath = root . 'conf/multiconfig.php';
 
     // Анализируем мультидоменную конфигурацию
     if (!is_file($multiconfigPath)) {
@@ -28,6 +29,7 @@ function multi_multisites()
     if (!is_array($multiconfig)) {
         return;
     }
+
     // Если не выбран МультиМастер - не обрабатываем мультиконфиг
     if (
         !$multimaster || (!is_array($multiconfig[$multimaster])) ||
@@ -64,6 +66,7 @@ function multi_multisites()
             }
         }
     } while (0);
+
     // Если нет ни одного совпадения, то выбираем первый домен у мастера
     if (!$siteDomainName) {
         $siteDomainName = $multiconfig[$multimaster]['domains'][0];
