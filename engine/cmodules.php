@@ -77,6 +77,16 @@ function coreRegisterUser()
             $values[$param['name']] = filter_input(INPUT_POST, $param['name'], FILTER_SANITIZE_STRING) ?? null;
         }
         $msg = '';
+        // Check captcha
+        if ($config['use_captcha']) {
+            // Read user input from POST
+            $captcha = filter_input(INPUT_POST, 'vcode', FILTER_SANITIZE_STRING);
+            // Captcha image is generated via captcha.php?id=registration, which stores code in $_SESSION['captcha.registration']
+            $sessionCode = $_SESSION['captcha.registration'] ?? ($_SESSION['captcha'] ?? null);
+            if (!$captcha || !$sessionCode || ($sessionCode != $captcha)) {
+                $msg = $lang['msge_vcode'];
+            }
+        }
         // Execute filters - check if user is allowed to register
         if (!$msg && is_array($PFILTERS['core.registerUser'])) {
             foreach ($PFILTERS['core.registerUser'] as $k => $v) {
@@ -161,10 +171,15 @@ function generate_reg_page($params, $values = [], $msg = '')
     // Execute filters - add additional variables
     if (!empty($PFILTERS['core.registerUser'])) {
         foreach ($PFILTERS['core.registerUser'] as $k => $v) {
-            if (method_exists($v, 'registerUserForm')) {
-                $v->registerUserForm($tVars);
-            }
+            $v->registerUserForm($tVars);
         }
+    }
+    // Generate captcha for registration if enabled (was missing, causing always invalid captcha)
+    if ($config['use_captcha']) {
+        $_SESSION['captcha'] = random_int(10000, 99999);
+        $tVars['flags']['hasCaptcha'] = true;
+    } else {
+        $tVars['flags']['hasCaptcha'] = false;
     }
     // Generate inputs
     foreach ($tVars['entries'] as &$param) {
@@ -207,11 +222,17 @@ function generate_reg_page($params, $values = [], $msg = '')
     ];
     $twigLoader->setConversion('registration.tpl', $conversionConfig, $conversionConfigRegex);
     $twigLoader->setConversion('registration.entries.tpl', $conversionConfigEntries);
+    // Вызываем фильтры для добавления виджетов от плагинов (например, ng-advanced-captcha)
+    if (is_array($PFILTERS['core.registrationForm'])) {
+        foreach ($PFILTERS['core.registrationForm'] as $k => $v) {
+            $v->registerUserForm($tVars);
+        }
+    }
     $template['vars']['mainblock'] .= $twig->render('registration.tpl', $tVars);
 }
 function coreRestorePassword()
 {
-    global $lang, $userROW, $config, $AUTH_METHOD, $SYSTEM_FLAGS, $mysql, $CurrentHandler;
+    global $lang, $userROW, $config, $AUTH_METHOD, $SYSTEM_FLAGS, $mysql, $CurrentHandler, $PFILTERS;
     $lang = LoadLang('lostpassword', 'site');
     $SYSTEM_FLAGS['info']['title']['group'] = $lang['loc_lostpass'];
     if (is_array($userROW)) {
@@ -238,9 +259,30 @@ function coreRestorePassword()
         $params = $auth->get_restorepw_params();
         $values = [];
         foreach ($params as $param) {
-            $values[$param['name']] = $_POST[$param['name']];
+            // Пропускаем элементы без поля name (текстовые сообщения)
+            if (isset($param['name']) && $param['name']) {
+                $values[$param['name']] = $_POST[$param['name']] ?? '';
+            }
         }
+
         $msg = '';
+        // Вызываем фильтры для проверки капчи от плагинов (например, ng-advanced-captcha)
+        if (is_array($PFILTERS['core.lostpassword'])) {
+            foreach ($PFILTERS['core.lostpassword'] as $k => $v) {
+                if (!$v->lostpassword($msg, $params, $values)) {
+                    // Фильтр вернул false - капча не прошла проверку
+                    generate_restorepw_page($params, $values, $msg);
+                    return;
+                }
+            }
+        }
+        // Check captcha (старая система, если плагин не активен)
+        if ($msg === '' && $config['use_captcha']) {
+            $captcha = $_REQUEST['vcode'];
+            if (!$captcha || ($_SESSION['captcha'] != $captcha)) {
+                $msg = $lang['msge_vcode']; // Fail
+            }
+        }
         // Trying password recovery
         if ($msg === '' && $auth->restorepw($params, $values, $msg)) {
             // OK
@@ -261,66 +303,107 @@ function coreRestorePassword()
 }
 function generate_restorepw_page(array $params, array $values = [], string $msg = ''): void
 {
-    global $twig, $template, $config, $lang;
+    global $twig, $template, $config, $lang, $PFILTERS;
     if (!empty($msg)) {
         msg(['text' => $msg]);
     }
-    $entries = '';
+
+    $tVars = [
+        'entries' => [],
+        'flags'   => [],
+    ];
+
+    // Prepare variable list as array (like in registration)
     foreach ($params as $param) {
-        $tvars = [
-            'name' => $param['name'],
-            'title' => $param['title'],
-            'descr' => $param['descr'],
-            'error' => '',
-            'input' => '',
-            'text' => $param['text'],
-        ];
-        if ($param['error']) {
-            $tvars['error'] = str_replace('%error%', $param['error'], $lang['param_error']);
+        // Skip text-only entries (messages)
+        if ($param['text']) {
+            // For text entries, we can add them as special type
+            $tRow = [
+                'type'  => 'message',
+                'text'  => $param['text'],
+                'name'  => '',
+                'title' => '',
+            ];
+            $tVars['entries'][] = $tRow;
+            continue;
         }
-        if ($values[$param['name']]) {
+
+        $tRow = [
+            'name'       => $param['name'],
+            'title'      => $param['title'],
+            'descr'      => $param['descr'],
+            'error'      => '',
+            'input'      => '',
+            'flags'      => [],
+            'type'       => $param['type'],
+            'html_flags' => $param['html_flags'],
+            'value'      => $param['value'],
+            'values'     => $param['values'] ?? [],
+            'manual'     => $param['manual'] ?? '',
+        ];
+
+        if (!empty($param['id'])) {
+            $tRow['id'] = $param['id'];
+        }
+
+        if ($param['error']) {
+            $tRow['flags']['isError'] = true;
+            $tRow['error'] = str_replace('%error%', $param['error'], $lang['param_error']);
+        }
+
+        if (!empty($values[$param['name']])) {
+            $tRow['value'] = $values[$param['name']];
             $param['value'] = $values[$param['name']];
         }
-        if ($param['type'] == 'text') {
-            $tvars['input'] = '<textarea name="' . $param['name'] . '" title="' . secure_html($param['title']) . '" ' . $param['html_flags'] . '>' . secure_html($param['value']) . '</textarea>';
-        } elseif (in_array($param['type'], ['input', 'password', 'hidden'], true)) {
-            $tvars['input'] = '<input name="' . $param['name'] . '" type="' . (($param['type'] == 'input') ? 'text' : $param['type']) . '" title="' . secure_html($param['title']) . '" ' . $param['html_flags'] . ' value="' . secure_html($param['value']) . '" />';
-        } elseif ($param['type'] == 'select') {
-            $tvars['input'] = '<select name="' . $param['name'] . '" title="' . secure_html($param['title']) . '" ' . $param['html_flags'] . '>';
-            foreach ($param['values'] as $oid => $oval) {
-                $tvars['input'] .= '<option value="' . secure_html($oid) . '"' . ($param['value'] == $oid ? ' selected' : '') . '>' . secure_html($oval) . '</option>';
-            }
-            $tvars['input'] .= '</select>';
-        } elseif ($param['type'] == 'manual') {
-            $tvars['input'] = $param['manual'];
-        }
-        if ($param['text']) {
-            // Для entry-full (сообщение)
-            $entries .= '<div class="alert alert-info">' . $param['text'] . '</div>';
-        } else {
-            // Для entries (поля формы)
-            $entries .= '<div class="label label-table label-success">';
-            $entries .= '<label>' . $tvars['title'] . ':</label>';
-            $entries .= '<span class="input2">' . $tvars['input'] . '</span>';
-            $entries .= '</div>';
-        }
+
+        $tVars['entries'][] = $tRow;
     }
-    $tvars = [
-        'entries' => $entries,
-    ];
-    // Execute filters - add additional variables (captcha widget etc.)
-    if (!empty($PFILTERS['core.registerUser'])) {
-        foreach ($PFILTERS['core.registerUser'] as $k => $v) {
-            if (method_exists($v, 'registerUserForm')) {
-                $v->registerUserForm($tvars);
-            }
+
+    // Generate inputs for each entry
+    foreach ($tVars['entries'] as &$entry) {
+        if ($entry['type'] === 'message') {
+            continue; // Skip message entries
         }
+
+        $tInput = '';
+        if ($entry['type'] == 'text') {
+            $tInput = '<textarea ' . (isset($entry['id']) && $entry['id'] ? 'id="' . $entry['id'] . '" ' : '') . 'name="' . $entry['name'] . '" title="' . secure_html($entry['title']) . '" ' . $entry['html_flags'] . '>' . secure_html($entry['value']) . '</textarea>';
+        } elseif ($entry['type'] == 'input') {
+            $tInput = '<input ' . (isset($entry['id']) && $entry['id'] ? 'id="' . $entry['id'] . '" ' : '') . 'name="' . $entry['name'] . '" type="text" title="' . secure_html($entry['title']) . '" ' . $entry['html_flags'] . ' value="' . secure_html($entry['value']) . '"/>';
+        } elseif ($entry['type'] == 'password' || $entry['type'] == 'hidden') {
+            $tInput = '<input ' . (isset($entry['id']) && $entry['id'] ? 'id="' . $entry['id'] . '" ' : '') . 'name="' . $entry['name'] . '" type="' . $entry['type'] . '" title="' . secure_html($entry['title']) . '" ' . $entry['html_flags'] . ' value="' . secure_html($entry['value']) . '"/>';
+        } elseif ($entry['type'] == 'select') {
+            $tInput = '<select ' . (isset($entry['id']) && $entry['id'] ? 'id="' . $entry['id'] . '" ' : '') . 'name="' . $entry['name'] . '" title="' . secure_html($entry['title']) . '" ' . $entry['html_flags'] . '>';
+            foreach ($entry['values'] as $oid => $oval) {
+                $tInput .= '<option value="' . secure_html($oid) . '"' . ($entry['value'] == $oid ? ' selected' : '') . '>' . secure_html($oval) . '</option>';
+            }
+            $tInput .= '</select>';
+        } elseif ($entry['type'] == 'manual') {
+            $tInput = $entry['manual'];
+        }
+        $entry['input'] = $tInput;
     }
+
+    if ($config['use_captcha']) {
+        $_SESSION['captcha'] = random_int(10000, 99999);
+        $tVars['flags']['hasCaptcha'] = true;
+    } else {
+        $tVars['flags']['hasCaptcha'] = false;
+    }
+
     $formActionParams = checkLinkAvailable('core', 'lostpassword') ?
         ['core', 'lostpassword', []] :
         ['core', 'plugin', ['plugin' => 'core', 'handler' => 'lostpassword']];
-    $tvars['form_action'] = generateLink(...$formActionParams);
-    $template['vars']['mainblock'] .= $twig->render('lostpassword.tpl', $tvars);
+    $tVars['form_action'] = generateLink(...$formActionParams);
+    $tVars['captcha_source_url'] = admin_url . '/captcha.php';
+
+    // Вызываем фильтры для добавления виджетов от плагинов (например, ng-advanced-captcha)
+    if (is_array($PFILTERS['core.lostpasswordForm'])) {
+        foreach ($PFILTERS['core.lostpasswordForm'] as $k => $v) {
+            $v->lostpasswordForm($tVars);
+        }
+    }
+    $template['vars']['mainblock'] .= $twig->render('lostpassword.tpl', $tVars);
 }
 //
 // Execute an action for coreLogin() function
