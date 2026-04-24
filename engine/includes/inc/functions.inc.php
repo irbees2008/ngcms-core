@@ -2808,10 +2808,14 @@ function ngExceptionHandler($exception)
                     } else {
                         // If gravatar integration is active, show avatar from GRAVATAR.COM
                         if ($config['avatars_gravatar']) {
-                            $userAvatar = 'http://www.gravatar.com/avatar/' . md5(mb_strtolower($userROW['mail'])) . '.jpg?s=' . $config['avatar_wh'] . '&d=' . urlencode($noAvatarURL);
+                            $userAvatar = 'https://www.gravatar.com/avatar/' . md5(mb_strtolower($userROW['mail'])) . '.jpg?s=' . $config['avatar_wh'] . '&d=' . urlencode($noAvatarURL);
                         } else {
                             $userAvatar = $noAvatarURL;
                         }
+                    }
+                    // Исправление протокола на HTTPS если страница загружена через HTTPS
+                    if (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') {
+                        $userAvatar = preg_replace('/^http:\/\//i', 'https://', $userAvatar);
                     }
                 }
                 $tVars['avatar_url'] = $userAvatar;

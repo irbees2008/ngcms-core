@@ -15,6 +15,63 @@
 		</div>
 	</div>
 </div>
+<style>
+	/* Simple Lightbox Styles */
+	.lightbox-overlay {
+		display: none;
+		position: fixed;
+		top: 0;
+		left: 0;
+		width: 100%;
+		height: 100%;
+		background: rgba(0, 0, 0, 0.85);
+		z-index: 9999;
+		cursor: pointer;
+	}
+	.lightbox-overlay.active {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+	}
+	.lightbox-content {
+		position: relative;
+		max-width: 90%;
+		max-height: 90vh;
+		cursor: default;
+	}
+	.lightbox-content img {
+		max-width: 100%;
+		max-height: 90vh;
+		display: block;
+		box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
+	}
+	.lightbox-close {
+		position: absolute;
+		top: -40px;
+		right: 0;
+		color: white;
+		font-size: 32px;
+		font-weight: bold;
+		background: none;
+		border: none;
+		cursor: pointer;
+		padding: 5px 15px;
+		opacity: 0.8;
+		transition: opacity 0.3s;
+	}
+	.lightbox-close:hover {
+		opacity: 1;
+	}
+	.lightbox-info {
+		position: absolute;
+		bottom: -40px;
+		left: 0;
+		right: 0;
+		color: white;
+		text-align: center;
+		font-size: 14px;
+	}
+</style>
 <div id="collapseImagesFilter" class="collapse">
 	<div class="card mb-4">
 		<div class="card-body">
@@ -124,21 +181,21 @@
 											<p>SIZE :<span class="img-width">{{ entry.width }}</span>x<span class="img-height">{{ entry.height }}</span>
 												{{ entry.size }}</p>
 											<p>Просмотр :
-												<a class="view-full" data-toggle="tooltip" target="_blank" href="/uploads/images/{{ entry.folder }}/{{ entry.name|default(entry.file_name) }}" title="Полное изображение" data-bs-toggle="tooltip">
+												<a class="view-full lightbox-trigger" data-toggle="tooltip" href="{{ images_url }}/{{ entry.folder }}/{{ entry.name|default(entry.file_name) }}" data-lightbox-title="{{ entry.name|default(entry.file_name) }} ({{ entry.width }}x{{ entry.height }}, {{ entry.size }})" title="Полное изображение" data-bs-toggle="tooltip">
 													<i class="fa fa-search-plus" aria-hidden="true"></i>
 												</a>
-												<a class="view-thumb" data-toggle="tooltip" target="_blank" href="/uploads/images/{{ entry.folder }}/thumb/{{ entry.name|default(entry.file_name) }}" title="Уменьшенное изображение" data-bs-toggle="tooltip">
+												<a class="view-thumb lightbox-trigger" data-toggle="tooltip" href="{{ images_url }}/{{ entry.folder }}/thumb/{{ entry.name|default(entry.file_name) }}" data-lightbox-title="{{ entry.name|default(entry.file_name) }} (preview)" title="Уменьшенное изображение" data-bs-toggle="tooltip">
 													<i class="fa fa-search-minus" aria-hidden="true"></i>
 												</a>
 											</p>
 											<p>Вставка:
-												<a class="insert-full" data-toggle="tooltip" href="javascript:insertimage('[img=&quot;/uploads/images/{{ entry.folder }}/{{ entry.name|default(entry.file_name) }}&quot; border=&quot;0&quot; width=&quot;{{ entry.width }}&quot; height=&quot;{{ entry.height }}&quot; align=&quot;&quot;]{{ entry.name|default(entry.file_name) }} ({{ entry.size }})[/img]', '')" title="Полное изображение" data-bs-toggle="tooltip">
+												<a class="insert-full" data-toggle="tooltip" href="javascript:insertimage('[img=&quot;{{ images_url }}/{{ entry.folder }}/{{ entry.name|default(entry.file_name) }}&quot; border=&quot;0&quot; width=&quot;{{ entry.width }}&quot; height=&quot;{{ entry.height }}&quot; align=&quot;&quot;]{{ entry.name|default(entry.file_name) }} ({{ entry.size }})[/img]', '')" title="Полное изображение" data-bs-toggle="tooltip">
 													<i class="fa fa-share-square-o" aria-hidden="true"></i>
 												</a>
-												<a class="insert-preview" data-toggle="tooltip" href="javascript:insertimage('[url=&quot;/uploads/images/{{ entry.folder }}/{{ entry.name|default(entry.file_name) }}&quot; target=&quot;_blank&quot;][img=&quot;/uploads/images/{{ entry.folder }}/thumb/{{ entry.name|default(entry.file_name) }}&quot; border=&quot;0&quot; align=&quot;&quot;]{{ entry.name|default(entry.file_name) }} ({{ entry.size }})[/img][/url]', '')" title="Вставка превью с сылкой на полное изображение" data-bs-toggle="tooltip">
+												<a class="insert-preview" data-toggle="tooltip" href="javascript:insertimage('[url=&quot;{{ images_url }}/{{ entry.folder }}/{{ entry.name|default(entry.file_name) }}&quot; target=&quot;_blank&quot;][img=&quot;{{ images_url }}/{{ entry.folder }}/thumb/{{ entry.name|default(entry.file_name) }}&quot; border=&quot;0&quot; align=&quot;&quot;]{{ entry.name|default(entry.file_name) }} ({{ entry.size }})[/img][/url]', '')" title="Вставка превью с сылкой на полное изображение" data-bs-toggle="tooltip">
 													<i class="fa fa-search-plus" aria-hidden="true"></i>
 												</a>
-												<a class="insert-thumb" data-toggle="tooltip" href="javascript:insertimage('[img=&quot;/uploads/images/{{ entry.folder }}/thumb/{{ entry.name|default(entry.file_name) }}&quot; border=&quot;0&quot; align=&quot;&quot;]{{ entry.name|default(entry.file_name) }}[/img]', '')" title="Вставка уменьшенного изображения" data-bs-toggle="tooltip">
+												<a class="insert-thumb" data-toggle="tooltip" href="javascript:insertimage('[img=&quot;{{ images_url }}/{{ entry.folder }}/thumb/{{ entry.name|default(entry.file_name) }}&quot; border=&quot;0&quot; align=&quot;&quot;]{{ entry.name|default(entry.file_name) }}[/img]', '')" title="Вставка уменьшенного изображения" data-bs-toggle="tooltip">
 													<i class="fa fa-search-minus" aria-hidden="true"></i>
 												</a>
 											</p>
@@ -174,29 +231,29 @@
 						<!-- Табличный вид (скрыт по умолчанию) -->
 						<tr class="entry-row" style="display: none;">
 							<td>
-								<a href="#" data-toggle="tooltip" onclick="insertimage('[img=&quot;/uploads/images/{{ entry.folder }}/{{ entry.name|default(entry.file_name) }}&quot; border=&quot;0&quot; width=&quot;{{ entry.width }}&quot; height=&quot;{{ entry.height }}&quot; align=&quot;&quot;]{{ entry.name|default(entry.file_name) }} ({{ entry.size }})[/img]', ''); return false;" title="Полное изображение" data-bs-toggle="tooltip">
+								<a href="#" data-toggle="tooltip" onclick="insertimage('[img=&quot;{{ images_url }}/{{ entry.folder }}/{{ entry.name|default(entry.file_name) }}&quot; border=&quot;0&quot; width=&quot;{{ entry.width }}&quot; height=&quot;{{ entry.height }}&quot; align=&quot;&quot;]{{ entry.name|default(entry.file_name) }} ({{ entry.size }})[/img]', ''); return false;" title="Полное изображение" data-bs-toggle="tooltip">
 									<i class="fa fa-share-square-o"></i>
 								</a>
 							</td>
 							<td>
-								<a href="#" data-toggle="tooltip" onclick="insertimage('[url=&quot;/uploads/images/{{ entry.folder }}/{{ entry.name|default(entry.file_name) }}&quot; target=&quot;_blank&quot;][img=&quot;/uploads/images/{{ entry.folder }}/thumb/{{ entry.name|default(entry.file_name) }}&quot; border=&quot;0&quot; align=&quot;&quot;]{{ entry.name|default(entry.file_name) }} ({{ entry.size }})[/img][/url]', ''); return false;" title="Вставка превью с сылкой на полное изображение" data-bs-toggle="tooltip">
+								<a href="#" data-toggle="tooltip" onclick="insertimage('[url=&quot;{{ images_url }}/{{ entry.folder }}/{{ entry.name|default(entry.file_name) }}&quot; target=&quot;_blank&quot;][img=&quot;{{ images_url }}/{{ entry.folder }}/thumb/{{ entry.name|default(entry.file_name) }}&quot; border=&quot;0&quot; align=&quot;&quot;]{{ entry.name|default(entry.file_name) }} ({{ entry.size }})[/img][/url]', ''); return false;" title="Вставка превью с сылкой на полное изображение" data-bs-toggle="tooltip">
 									<i class="fa fa-search-plus"></i>
 								</a>
 							</td>
 							<td>
-								<a href="#" data-toggle="tooltip" onclick="insertimage('[img=&quot;/uploads/images/{{ entry.folder }}/thumb/{{ entry.name|default(entry.file_name) }}&quot; border=&quot;0&quot; align=&quot;&quot;]{{ entry.name|default(entry.file_name) }}[/img]', ''); return false;" title="Вставка уменьшенного изображения" data-bs-toggle="tooltip">
+								<a href="#" data-toggle="tooltip" onclick="insertimage('[img=&quot;{{ images_url }}/{{ entry.folder }}/thumb/{{ entry.name|default(entry.file_name) }}&quot; border=&quot;0&quot; align=&quot;&quot;]{{ entry.name|default(entry.file_name) }}[/img]', ''); return false;" title="Вставка уменьшенного изображения" data-bs-toggle="tooltip">
 									<i class="fa fa-search-minus"></i>
 								</a>
 							</td>
-							<td class="preview-column"><img src="/uploads/images/{{ entry.folder }}/thumb/{{ entry.name|default(entry.file_name) }}" style="max-width: 100px; max-height: 100px;"></td>
+							<td class="preview-column"><img src="{{ images_url }}/{{ entry.folder }}/thumb/{{ entry.name|default(entry.file_name) }}" style="max-width: 100px; max-height: 100px;"></td>
 							<td>{{ entry.file_name }}</td>
 							<td>
-								<a href="/uploads/images/{{ entry.folder }}/{{ entry.name|default(entry.file_name) }}" target="_blank" title="Полное изображение" data-bs-toggle="tooltip">
+								<a class="lightbox-trigger" href="{{ images_url }}/{{ entry.folder }}/{{ entry.name|default(entry.file_name) }}" data-lightbox-title="{{ entry.name|default(entry.file_name) }} ({{ entry.width }}x{{ entry.height }}, {{ entry.size }})" title="Полное изображение" data-bs-toggle="tooltip">
 									<i class="fa fa-search-plus"></i>
 								</a>
 							</td>
 							<td>
-								<a href="/uploads/images/{{ entry.folder }}/thumb/{{ entry.name|default(entry.file_name) }}" target="_blank" title="Уменьшенное изображение" data-bs-toggle="tooltip">
+								<a class="lightbox-trigger" href="{{ images_url }}/{{ entry.folder }}/thumb/{{ entry.name|default(entry.file_name) }}" data-lightbox-title="{{ entry.name|default(entry.file_name) }} (preview)" title="Уменьшенное изображение" data-bs-toggle="tooltip">
 									<i class="fa fa-search-minus"></i>
 								</a>
 							</td>
@@ -616,4 +673,54 @@ console.error('Upload error:', errorType, file);
 });
 });
 </script>
-<!-- END: Init UPLOADIFY engine -->
+<!-- Simple Lightbox Modal -->
+	<div class="lightbox-overlay" id="imageLightbox"> <div class="lightbox-content">
+		<button class="lightbox-close" id="lightboxClose">&times;</button>
+		<img id="lightboxImage" src="" alt="">
+		<div class="lightbox-info" id="lightboxInfo"></div>
+	</div>
+</div>
+ <script type="text/javascript">
+// Simple Lightbox functionality
+(function() {
+	const lightbox = document.getElementById('imageLightbox');
+	const lightboxImg = document.getElementById('lightboxImage');
+	const lightboxInfo = document.getElementById('lightboxInfo');
+	const lightboxClose = document.getElementById('lightboxClose');
+	if (!lightbox || !lightboxImg) return;
+	// Open lightbox
+	document.addEventListener('click', function(e) {
+		const trigger = e.target.closest('.lightbox-trigger');
+		if (trigger) {
+			e.preventDefault();
+			const imgSrc = trigger.getAttribute('href');
+			const imgTitle = trigger.getAttribute('data-lightbox-title') || '';
+			lightboxImg.src = imgSrc;
+			lightboxInfo.textContent = imgTitle;
+			lightbox.classList.add('active');
+		}
+	});
+	// Close lightbox
+	function closeLightbox() {
+		lightbox.classList.remove('active');
+		setTimeout(function() {
+			lightboxImg.src = '';
+		}, 300);
+	}
+	lightboxClose.addEventListener('click', function(e) {
+		e.stopPropagation();
+		closeLightbox();
+	});
+	lightbox.addEventListener('click', function(e) {
+		if (e.target === lightbox) {
+			closeLightbox();
+		}
+	});
+	// Close on ESC key
+	document.addEventListener('keydown', function(e) {
+		if (e.key === 'Escape' && lightbox.classList.contains('active')) {
+			closeLightbox();
+		}
+	});
+})();
+</script>

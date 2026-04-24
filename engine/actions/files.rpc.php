@@ -75,8 +75,15 @@ function admRPCFilesUpload($params)
                     [
                         'image'              => $dir . $ures['data']['category'] . '/thumb/' . $ures['data']['name'],
                         'stamp'              => $stampThumb,
-                        'stamp_transparency' => $config['wm_image_transition'],
-                        'stampfile'          => $stampFileName,
+                        'stamp_text'         => $config['wm_text'] ?? '',
+                        'stamp_font'         => $config['wm_font'] ?? 'arial.ttf',
+                        'stamp_font_size'    => $config['wm_font_size'] ?? 16,
+                        'stamp_font_color'   => $config['wm_text_color'] ?? '#FFFFFF',
+                        'stamp_text_opacity' => $config['wm_text_opacity'] ?? 80,
+                        'stamp_bg_color'     => $config['wm_bg_color'] ?? '#000000',
+                        'stamp_bg_opacity'   => $config['wm_bg_opacity'] ?? 50,
+                        'stamp_position'     => $config['wm_position'] ?? 'bottom_right',
+                        'stamp_tile_spacing' => $config['wm_tile_spacing'] ?? 200,
                     ]
                 );
                 $ures['data']['thumbstamp'] = $stamp;
@@ -89,9 +96,16 @@ function admRPCFilesUpload($params)
             [
                 'image'              => $dir . $ures['data']['category'] . '/' . $ures['data']['name'],
                 'stamp'              => $stampOrig,
-                'stamp_transparency' => $config['wm_image_transition'],
-                'stampfile'          => $stampFileName,
                 'rpc'                => 1,
+                'stamp_text'         => $config['wm_text'] ?? '',
+                'stamp_font'         => $config['wm_font'] ?? 'arial.ttf',
+                'stamp_font_size'    => $config['wm_font_size'] ?? 16,
+                'stamp_font_color'   => $config['wm_text_color'] ?? '#FFFFFF',
+                'stamp_text_opacity' => $config['wm_text_opacity'] ?? 80,
+                'stamp_bg_color'     => $config['wm_bg_color'] ?? '#000000',
+                'stamp_bg_opacity'   => $config['wm_bg_opacity'] ?? 50,
+                'stamp_position'     => $config['wm_position'] ?? 'bottom_right',
+                'stamp_tile_spacing' => $config['wm_tile_spacing'] ?? 200,
             ]
         );
         $ures['data']['stamp'] = $stamp;

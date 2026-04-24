@@ -173,11 +173,9 @@
 				<div class="form-group row">
 					<label class="col-sm-3 col-form-label">{{ lang['quality_jpeg'] }}</label>
 					<div class="col-sm-4">
-						<div class="input-group">
-							<input type="number" name="thumbQuality" value="{{ thumb_quality }}" class="form-control"/>
-							<div class="input-group-append">
-								<span class="input-group-text">%</span>
-							</div>
+						<div class="d-flex align-items-center">
+							<input type="range" name="thumbQuality" id="thumbQuality_range" value="{{ thumb_quality }}" class="custom-range flex-grow-1 mr-3" min="0" max="100" oninput="document.getElementById('thumbQuality_value').value = this.value + '%';"/>
+							<input type="text" id="thumbQuality_value" value="{{ thumb_quality }}%" class="form-control text-center" style="width: 70px;" readonly/>
 						</div>
 					</div>
 				</div>
@@ -199,7 +197,7 @@
 		</div>
 	</div>
 </form>
-<script type="text/javascript">
+ <script type="text/javascript">
 	$(document).ready(function () {
 $('#markNameEdit').on('click', function (event) {
 event.preventDefault();

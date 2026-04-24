@@ -228,6 +228,7 @@ function systemConfigEditForm()
         'config'                => $cfgForTpl,
         'list'                  => [
             'captcha_font' => ListFiles('trash', 'ttf'),
+            'wm_font'      => ListFiles('trash', 'ttf'),
             'theme'        => ListFiles('../templates', ''),
             'admin_skin'   => ListFiles('skins', ''),
             'default_lang' => ListFiles('lang', ''),

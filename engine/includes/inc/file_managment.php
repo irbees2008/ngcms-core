@@ -141,8 +141,15 @@ function manage_upload($type)
                             [
                                 'image'              => $dir . $subdirectory . '/thumb/' . $up[1],
                                 'stamp'              => $stampThumb,
-                                'stamp_transparency' => $config['wm_image_transition'],
-                                'stampfile'          => $stampFileName,
+                                'stamp_text'         => $config['wm_text'] ?? '',
+                                'stamp_font'         => $config['wm_font'] ?? 'arial.ttf',
+                                'stamp_font_size'    => $config['wm_font_size'] ?? 16,
+                                'stamp_font_color'   => $config['wm_text_color'] ?? '#FFFFFF',
+                                'stamp_text_opacity' => $config['wm_text_opacity'] ?? 80,
+                                'stamp_bg_color'     => $config['wm_bg_color'] ?? '#000000',
+                                'stamp_bg_opacity'   => $config['wm_bg_opacity'] ?? 50,
+                                'stamp_position'     => $config['wm_position'] ?? 'bottom_right',
+                                'stamp_tile_spacing' => $config['wm_tile_spacing'] ?? 200,
                             ]
                         );
                     }
@@ -154,8 +161,15 @@ function manage_upload($type)
                     [
                         'image'              => $dir . $subdirectory . '/' . $up[1],
                         'stamp'              => $stampOrig,
-                        'stamp_transparency' => $config['wm_image_transition'],
-                        'stampfile'          => $stampFileName,
+                        'stamp_text'         => $config['wm_text'] ?? '',
+                        'stamp_font'         => $config['wm_font'] ?? 'arial.ttf',
+                        'stamp_font_size'    => $config['wm_font_size'] ?? 16,
+                        'stamp_font_color'   => $config['wm_text_color'] ?? '#FFFFFF',
+                        'stamp_text_opacity' => $config['wm_text_opacity'] ?? 80,
+                        'stamp_bg_color'     => $config['wm_bg_color'] ?? '#000000',
+                        'stamp_bg_opacity'   => $config['wm_bg_opacity'] ?? 50,
+                        'stamp_position'     => $config['wm_position'] ?? 'bottom_right',
+                        'stamp_tile_spacing' => $config['wm_tile_spacing'] ?? 200,
                     ]
                 );
             }
@@ -346,6 +360,8 @@ function manage_showlist($type)
     $tpl->template('table', tpl_actions . $mod);
     $tvars['vars'] = [
         'php_self'       => $PHP_SELF,
+        'images_url'     => $config['images_url'],
+        'files_url'      => $config['files_url'],
         'dateslist'      => $dateslist,
         'dirlist'        => $dirlist,
         'dirlistS'       => $dirlistS,
@@ -479,8 +495,15 @@ function manage_editApply($type, $id)
             [
                 'image' => $config['images_dir'] . $irow['folder'] . '/' . $irow['name'],
                 'stamp' => 1,
-                'stamp_transparency' => $config['wm_image_transition'],
-                'stampfile' => $stampFileName,
+                'stamp_text'         => $config['wm_text'] ?? '',
+                'stamp_font'         => $config['wm_font'] ?? 'arial.ttf',
+                'stamp_font_size'    => $config['wm_font_size'] ?? 16,
+                'stamp_font_color'   => $config['wm_text_color'] ?? '#FFFFFF',
+                'stamp_text_opacity' => $config['wm_text_opacity'] ?? 80,
+                'stamp_bg_color'     => $config['wm_bg_color'] ?? '#000000',
+                'stamp_bg_opacity'   => $config['wm_bg_opacity'] ?? 50,
+                'stamp_position'     => $config['wm_position'] ?? 'bottom_right',
+                'stamp_tile_spacing' => $config['wm_tile_spacing'] ?? 200,
             ]
         )) {
             $tsx = $stamp[0];
@@ -524,8 +547,15 @@ function manage_editApply($type, $id)
                     [
                         'image' => $config['images_dir'] . $irow['folder'] . '/thumb/' . $irow['name'],
                         'stamp' => $stampThumb,
-                        'stamp_transparency' => $config['wm_image_transition'],
-                        'stampfile' => $stampFileName,
+                        'stamp_text'         => $config['wm_text'] ?? '',
+                        'stamp_font'         => $config['wm_font'] ?? 'arial.ttf',
+                        'stamp_font_size'    => $config['wm_font_size'] ?? 16,
+                        'stamp_font_color'   => $config['wm_text_color'] ?? '#FFFFFF',
+                        'stamp_text_opacity' => $config['wm_text_opacity'] ?? 80,
+                        'stamp_bg_color'     => $config['wm_bg_color'] ?? '#000000',
+                        'stamp_bg_opacity'   => $config['wm_bg_opacity'] ?? 50,
+                        'stamp_position'     => $config['wm_position'] ?? 'bottom_right',
+                        'stamp_tile_spacing' => $config['wm_tile_spacing'] ?? 200,
                     ]
                 )) {
                     $tsx = $stamp[0];

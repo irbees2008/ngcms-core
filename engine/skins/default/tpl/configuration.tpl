@@ -969,7 +969,10 @@
 						<small class="form-text text-muted">{{ lang['thumb_quality_desc'] }}</small>
 					</td>
 					<td width="50%">
-						<input type="text" name='save_con[thumb_quality]' value='{{ config['thumb_quality'] }}' class="form-control"/>
+						<div class="d-flex align-items-center">
+							<input type="range" name='save_con[thumb_quality]' id="thumb_quality_range" value='{{ config['thumb_quality'] }}' class="custom-range flex-grow-1 mr-3" min="0" max="100" oninput="document.getElementById('thumb_quality_value').value = this.value + '%';"/>
+							<input type="text" id="thumb_quality_value" value='{{ config['thumb_quality'] }}%' class="form-control text-center" style="width: 70px;" readonly/>
+						</div>
 					</td>
 				</tr>
 				<tr>
@@ -991,22 +994,126 @@
 						{{ mkSelect({'name' : 'save_con[stamp_place]', 'value' : config['stamp_place'], 'values' : { 0 : lang['mode_orig'], 1 : lang['mode_copy'], 2 : lang['mode_origcopy'] } }) }}
 					</td>
 				</tr>
+				<!-- TEXT WATERMARK SETTINGS -->
 				<tr>
-					<td width="50%">{{ lang['wm_image'] }}
-						<small class="form-text text-muted">{{ lang['wm_image_desc'] }}</small>
+					<td width="50%">{{ lang['wm_text'] }}
+						<small class="form-text text-muted">{{ lang['wm_text_desc'] }}</small>
 					</td>
 					<td width="50%">
-						{{ mkSelect({'name' : 'save_con[wm_image]', 'value' : config['wm_image'], 'values' : list['wm_image'] }) }}
+						<input type="text" name='save_con[wm_text]' value='{{ config['wm_text'] }}' class="form-control" placeholder="MySite.ru"/>
 					</td>
 				</tr>
 				<tr>
-					<td width="50%">{{ lang['wm_image_transition'] }}
-						<small class="form-text text-muted">{{ lang['wm_image_transition_desc'] }}</small>
+					<td width="50%">{{ lang['wm_font'] }}
+						<small class="form-text text-muted">{{ lang['wm_font_desc'] }}</small>
 					</td>
 					<td width="50%">
-						<input type="text" name='save_con[wm_image_transition]' value='{{ config['wm_image_transition'] }}' class="form-control"/>
+						{{ mkSelect({'name' : 'save_con[wm_font]', 'value' : config['wm_font'], 'values' : list['wm_font'] }) }}
 					</td>
 				</tr>
+				<tr>
+					<td width="50%">{{ lang['wm_font_size'] }}
+						<small class="form-text text-muted">{{ lang['wm_font_size_desc'] }}</small>
+					</td>
+					<td width="50%">
+						<div class="d-flex align-items-center">
+							<input type="range" name='save_con[wm_font_size]' id="wm_font_size_range" value='{{ config['wm_font_size'] }}' class="custom-range flex-grow-1 mr-3" min="8" max="72" oninput="document.getElementById('wm_font_size_value').value = this.value; updateWatermarkPreview();" onchange="updateWatermarkPreview();"/>
+							<input type="number" id="wm_font_size_value" value='{{ config['wm_font_size'] }}' class="form-control" min="8" max="72" style="width: 70px;" oninput="document.getElementById('wm_font_size_range').value = this.value; updateWatermarkPreview();" onchange="updateWatermarkPreview();" readonly/>
+						</div>
+					</td>
+				</tr>
+				<tr>
+					<td width="50%">{{ lang['wm_text_color'] }}
+						<small class="form-text text-muted">{{ lang['wm_text_color_desc'] }}</small>
+					</td>
+					<td width="50%">
+						<div class="input-group">
+							<input type="text" name='save_con[wm_text_color]' id="wm_text_color" value='{{ config['wm_text_color'] }}' class="form-control" placeholder="#FFFFFF"/>
+							<div class="input-group-append">
+								<input type="color" id="wm_text_color_picker" value='{{ config['wm_text_color'] }}' class="form-control" style="width: 45px; cursor: pointer;height: 37px;" title="Выбрать цвет"/>
+							</div>
+						</div>
+					</td>
+				</tr>
+				<tr>
+					<td width="50%">{{ lang['wm_text_opacity'] }}
+						<small class="form-text text-muted">{{ lang['wm_text_opacity_desc'] }}</small>
+					</td>
+					<td width="50%">
+						<div class="d-flex align-items-center">
+							<input type="range" name='save_con[wm_text_opacity]' id="wm_text_opacity_range" value='{{ config['wm_text_opacity'] }}' class="custom-range flex-grow-1 mr-3" min="0" max="100" oninput="document.getElementById('wm_text_opacity_value').value = this.value + '%'; updateWatermarkPreview();" onchange="updateWatermarkPreview();"/>
+							<input type="text" id="wm_text_opacity_value" value='{{ config['wm_text_opacity'] }}%' class="form-control text-center" style="width: 70px;" readonly/>
+						</div>
+					</td>
+				</tr>
+				<tr>
+					<td width="50%">{{ lang['wm_bg_color'] }}
+						<small class="form-text text-muted">{{ lang['wm_bg_color_desc'] }}</small>
+					</td>
+					<td width="50%">
+						<div class="input-group">
+							<input type="text" name='save_con[wm_bg_color]' id="wm_bg_color" value='{{ config['wm_bg_color'] }}' class="form-control" placeholder="#000000"/>
+							<div class="input-group-append">
+<input type="color" id="wm_bg_color_picker" value='{{ config['wm_bg_color'] }}' class="form-control" style="width: 45px; cursor: pointer;height: 37px;" title="Выбрать цвет"/>
+							</div>
+						</div>
+					</td>
+				</tr>
+				<tr>
+					<td width="50%">{{ lang['wm_bg_opacity'] }}
+						<small class="form-text text-muted">{{ lang['wm_bg_opacity_desc'] }}</small>
+					</td>
+					<td width="50%">
+						<div class="d-flex align-items-center">
+							<input type="range" name='save_con[wm_bg_opacity]' id="wm_bg_opacity_range" value='{{ config['wm_bg_opacity'] }}' class="custom-range flex-grow-1 mr-3" min="0" max="100" oninput="document.getElementById('wm_bg_opacity_value').value = this.value + '%'; updateWatermarkPreview();" onchange="updateWatermarkPreview();"/>
+							<input type="text" id="wm_bg_opacity_value" value='{{ config['wm_bg_opacity'] }}%' class="form-control text-center" style="width: 70px;" readonly/>
+						</div>
+					</td>
+				</tr>
+				<tr>
+					<td width="50%">{{ lang['wm_position'] }}
+						<small class="form-text text-muted">{{ lang['wm_position_desc'] }}</small>
+					</td>
+					<td width="50%" class="ng-select">
+						{{ mkSelect({'name' : 'save_con[wm_position]', 'value' : config['wm_position'], 'values' : {
+							'bottom_right' : lang['wm_position_bottom_right'],
+							'bottom_left' : lang['wm_position_bottom_left'],
+							'bottom_center' : lang['wm_position_bottom_center'],
+							'top_right' : lang['wm_position_top_right'],
+							'top_left' : lang['wm_position_top_left'],
+							'top_center' : lang['wm_position_top_center'],
+							'center' : lang['wm_position_center'],
+							'center_left' : lang['wm_position_center_left'],
+							'center_right' : lang['wm_position_center_right'],
+							'tile' : lang['wm_position_tile']
+						} }) }}
+					</td>
+				</tr>
+				<tr>
+					<td width="50%">{{ lang['wm_tile_spacing'] }}
+						<small class="form-text text-muted">{{ lang['wm_tile_spacing_desc'] }}</small>
+					</td>
+					<td width="50%">
+						<div class="d-flex align-items-center">
+							<input type="range" name='save_con[wm_tile_spacing]' id="wm_tile_spacing_range" value='{{ config['wm_tile_spacing'] }}' class="custom-range flex-grow-1 mr-3" min="50" max="500" step="10" oninput="document.getElementById('wm_tile_spacing_value').value = this.value + ' px'; updateWatermarkPreview();" onchange="updateWatermarkPreview();"/>
+							<input type="text" id="wm_tile_spacing_value" value='{{ config['wm_tile_spacing'] }} px' class="form-control text-center" style="width: 80px;" readonly/>
+						</div>
+					</td>
+				</tr>
+				<!-- WATERMARK PREVIEW -->
+				<tr>
+					<td colspan="2">
+						<div class="card">
+							<div class="card-header">
+								<h5 class="card-title mb-0">Предпросмотр водяного знака</h5>
+							</div>
+							<div class="card-body text-center">
+								<canvas id="watermark_preview" width="600" height="400" style="border: 1px solid #ddd; max-width: 100%; height: auto;"></canvas>
+							</div>
+						</div>
+					</td>
+				</tr>
+				<!-- END TEXT WATERMARK SETTINGS -->
 				<!-- END: IMAGE transform control -->
 			</table>
 		</div>
@@ -1144,134 +1251,380 @@
 </form>
  <script type="text/javascript">
 	$("#mail_mode").on('change', toggleSmtp).trigger('change');
-function toggleSmtp(event) {
-$(".useSMTP").toggle("smtp" === $("#mail_mode option:selected").val());
-}
-// Unified notify wrapper: prefer showToast if available, fallback to legacy sticker/alert
-function __ngNotify(message, type) {
-try {
-if (typeof window.showToast === 'function') {
-window.showToast(String(message), {
-type: (type || 'info')
-});
-return;
-}
-if (typeof window.ngNotifySticker === 'function') {
-window.ngNotifySticker(String(message), {
-className: (type || 'info'),
-closeBTN: true
-});
-return;
-}
-} catch (e) {}
-try {
-alert(String(message));
-} catch (_e) {}
-}
-// Extract message/type from backend responses (RPC)
-function __pickMsg(resp, okDefault) {
-if (! resp) {
-return {
-msg: okDefault || 'OK',
-type: 'success'
-};
-}
-if (typeof resp === 'string') {
-return {msg: resp, type: 'info'};
-}
-if (resp.errorText) {
-return {
-msg: resp.errorText,
-type: (resp.type || (resp.status ? 'success' : 'error'))
-};
-}
-if (resp.infoText) {
-return {
-msg: resp.infoText,
-type: (resp.type || (resp.status ? 'success' : 'info'))
-};
-}
-if (resp.message) {
-return {
-msg: resp.message,
-type: (resp.type || (resp.status ? 'success' : 'info'))
-};
-}
-if (resp.content) {
-return {
-msg: resp.content,
-type: (resp.type || (resp.status ? 'success' : 'info'))
-};
-}
-if (resp.error) {
-return {msg: resp.error, type: 'error'};
-}
-if (resp.status && typeof resp.status === 'string') {
-return {
-msg: resp.status,
-type: (/ok|success/i.test(resp.status) ? 'success' : 'info')
-};
-}
-return {
-msg: okDefault || 'OK',
-type: 'success'
-};
-}
-// Check DB connection
-function ngCheckDB() {
-return post('admin.configuration.dbCheck', {
-'token': '{{ token }}',
-'dbtype': $("#db_dbtype").val(),
-'dbhost': $("#db_dbhost").val(),
-'dbname': $("#db_dbname").val(),
-'dbuser': $("#db_dbuser").val(),
-'dbpasswd': $("#db_dbpasswd").val()
-}, false).then(function (resp) {
-var res = __pickMsg(resp, '{{ lang['db_check_ok']|default('DB connection OK') }}');
-__ngNotify(res.msg, (/error|fail/i.test(res.type) ? 'error' : 'success'));
-}).catch(function (err) {
-__ngNotify((err && (err.message || err.statusText)) || 'DB check failed', 'error');
-});
-}
-// Check MEMCached connection
-function ngCheckMemcached() {
-return post('admin.configuration.memcachedCheck', {
-'token': '{{ token }}',
-'ip': $("#memcached_ip").val(),
-'port': $("#memcached_port").val(),
-'prefix': $("#memcached_prefix").val()
-}, false).then(function (resp) {
-var res = __pickMsg(resp, '{{ lang['memcached_check_ok']|default('MEMCached connection OK') }}');
-__ngNotify(res.msg, (/error|fail/i.test(res.type) ? 'error' : 'success'));
-}).catch(function (err) {
-__ngNotify((err && (err.message || err.statusText)) || 'MEMCached check failed', 'error');
-});
-}
-// Send test e-mail message
-function ngCheckEmail() {
-return post('admin.configuration.emailCheck', {
-'token': '{{ token }}',
-'mode': $("#mail_mode").val(),
-'from': {
-'name': $("#mail_fromname").val(),
-'email': $("#mail_frommail").val()
-},
-'to': {
-'email': $("#mail_tomail").val()
-},
-'smtp': {
-'host': $("#mail_smtp_host").val(),
-'port': $("#mail_smtp_port").val(),
-'auth': $("#mail_smtp_auth").val(),
-'login': $("#mail_smtp_login").val(),
-'pass': $("#mail_smtp_pass").val(),
-'secure': $("#mail_smtp_secure").val()
-}
-}, false).then(function (resp) {
-var res = __pickMsg(resp, '{{ lang['email_check_ok']|default('Email sent (check your inbox)') }}');
-__ngNotify(res.msg, (/error|fail/i.test(res.type) ? 'error' : 'success'));
-}).catch(function (err) {
-__ngNotify((err && (err.message || err.statusText)) || 'Email check failed', 'error');
-});
-}
+	function toggleSmtp(event) {
+	$(".useSMTP").toggle("smtp" === $("#mail_mode option:selected").val());
+	}
+	// Unified notify wrapper: prefer showToast if available, fallback to legacy sticker/alert
+	function __ngNotify(message, type) {
+	try {
+	if (typeof window.showToast === 'function') {
+	window.showToast(String(message), {
+	type: (type || 'info')
+	});
+	return;
+	}
+	if (typeof window.ngNotifySticker === 'function') {
+	window.ngNotifySticker(String(message), {
+	className: (type || 'info'),
+	closeBTN: true
+	});
+	return;
+	}
+	} catch (e) {}
+	try {
+	alert(String(message));
+	} catch (_e) {}
+	}
+	// Extract message/type from backend responses (RPC)
+	function __pickMsg(resp, okDefault) {
+	if (! resp) {
+	return {
+	msg: okDefault || 'OK',
+	type: 'success'
+	};
+	}
+	if (typeof resp === 'string') {
+	return {msg: resp, type: 'info'};
+	}
+	if (resp.errorText) {
+	return {
+	msg: resp.errorText,
+	type: (resp.type || (resp.status ? 'success' : 'error'))
+	};
+	}
+	if (resp.infoText) {
+	return {
+	msg: resp.infoText,
+	type: (resp.type || (resp.status ? 'success' : 'info'))
+	};
+	}
+	if (resp.message) {
+	return {
+	msg: resp.message,
+	type: (resp.type || (resp.status ? 'success' : 'info'))
+	};
+	}
+	if (resp.content) {
+	return {
+	msg: resp.content,
+	type: (resp.type || (resp.status ? 'success' : 'info'))
+	};
+	}
+	if (resp.error) {
+	return {msg: resp.error, type: 'error'};
+	}
+	if (resp.status && typeof resp.status === 'string') {
+	return {
+	msg: resp.status,
+	type: (/ok|success/i.test(resp.status) ? 'success' : 'info')
+	};
+	}
+	return {
+	msg: okDefault || 'OK',
+	type: 'success'
+	};
+	}
+	// Check DB connection
+	function ngCheckDB() {
+	return post('admin.configuration.dbCheck', {
+	'token': '{{ token }}',
+	'dbtype': $("#db_dbtype").val(),
+	'dbhost': $("#db_dbhost").val(),
+	'dbname': $("#db_dbname").val(),
+	'dbuser': $("#db_dbuser").val(),
+	'dbpasswd': $("#db_dbpasswd").val()
+	}, false).then(function (resp) {
+	var res = __pickMsg(resp, '{{ lang['db_check_ok']|default('DB connection OK') }}');
+	__ngNotify(res.msg, (/error|fail/i.test(res.type) ? 'error' : 'success'));
+	}).catch(function (err) {
+	__ngNotify((err && (err.message || err.statusText)) || 'DB check failed', 'error');
+	});
+	}
+	// Check MEMCached connection
+	function ngCheckMemcached() {
+	return post('admin.configuration.memcachedCheck', {
+	'token': '{{ token }}',
+	'ip': $("#memcached_ip").val(),
+	'port': $("#memcached_port").val(),
+	'prefix': $("#memcached_prefix").val()
+	}, false).then(function (resp) {
+	var res = __pickMsg(resp, '{{ lang['memcached_check_ok']|default('MEMCached connection OK') }}');
+	__ngNotify(res.msg, (/error|fail/i.test(res.type) ? 'error' : 'success'));
+	}).catch(function (err) {
+	__ngNotify((err && (err.message || err.statusText)) || 'MEMCached check failed', 'error');
+	});
+	}
+	// Send test e-mail message
+	function ngCheckEmail() {
+	return post('admin.configuration.emailCheck', {
+	'token': '{{ token }}',
+	'mode': $("#mail_mode").val(),
+	'from': {
+	'name': $("#mail_fromname").val(),
+	'email': $("#mail_frommail").val()
+	},
+	'to': {
+	'email': $("#mail_tomail").val()
+	},
+	'smtp': {
+	'host': $("#mail_smtp_host").val(),
+	'port': $("#mail_smtp_port").val(),
+	'auth': $("#mail_smtp_auth").val(),
+	'login': $("#mail_smtp_login").val(),
+	'pass': $("#mail_smtp_pass").val(),
+	'secure': $("#mail_smtp_secure").val()
+	}
+	}, false).then(function (resp) {
+	var res = __pickMsg(resp, '{{ lang['email_check_ok']|default('Email sent (check your inbox)') }}');
+	__ngNotify(res.msg, (/error|fail/i.test(res.type) ? 'error' : 'success'));
+	}).catch(function (err) {
+	__ngNotify((err && (err.message || err.statusText)) || 'Email check failed', 'error');
+	});
+	}
+	// Color picker synchronization for watermark settings
+	$(document).ready(function() {
+		// Initialize color pickers with current values
+		function initColorPicker() {
+			var textColor = $('#wm_text_color').val() || '#FFFFFF';
+			var bgColor = $('#wm_bg_color').val() || '#000000';
+			if (/^#[0-9A-F]{6}$/i.test(textColor)) {
+				$('#wm_text_color_picker').val(textColor);
+			}
+			if (/^#[0-9A-F]{6}$/i.test(bgColor)) {
+				$('#wm_bg_color_picker').val(bgColor);
+			}
+		}
+		initColorPicker();
+		// Text color: click on text field opens color picker
+		$('#wm_text_color').on('click focus', function() {
+			$('#wm_text_color_picker').trigger('click');
+		});
+		// Text color picker - sync to text field
+		$('#wm_text_color_picker').on('input change', function() {
+			$('#wm_text_color').val($(this).val().toUpperCase());
+			updateWatermarkPreview();
+		});
+		// Text field - sync to color picker
+		$('#wm_text_color').on('input change keyup', function() {
+			var color = $(this).val();
+			if (/^#[0-9A-F]{6}$/i.test(color)) {
+				$('#wm_text_color_picker').val(color);
+			}
+			updateWatermarkPreview();
+		});
+		// Background color: click on text field opens color picker
+		$('#wm_bg_color').on('click focus', function() {
+			$('#wm_bg_color_picker').trigger('click');
+		});
+		// Background color picker - sync to text field
+		$('#wm_bg_color_picker').on('input change', function() {
+			$('#wm_bg_color').val($(this).val().toUpperCase());
+			updateWatermarkPreview();
+		});
+		// Background field - sync to color picker
+		$('#wm_bg_color').on('input change keyup', function() {
+			var color = $(this).val();
+			if (/^#[0-9A-F]{6}$/i.test(color)) {
+				$('#wm_bg_color_picker').val(color);
+			}
+			updateWatermarkPreview();
+		});
+		// Watermark preview functionality
+		function updateWatermarkPreview() {
+			var canvas = document.getElementById('watermark_preview');
+			if (!canvas || !canvas.getContext) return;
+			var ctx = canvas.getContext('2d');
+			var width = canvas.width;
+			var height = canvas.height;
+			// Clear canvas
+			ctx.clearRect(0, 0, width, height);
+			// Draw background pattern (simulating an image)
+			var gradient = ctx.createLinearGradient(0, 0, width, height);
+			gradient.addColorStop(0, '#87CEEB');
+			gradient.addColorStop(1, '#4682B4');
+			ctx.fillStyle = gradient;
+			ctx.fillRect(0, 0, width, height);
+			// Add some pattern to simulate photo
+			ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
+			for (var i = 0; i < 20; i++) {
+				ctx.beginPath();
+				ctx.arc(Math.random() * width, Math.random() * height, Math.random() * 30, 0, Math.PI * 2);
+				ctx.fill();
+			}
+			// Get watermark settings
+			var text = $('input[name="save_con[wm_text]"]').val() || 'MySite.ru';
+			var fontSize = parseInt($('input[name="save_con[wm_font_size]"]').val()) || 24;
+			var fontFile = $('select[name="save_con[wm_font]"]').val() || 'arial.ttf';
+			var textColor = $('#wm_text_color').val() || '#FFFFFF';
+			var textOpacity = parseInt($('input[name="save_con[wm_text_opacity]"]').val()) || 50;
+			var bgColor = $('#wm_bg_color').val() || '#000000';
+			var bgOpacity = parseInt($('input[name="save_con[wm_bg_opacity]"]').val()) || 30;
+			var position = $('select[name="save_con[wm_position]"]').val() || 'bottom_right';
+			var tileSpacing = parseInt($('input[name="save_con[wm_tile_spacing]"]').val()) || 150;
+			// Convert hex color to rgba
+			function hexToRgba(hex, opacity) {
+				var r = parseInt(hex.slice(1, 3), 16);
+				var g = parseInt(hex.slice(3, 5), 16);
+				var b = parseInt(hex.slice(5, 7), 16);
+				return 'rgba(' + r + ',' + g + ',' + b + ',' + (opacity / 100) + ')';
+			}
+			// DEBUG: Check available fonts
+			console.log('=== WATERMARK FONT DEBUG START ===');
+			console.log('1. Selected font file:', fontFile);
+			console.log('2. Font size:', fontSize);
+			// Get font file name from select
+			var fontFile = $('select[name="save_con[wm_font]"]').val() || 'arial';
+			console.log('1. Selected font file:', fontFile);
+			console.log('2. Font size:', fontSize);
+			// Create dynamic font family name from filename
+			// Example: 'Xtrusion.ttf' -> 'WM_Xtrusion', 'Solo5' -> 'WM_Solo5'
+			var cleanName = fontFile.replace('.ttf', '').replace(/[^a-zA-Z0-9]/g, '_');
+			var fontFamily = 'WM_' + cleanName;
+			console.log('3. Generated font family:', fontFamily);
+			// Build font path
+			var fontPath = '../engine/trash/' + (fontFile.indexOf('.ttf') === -1 ? fontFile + '.ttf' : fontFile);
+			console.log('4. Font path:', fontPath);
+			// Load font dynamically if not loaded yet
+			if (document.fonts && fontFile !== 'arial' && fontFile !== 'arial.ttf') {
+				try {
+					// Check if font already loaded
+					var fontLoaded = false;
+					document.fonts.forEach(function(font) {
+						if (font.family === fontFamily) {
+							fontLoaded = true;
+						}
+					});
+					if (!fontLoaded) {
+						console.log('5. Loading new font:', fontFamily, 'from', fontPath);
+						// Create @font-face dynamically
+						var fontFace = new FontFace(fontFamily, 'url(' + fontPath + ')');
+						fontFace.load().then(function(loadedFont) {
+							document.fonts.add(loadedFont);
+							console.log('6. Font loaded successfully:', fontFamily);
+							// Redraw with loaded font
+							updateWatermarkPreview();
+						}).catch(function(error) {
+							console.error('6. Font loading failed:', fontFamily, error);
+							// Use Arial as fallback
+							fontFamily = 'Arial';
+						});
+					} else {
+						console.log('5. Font already loaded:', fontFamily);
+					}
+				} catch(e) {
+					console.error('5. Error loading font:', e);
+					fontFamily = 'Arial';
+				}
+			} else {
+				console.log('5. Using system font: Arial');
+				fontFamily = 'Arial';
+			}
+			// Set font string for canvas
+			var fontString = fontSize + 'px "' + fontFamily + '"';
+			console.log('7. Final font string:', fontString);
+			ctx.font = fontString;
+			console.log('8. Canvas font after setting:', ctx.font);
+			// Check document.fonts API
+			if (document.fonts) {
+				console.log('9. document.fonts.size:', document.fonts.size);
+				// List all loaded fonts
+				var loadedFonts = [];
+				document.fonts.forEach(function(font) {
+					loadedFonts.push(font.family);
+				});
+				console.log('10. All loaded fonts:', loadedFonts);
+			} else {
+				console.warn('9. document.fonts NOT available');
+			}
+			console.log('=== WATERMARK FONT DEBUG END ===');
+			var textMetrics = ctx.measureText(text);
+			var textWidth = textMetrics.width;
+			var textHeight = fontSize;
+			// Add padding
+			var padding = 10;
+			var boxWidth = textWidth + padding * 2;
+			var boxHeight = textHeight + padding * 2;
+			// Function to draw watermark at specific position
+			var drawCallCount = 0;
+			function drawWatermark(x, y) {
+				drawCallCount++;
+				if (drawCallCount === 1) {
+					console.log('=== DRAW WATERMARK DEBUG ===');
+					console.log('11. Font for drawing:', fontString);
+				}
+				// Ensure font is set (canvas state can reset)
+				ctx.font = fontString;
+				// Draw background rectangle
+				ctx.fillStyle = hexToRgba(bgColor, bgOpacity);
+				ctx.fillRect(x, y, boxWidth, boxHeight);
+				// Draw text
+				ctx.fillStyle = hexToRgba(textColor, textOpacity);
+				ctx.textBaseline = 'top';
+				ctx.fillText(text, x + padding, y + padding);
+			}
+			// Draw based on position
+			if (position === 'tile') {
+				// Draw tiled watermarks
+				for (var y = 0; y < height; y += tileSpacing) {
+					for (var x = 0; x < width; x += tileSpacing) {
+						drawWatermark(x, y);
+					}
+				}
+			} else {
+				// Calculate single position
+				var x = 0, y = 0;
+				var margin = 20;
+				switch (position) {
+					case 'top_left':
+						x = margin;
+						y = margin;
+						break;
+					case 'top_center':
+						x = (width - boxWidth) / 2;
+						y = margin;
+						break;
+					case 'top_right':
+						x = width - boxWidth - margin;
+						y = margin;
+						break;
+					case 'center_left':
+						x = margin;
+						y = (height - boxHeight) / 2;
+						break;
+					case 'center':
+						x = (width - boxWidth) / 2;
+						y = (height - boxHeight) / 2;
+						break;
+					case 'center_right':
+						x = width - boxWidth - margin;
+						y = (height - boxHeight) / 2;
+						break;
+					case 'bottom_left':
+						x = margin;
+						y = height - boxHeight - margin;
+						break;
+					case 'bottom_center':
+						x = (width - boxWidth) / 2;
+						y = height - boxHeight - margin;
+						break;
+					case 'bottom_right':
+					default:
+						x = width - boxWidth - margin;
+						y = height - boxHeight - margin;
+						break;
+				}
+				drawWatermark(x, y);
+			}
+		}
+		// Update preview on any watermark setting change
+		$('input[name="save_con[wm_text]"]').on('input change keyup', updateWatermarkPreview);
+		$('select[name="save_con[wm_font]"]').on('change', updateWatermarkPreview);
+		$('input[name="save_con[wm_font_size]"]').on('input change', updateWatermarkPreview);
+		$('input[name="save_con[wm_text_opacity]"]').on('input change', updateWatermarkPreview);
+		$('input[name="save_con[wm_bg_opacity]"]').on('input change', updateWatermarkPreview);
+		$('select[name="save_con[wm_position]"]').on('change', updateWatermarkPreview);
+		$('input[name="save_con[wm_tile_spacing]"]').on('input change', updateWatermarkPreview);
+		// Initial preview render
+		updateWatermarkPreview();
+	});
 </script>

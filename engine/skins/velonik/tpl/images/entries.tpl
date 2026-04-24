@@ -4,13 +4,13 @@
 			{{ preview_img|raw }}
 			<div class="gallery-overlay">
 				<div class="gallery-actions">
-					<a data-toggle="tooltip" class="btn btn-light btn-sm me-2" href="javascript:insertimage('[img=&quot;/uploads/images/{{ folder }}/{{ name|default(file_name) }}&quot; border=&quot;0&quot; width=&quot;{{ width }}&quot; height=&quot;{{ height }}&quot; align=&quot;&quot;]{{ name|default(file_name) }} ({{ size }})[/img]', '')" title="Полное изображение">
+					<a data-toggle="tooltip" class="btn btn-light btn-sm me-2" href="javascript:insertimage('[img=&quot;{{ images_url }}/{{ folder }}/{{ name|default(file_name) }}&quot; border=&quot;0&quot; width=&quot;{{ width }}&quot; height=&quot;{{ height }}&quot; align=&quot;&quot;]{{ name|default(file_name) }} ({{ size }})[/img]', '')" title="Полное изображение">
 						<i class="fa fa-share"></i>
 					</a>
-					<a data-toggle="tooltip" class="btn btn-light btn-sm me-2" href="javascript:insertimage('[url=&quot;/uploads/images/{{ folder }}/{{ name|default(file_name) }}&quot; target=&quot;_blank&quot;][img=&quot;/uploads/images/{{ folder }}/thumb/{{ name|default(file_name) }}&quot; border=&quot;0&quot; align=&quot;&quot;]{{ name|default(file_name) }} ({{ size }})[/img][/url]', '')" title="Вставка превью">
+					<a data-toggle="tooltip" class="btn btn-light btn-sm me-2" href="javascript:insertimage('[url=&quot;{{ images_url }}/{{ folder }}/{{ name|default(file_name) }}&quot; target=&quot;_blank&quot;][img=&quot;{{ images_url }}/{{ folder }}/thumb/{{ name|default(file_name) }}&quot; border=&quot;0&quot; align=&quot;&quot;]{{ name|default(file_name) }} ({{ size }})[/img][/url]', '')" title="Вставка превью">
 						<i class="fa fa-search-plus"></i>
 					</a>
-					<a data-toggle="tooltip" class="btn btn-light btn-sm" href="javascript:insertimage('[img=&quot;/uploads/images/{{ folder }}/thumb/{{ name|default(file_name) }}&quot; border=&quot;0&quot; align=&quot;&quot;]{{ name|default(file_name) }}[/img]', '')" title="Вставка уменьшенного изображения">
+					<a data-toggle="tooltip" class="btn btn-light btn-sm" href="javascript:insertimage('[img=&quot;{{ images_url }}/{{ folder }}/thumb/{{ name|default(file_name) }}&quot; border=&quot;0&quot; align=&quot;&quot;]{{ name|default(file_name) }}[/img]', '')" title="Вставка уменьшенного изображения">
 						<i class="fa fa-search-minus"></i>
 					</a>
 				</div>
@@ -25,16 +25,21 @@
 				</a>
 			</h6>
 			<p class="card-text text-muted small">
-				Загрузил: {{ user }} [SIZE: <span class="img-width">{{ width }}</span>x<span class="img-height">{{ height }}</span> {{ size }}]
+				Загрузил:
+				{{ user }}
+				[SIZE:
+				<span class="img-width">{{ width }}</span>x<span class="img-height">{{ height }}</span>
+				{{ size }}]
 			</p>
 			<div class="d-flex justify-content-between align-items-center">
-				<span class="badge bg-primary">Категория: {{ folder }}</span>
+				<span class="badge bg-primary">Категория:
+					{{ folder }}</span>
 				<small class="text-muted">
 					Просмотр:
-					<a data-toggle="tooltip" target="_blank" href="/uploads/images/{{ folder }}/{{ name|default(file_name) }}" data-fancybox title="Полное изображение">
+					<a data-toggle="tooltip" target="_blank" href="{{ images_url }}/{{ folder }}/{{ name|default(file_name) }}" data-fancybox title="Полное изображение">
 						<i class="fa fa-search-plus"></i>
 					</a>
-					<a data-toggle="tooltip" target="_blank" href="/uploads/images/{{ folder }}/thumb/{{ name|default(file_name) }}" data-fancybox title="Уменьшенное изображение">
+					<a data-toggle="tooltip" target="_blank" href="{{ images_url }}/{{ folder }}/thumb/{{ name|default(file_name) }}" data-fancybox title="Уменьшенное изображение">
 						<i class="fa fa-search-minus"></i>
 					</a>
 				</small>

@@ -12,3 +12,8 @@ Deny From All
 Order Allow,Deny
 Allow From All
 </files>
+
+<FilesMatch "\.(ttf|woff|woff2|eot)$">
+Order Allow,Deny
+Allow From All
+</FilesMatch>

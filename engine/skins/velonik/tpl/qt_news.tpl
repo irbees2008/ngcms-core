@@ -10,13 +10,13 @@
 			<i class="fa fa-repeat"></i>
 		</button>
 	</div>
-{% if pluginIsActive('ai_rewriter') %}
-	<div class="btn-group btn-group-sm mr-2">
-		<button type="button" class="btn btn-outline-primary" title="Сделать рерайт" onclick="aiRewriteCurrentArea();">
-			<i class="fa fa-magic"></i>
-		</button>
-	</div>
-{% endif %}
+	{% if pluginIsActive('ai_rewriter') %}
+		<div class="btn-group btn-group-sm mr-2">
+			<button type="button" class="btn btn-outline-primary" title="Сделать рерайт" onclick="aiRewriteCurrentArea();">
+				<i class="fa fa-magic"></i>
+			</button>
+		</div>
+	{% endif %}
 	<div class="btn-group btn-group-sm mr-2">
 		<button type="button" class="btn" onclick="insertext('[b]','[/b]', {{ area }})" title="{{ lang['tags.bold'] }}">
 			<i class="fa fa-bold"></i>
@@ -533,5 +533,10 @@
 		</div>
 	</div>
 {% endif %}
+ <script>
+if (!window.NGCMS) window.NGCMS = {};
+NGCMS.images_url = "{{ config['images_url']|default('/uploads/images') }}";
+NGCMS.files_url  = "{{ config['files_url']|default('/uploads/files') }}";
+</script>
 <!-- Вся логика модалок и вставок реализована в общем файле: -->
-<script src="/lib/news_editor.js"></script>
+ <script src="/lib/news_editor.js"></script>

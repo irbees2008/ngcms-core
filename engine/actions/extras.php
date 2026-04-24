@@ -70,11 +70,11 @@ function admGeneratePluginList()
         $tEntry['install'] = '';
         if (getPluginStatusInstalled($extra['id'])) {
             if (isset($extra['deinstall']) && $extra['deinstall'] && is_file(extras_dir . '/' . $extra['dir'] . '/' . $extra['deinstall'])) {
-                $tEntry['install'] = '<a href="' . $PHP_SELF . '?mod=extra-config&amp;plugin=' . $extra['id'] . '&amp;stype=deinstall" class="btn btn-outline-danger btn-sm">' . $lang['deinstall'] . '</a>';
+                $tEntry['install'] = '<a href="' . $PHP_SELF . '?mod=extra-config&amp;plugin=' . $extra['id'] . '&amp;stype=deinstall" class="btn btn-outline-danger btn-sm" title="' . $lang['deinstall'] . '" data-bs-toggle="tooltip"><i class="fa fa-trash-o" aria-hidden="true"></i></a>';
             }
         } else {
             if (isset($extra['install']) && $extra['install'] && is_file(extras_dir . '/' . $extra['dir'] . '/' . $extra['install'])) {
-                $tEntry['install'] = '<a href="' . $PHP_SELF . '?mod=extra-config&amp;plugin=' . $extra['id'] . '&amp;stype=install" class="btn btn-outline-danger btn-sm">' . $lang['install'] . '</a>';
+                $tEntry['install'] = '<a href="' . $PHP_SELF . '?mod=extra-config&amp;plugin=' . $extra['id'] . '&amp;stype=install" class="btn btn-outline-danger btn-sm" title="' . $lang['install'] . '" data-bs-toggle="tooltip"><i class="fa fa-download" aria-hidden="true"></i></a>';
                 $needinstall = 1;
             }
         }
@@ -86,9 +86,9 @@ function admGeneratePluginList()
             !$needinstall &&
             is_file(extras_dir . '/' . $extra['dir'] . '/' . $extra['config'])
         ) {
-            $tEntry['url'] = '<a href="' . $PHP_SELF . '?mod=extra-config&amp;plugin=' . $extra['id'] . '" class="btn btn-outline-primary btn-sm">' . $lang['settings'] . '</a>';
+            $tEntry['url'] =  $PHP_SELF . '?mod=extra-config&amp;plugin=' . $extra['id'];
         }
-        $tEntry['link'] = (getPluginStatusActive($id) ? '<a href="' . $PHP_SELF . '?mod=extras&amp;&amp;token=' . genUToken('admin.extras') . '&amp;disable=' . $id . '"class="btn btn-outline-success btn-sm">' . $lang['switch_off'] . '</a>' : '<a href="' . $PHP_SELF . '?mod=extras&amp;&amp;token=' . genUToken('admin.extras') . '&amp;enable=' . $id . '"class="btn btn-outline-success btn-sm">' . $lang['switch_on'] . '</a>');
+        $tEntry['link'] = (getPluginStatusActive($id) ? '<a href="' . $PHP_SELF . '?mod=extras&amp;&amp;token=' . genUToken('admin.extras') . '&amp;disable=' . $id . '"class="btn btn-outline-success btn-sm"  title="' . $lang['switch_off'] . '" data-bs-toggle="tooltip" style="color: #dc3545"><i class="fa fa-power-off" aria-hidden="true"></i></a>' : '<a href="' . $PHP_SELF . '?mod=extras&amp;&amp;token=' . genUToken('admin.extras') . '&amp;enable=' . $id . '"class="btn btn-outline-success btn-sm"  title="' . $lang['switch_on'] . '" data-bs-toggle="tooltip"><i class="fa fa-power-off" aria-hidden="true"></i></a>');
         if ($needinstall) {
             $tEntry['link'] = '';
             $tEntry['style'] = 'pluginEntryUninstalled';

@@ -937,84 +937,110 @@ class image_managment
             $origY = $newY;
         }
         if ($param['stamp']) {
-            // LOAD STAMP IMAGE
-            if (!file_exists($param['stampfile']) || !is_array($sz = @getimagesize($param['stampfile']))) {
-                if (!$param['stamp_noerror']) {
-                    if ($param['rpc']) {
-                        return ['status' => 0, 'errorCode' => 404, 'errorText' => $lang['upload.error.openstamp']];
-                    }
-                    msg(['type' => 'error', 'text' => $lang['upload.error.openstamp']]);
+            // ========== TEXT WATERMARK ==========
+            $text = !empty($param['stamp_text']) ? $param['stamp_text'] : ($_SERVER['HTTP_HOST'] ?? 'watermark');
+            $fontSize = isset($param['stamp_font_size']) ? intval($param['stamp_font_size']) : 16;
+            $textColor = $this->hexToRgb($param['stamp_font_color'] ?? '#FFFFFF');
+            $textOpacity = isset($param['stamp_text_opacity']) ? intval($param['stamp_text_opacity']) : 80;
+            $bgColor = $this->hexToRgb($param['stamp_bg_color'] ?? '#000000');
+            $bgOpacity = isset($param['stamp_bg_opacity']) ? intval($param['stamp_bg_opacity']) : 50;
+            $position = $param['stamp_position'] ?? 'bottom_right';
+            $tileSpacing = isset($param['stamp_tile_spacing']) ? intval($param['stamp_tile_spacing']) : 200;
+            $fontFile = $param['stamp_font'] ?? 'arial.ttf';
+            // Add .ttf extension if not present
+            if (!preg_match('/\.(ttf|otf)$/i', $fontFile)) {
+                $fontFile .= '.ttf';
+            }
+            // Find font file (try common paths)
+            $fontPath = '';
+            $fontSearchPaths = [
+                dirname(__FILE__) . '/../../trash/' . $fontFile,
+                dirname(__FILE__) . '/../../fonts/' . $fontFile,
+                dirname(__FILE__) . '/../fonts/' . $fontFile,
+                '/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf',
+                'C:/Windows/Fonts/' . $fontFile,
+                'C:/Windows/Fonts/arial.ttf',
+            ];
+            foreach ($fontSearchPaths as $path) {
+                if (file_exists($path)) {
+                    $fontPath = $path;
+                    break;
                 }
-                return 0;
             }
-            $stampX = $sz[0];
-            $stampY = $sz[1];
-            $stampType = $sz[2];
-            // Check if we can open this type of image and open it
-            $cmd = 'imagecreatefrom';
-            switch ($origType) {
-                case 1:
-                    $cmd .= 'gif';
-                    break;
-                case 2:
-                    $cmd .= 'jpeg';
-                    break;
-                case 3:
-                    $cmd .= 'png';
-                    break;
-                case 6:
-                    $cmd .= 'bmp';
-                    break;
-            }
-            if (!$cmd || !function_exists($cmd)) {
-                if ($param['rpc']) {
-                    return ['status' => 0, 'errorCode' => 402, 'errorText' => str_replace('{func}', $cmd, $lang['upload.error.libformat'])];
-                }
-                msg(['type' => 'error', 'text' => str_replace('{func}', $cmd, $lang['upload.error.libformat'])]);
-                return;
-            }
-            switch ($stampType) {
-                case 1:
-                    $stamp = @imagecreatefromgif($param['stampfile']);
-                    break;
-                case 2:
-                    $stamp = @imagecreatefromjpeg($param['stampfile']);
-                    break;
-                case 3:
-                    $stamp = @imagecreatefrompng($param['stampfile']);
-                    break;
-                case 6:
-                    $stamp = @imagecreatefrombmp($param['stampfile']);
-                    break;
-            }
-            if (!$stamp) {
-                if (!$param['stamp_noerror']) {
-                    if ($param['rpc']) {
-                        return ['status' => 0, 'errorCode' => 405, 'errorText' => $lang['upload.error.openstamp']];
-                    }
-                    msg(['type' => 'error', 'text' => $lang['upload.error.openstamp']]);
-                }
-                return;
-            }
-            // BOTH FILES ARE LOADED
-            $destX = $origX - $stampX - 10;
-            $destY = $origY - $stampY - 10;
-            if (($destX < 0) || ($destY < 0)) {
-                if (!$param['stamp_noerror']) {
-                    if ($param['rpc']) {
-                        return ['status' => 0, 'errorCode' => 406, 'errorText' => $lang['upload.error.stampsize']];
-                    }
-                    msg(['type' => 'error', 'text' => $lang['upload.error.stampsize']]);
-                }
-                return;
-            }
-            if (($param['stamp_transparency'] < 1) || ($param['stamp_transparency'] > 100)) {
-                $param['stamp_transparency'] = 40;
-            }
-            if ($stampType == 3) {
-                $this->imagecopymerge_alpha($img, $stamp, $destX, $destY, 0, 0, $stampX, $stampY, $param['stamp_transparency']);
+            // Fallback to GD built-in font if TTF not found
+            $useTTF = !empty($fontPath);
+            // Calculate text dimensions
+            if ($useTTF) {
+                $textBox = imagettfbbox($fontSize, 0, $fontPath, $text);
+                $textWidth = abs($textBox[4] - $textBox[0]);
+                $textHeight = abs($textBox[5] - $textBox[1]);
             } else {
-                imagecopymerge($img, $stamp, $destX, $destY, 0, 0, $stampX, $stampY, $param['stamp_transparency']);
+                $textWidth = strlen($text) * 8;
+                $textHeight = 16;
+                $fontSize = 3; // GD font size
+            }
+            $padding = 10;
+            $stampWidth = $textWidth + ($padding * 2);
+            $stampHeight = $textHeight + ($padding * 2);
+            // Convert opacity to alpha (0-127 for GD, where 0 = opaque, 127 = transparent)
+            $textAlpha = intval(127 - ($textOpacity * 1.27));
+            $bgAlpha = intval(127 - ($bgOpacity * 1.27));
+            // Function to draw single watermark
+            $drawWatermark = function ($destX, $destY) use (
+                $img,
+                $text,
+                $fontSize,
+                $textColor,
+                $textAlpha,
+                $bgColor,
+                $bgAlpha,
+                $stampWidth,
+                $stampHeight,
+                $padding,
+                $textHeight,
+                $useTTF,
+                $fontPath
+            ) {
+                // Draw background
+                $bgColorAlloc = imagecolorallocatealpha($img, $bgColor['r'], $bgColor['g'], $bgColor['b'], $bgAlpha);
+                imagefilledrectangle($img, $destX, $destY, $destX + $stampWidth, $destY + $stampHeight, $bgColorAlloc);
+                // Draw text
+                $textColorAlloc = imagecolorallocatealpha($img, $textColor['r'], $textColor['g'], $textColor['b'], $textAlpha);
+                if ($useTTF) {
+                    imagettftext($img, $fontSize, 0, $destX + $padding, $destY + $stampHeight - $padding, $textColorAlloc, $fontPath, $text);
+                } else {
+                    imagestring($img, $fontSize, $destX + $padding, $destY + $padding, $text, $textColorAlloc);
+                }
+            };
+            // Apply watermark based on position
+            if ($position === 'tile') {
+                // Multiple watermarks across entire image
+                $spacingX = $stampWidth + $tileSpacing;
+                $spacingY = $stampHeight + $tileSpacing;
+                for ($y = 0; $y < $origY; $y += $spacingY) {
+                    for ($x = 0; $x < $origX; $x += $spacingX) {
+                        if ($x + $stampWidth <= $origX && $y + $stampHeight <= $origY) {
+                            $drawWatermark($x, $y);
+                        }
+                    }
+                }
+            } else {
+                // Single watermark at specified position
+                $positions = [
+                    'bottom_right' => [$origX - $stampWidth - 10, $origY - $stampHeight - 10],
+                    'bottom_left' => [10, $origY - $stampHeight - 10],
+                    'bottom_center' => [($origX - $stampWidth) / 2, $origY - $stampHeight - 10],
+                    'top_right' => [$origX - $stampWidth - 10, 10],
+                    'top_left' => [10, 10],
+                    'top_center' => [($origX - $stampWidth) / 2, 10],
+                    'center' => [($origX - $stampWidth) / 2, ($origY - $stampHeight) / 2],
+                    'center_left' => [10, ($origY - $stampHeight) / 2],
+                    'center_right' => [$origX - $stampWidth - 10, ($origY - $stampHeight) / 2],
+                ];
+                if (isset($positions[$position])) {
+                    list($destX, $destY) = $positions[$position];
+                    $drawWatermark(intval($destX), intval($destY));
+                }
             }
         }
         $newX = $origX;
@@ -1115,5 +1141,32 @@ class image_managment
         }
         // The image copy
         imagecopy($dst_im, $src_im, $dst_x, $dst_y, $src_x, $src_y, $src_w, $src_h);
+    }
+    /**
+     * Convert HEX color to RGB array
+     * @param string $hex - HEX color string (#FFFFFF or FFFFFF)
+     * @return array - ['r' => 255, 'g' => 255, 'b' => 255]
+     */
+    public function hexToRgb($hex)
+    {
+        // Remove # if present
+        $hex = ltrim($hex, '#');
+        // Convert to RGB
+        if (strlen($hex) == 6) {
+            list($r, $g, $b) = [
+                hexdec(substr($hex, 0, 2)),
+                hexdec(substr($hex, 2, 2)),
+                hexdec(substr($hex, 4, 2))
+            ];
+        } elseif (strlen($hex) == 3) {
+            list($r, $g, $b) = [
+                hexdec(str_repeat(substr($hex, 0, 1), 2)),
+                hexdec(str_repeat(substr($hex, 1, 1), 2)),
+                hexdec(str_repeat(substr($hex, 2, 1), 2))
+            ];
+        } else {
+            return ['r' => 0, 'g' => 0, 'b' => 0];
+        }
+        return ['r' => $r, 'g' => $g, 'b' => $b];
     }
 }

@@ -118,6 +118,8 @@ CREATE TABLE `XPREFIX_ipban` (
 --
 CREATE TABLE `XPREFIX_news` (
   `id` int(11) NOT NULL auto_increment,
+  `translation_group_id` varchar(36) default NULL,
+  `lang_code` varchar(5) default NULL,
   `postdate` int(10) NOT NULL default '0',
   `author` varchar(100) NOT NULL default '',
   `author_id` int(11) NOT NULL default '0',
@@ -151,7 +153,9 @@ CREATE TABLE `XPREFIX_news` (
   KEY `news_catid` (`approve`,`catpinned`,`id`),
   KEY `news_altname` (`alt_name`),
   KEY `news_mainpage` (`approve`,`pinned`,`id`),
-  KEY `news_mcount` (`mainpage`,`approve`)
+  KEY `news_mcount` (`mainpage`,`approve`),
+  KEY `idx_translation_group` (`translation_group_id`),
+  KEY `idx_lang_code` (`lang_code`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 -- --------------------------------------------------------
 --
