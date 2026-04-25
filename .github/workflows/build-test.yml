@@ -34,6 +34,7 @@ jobs:
         run: |
           cd ~/build
           composer install --no-dev --prefer-dist
+          mkdir -p engine/cache
           echo ${{ github.sha }} > engine/cache/build
       - name: Cleanup and prepare
         run: |
