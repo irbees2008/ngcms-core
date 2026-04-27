@@ -1,1 +1,0 @@
-s:184:"<ul><li><a href="/zboard/cat/1/">Недвижимость</a> (0)</li><li><a href="/zboard/cat/2/">Куплю недвижимость</a> (0)</li><li><a href="/zboard/cat/3/">Продам недвижимость</a> (0)</li></ul>";
