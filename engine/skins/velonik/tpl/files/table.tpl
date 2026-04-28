@@ -26,7 +26,9 @@
 						<div class="form-group">
 							<label>{{ lang['month'] }}</label>
 							<select name="postdate" class="form-select">
-								<option selected value="">- {{ lang['all'] }} -</option>
+								<option selected value="">-
+									{{ lang['all'] }}
+									-</option>
 								{{ dateslist|raw }}
 							</select>
 						</div>
@@ -44,7 +46,9 @@
 							{% if status %}
 								<label>{{ lang['author'] }}</label>
 								<select name="author" class="form-select">
-									<option value="">- {{ lang['all'] }} -</option>
+									<option value="">-
+										{{ lang['all'] }}
+										-</option>
 									{{ authorlist|raw }}
 								</select>
 							{% endif %}
@@ -75,9 +79,9 @@
 					<button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#uploadnewModal">{{ lang['upload_file'] }}</button>
 					<button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#uploadNewByUrlModal">{{ lang['upload_file_url'] }}</button>
 					{% if status %}
-					<button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#categoriesModal" title="{{ lang['categories'] }}">
-						<i class="fa fa-folder"></i>
-					</button>
+						<button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#categoriesModal" title="{{ lang['categories'] }}">
+							<i class="fa fa-folder"></i>
+						</button>
 					{% endif %}
 					<button type="button" class="btn btn-outline-primary" data-bs-toggle="collapse" data-bs-target="#collapseFilesFilter" aria-expanded="false" aria-controls="collapseFilesFilter">
 						<i class="fa fa-filter"></i>
@@ -101,7 +105,22 @@
 					</tr>
 				</thead>
 				<tbody>
-					{{ entries|raw }}
+					{% for entry in entries %}
+						<tr>
+							<td>{{ entry.id }}</td>
+							<td nowrap>{{ entry.file_link|raw }}</td>
+							<td>{{ entry.size }}</td>
+							<td>{{ entry.folder }}</td>
+							<td>{{ entry.user }}</td>
+							<td nowrap>{{ entry.insert_file|raw }}
+								{{ entry.rename|raw }}</td>
+							<td><input type="checkbox" name="files[]" value="{{ entry.id }}"/></td>
+						</tr>
+					{% else %}
+						<tr>
+							<td colspan="7">{{ lang['no_files']|default('Нет файлов') }}</td>
+						</tr>
+					{% endfor %}
 				</tbody>
 			</table>
 		</div>
@@ -110,15 +129,17 @@
 				<div class="col-lg-6 mb-2 mb-lg-0">{{ pagesss|raw }}</div>
 				<div class="col-lg-6">
 					{% if status %}
-					<div class="input-group">
-						<select name="subaction" class="form-control">
-							<option value="">-- {{ lang['action'] }} --</option>
-							<option value="delete">{{ lang['delete'] }}</option>
-							<option value="move">{{ lang['move'] }}</option>
-						</select>
-						{{ dirlist|raw }}
-						<button type="submit" class="btn btn-outline-warning">OK</button>
-					</div>
+						<div class="input-group">
+							<select name="subaction" class="form-control">
+								<option value="">--
+									{{ lang['action'] }}
+									--</option>
+								<option value="delete">{{ lang['delete'] }}</option>
+								<option value="move">{{ lang['move'] }}</option>
+							</select>
+							{{ dirlist|raw }}
+							<button type="submit" class="btn btn-outline-warning">OK</button>
+						</div>
 					{% endif %}
 				</div>
 			</div>
@@ -230,41 +251,41 @@
 	</div>
 </div>
 {% if status %}
-<div id="categoriesModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="standard-modalLabel" aria-hidden="true">
-	<div class="modal-dialog">
-		<div class="modal-content">
-			<div class="modal-header">
-				<h4 class="modal-title" id="standard-modalLabel">{{ lang['categories'] }}</h4>
-				<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-			</div>
-			<div class="modal-body">
-				<form action="{{ php_self }}?mod=files" method="post" name="newcat">
-					<input type="hidden" name="subaction" value="newcat"/>
-					<input type="hidden" name="area" value="{{ area }}"/>
-					<label class="form-label">{{ lang['addnewcat'] }}</label>
-					<div class="input-group">
-						<input type="text" name="newfolder" class="form-control"/>
-						<button type="submit" class="btn btn-outline-success">OK</button>
-					</div>
-					<div class="form-group row">
-						<label class="col-sm-4 col-form-label"></label>
-					</div>
-				</form>
-				<form action="{{ php_self }}?mod=files" method="post" name="delcat">
-					<input type="hidden" name="subaction" value="delcat"/>
-					<input type="hidden" name="area" value="{{ area }}"/>
-					<label class="form-label">{{ lang['delcat'] }}</label>
-					<div class="input-group ng-select mb-2">
-						{{ dirlist|raw }}
-						<button type="submit" class="btn btn-outline-danger">OK</button>
-					</div>
-				</form>
+	<div id="categoriesModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="standard-modalLabel" aria-hidden="true">
+		<div class="modal-dialog">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h4 class="modal-title" id="standard-modalLabel">{{ lang['categories'] }}</h4>
+					<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+				</div>
+				<div class="modal-body">
+					<form action="{{ php_self }}?mod=files" method="post" name="newcat">
+						<input type="hidden" name="subaction" value="newcat"/>
+						<input type="hidden" name="area" value="{{ area }}"/>
+						<label class="form-label">{{ lang['addnewcat'] }}</label>
+						<div class="input-group">
+							<input type="text" name="newfolder" class="form-control"/>
+							<button type="submit" class="btn btn-outline-success">OK</button>
+						</div>
+						<div class="form-group row">
+							<label class="col-sm-4 col-form-label"></label>
+						</div>
+					</form>
+					<form action="{{ php_self }}?mod=files" method="post" name="delcat">
+						<input type="hidden" name="subaction" value="delcat"/>
+						<input type="hidden" name="area" value="{{ area }}"/>
+						<label class="form-label">{{ lang['delcat'] }}</label>
+						<div class="input-group ng-select mb-2">
+							{{ dirlist|raw }}
+							<button type="submit" class="btn btn-outline-danger">OK</button>
+						</div>
+					</form>
+				</div>
 			</div>
 		</div>
 	</div>
-</div>
 {% endif %}
-<script language="javascript" type="text/javascript">
+ <script language="javascript" type="text/javascript">
 	function AddFiles() {
 var tbl = document.getElementById('fileup');
 var lastRow = tbl.rows.length;
@@ -313,7 +334,7 @@ tbl.deleteRow(lastRow - 1);
 }
 </script>
 <!-- BEGIN: Init UPLOADIFY engine -->
-<script type="text/javascript">
+ <script type="text/javascript">
 	$(document).ready(function () { // Ensure filter is collapsed by default and remove persisted expanded state
 try {
 var cs = JSON.parse(localStorage.getItem('collapseState') || '[]');

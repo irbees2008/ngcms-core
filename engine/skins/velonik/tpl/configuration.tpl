@@ -45,6 +45,11 @@
 			<li class="nav-item">
 				<a href="#userTabs-multi" class="nav-link rounded-0" data-bs-toggle="tab" aria-expanded="false">{{ lang['multi'] }}</a>
 			</li>
+			{% if canManageMultisite %}
+				<li class="nav-item">
+					<a href="#userTabs-multisite" class="nav-link rounded-0" data-bs-toggle="tab" aria-expanded="false">{{ lang['multisite'] }}</a>
+				</li>
+			{% endif %}
 		</ul>
 		<div
 			id="userTabs" class="tab-content">
@@ -1091,7 +1096,7 @@
 					<!-- END: IMAGE transform control -->
 				</table>
 			</div>
-			<!-- ########################## MULTI TAB ########################## -->
+			<!-- ########################## MULTI (DOMAINS) TAB ########################## -->
 			<div id="userTabs-multi" class="tab-pane">
 				<table class="table table-sm">
 					<tr>
@@ -1105,54 +1110,74 @@
 							<textarea cols="45" rows="3" name="save_con[mydomains]" class="form-control">{{ config['mydomains'] }}</textarea>
 						</td>
 					</tr>
-					<tr>
-						<td colspan="2">&nbsp;</td>
-					</tr>
-					<tr>
-						<td colspan="2" class="h3 font-weight-light">{{ lang['multisite'] }}</td>
-					</tr>
-					<tr>
-						<td colspan="2">
-							<table class="table table-sm">
-								<thead>
-									<tr>
-										<th>{{ lang['status'] }}</th>
-										<th>{{ lang['title'] }}</th>
-										<th>{{ lang['domains'] }}</th>
-										<th>{{ lang['flags'] }}</th>
-									</tr>
-								</thead>
-								<tbody>
-									{% for MR in multiConfig %}
-										<tr>
-											<td>
-												{% if (MR['active']) %}On{% else %}Off
-												{% endif %}
-											</td>
-											<td>{{ MR['key'] }}</td>
-											<td>
-												{% for domain in MR['domains'] %}
-													{{ domain }}
-													{% else %}-
-													{{ lang['not_specified'] }}
-													-
-												{% endfor %}
-											</td>
-											<td>&nbsp;</td>
-										</tr>
-									{% else %}
-										<tr>
-											<td colspan="4">-
-												{{ lang['not_used'] }}
-												-</td>
-										</tr>
-									{% endfor %}
-								</tbody>
-							</table>
-						</td>
-					</tr>
 				</table>
 			</div>
+			{% if canManageMultisite %}
+				<!-- ########################## MULTISITE TAB ########################## -->
+				<div id="userTabs-multisite" class="tab-pane">
+					<table class="table table-sm">
+						<tr>
+							<td colspan="2" class="h3 font-weight-light">{{ lang['multisite'] }}</td>
+						</tr>
+						<tr>
+							<td width="50%">{{ lang['use_multisite'] }}
+								<small class="form-text text-muted">{{ lang['use_multisite_desc'] }}</small>
+							</td>
+							<td width="50%" class="ng-select">
+								{{ mkSelectYN({'name' : 'save_con[use_multisite]', 'value' : config['use_multisite'] }) }}
+							</td>
+						</tr>
+						{% if isMainSite %}
+							<tr>
+								<td colspan="2">
+									<div class="mb-3">
+										<a href="admin.php?mod=configuration&action=multisite_manage" class="btn btn-primary">
+											<i class="fa fa-globe"></i>
+											{{ lang['multisite_manage'] }}
+										</a>
+									</div>
+									<table class="table table-sm">
+										<thead>
+											<tr>
+												<th>{{ lang['status'] }}</th>
+												<th>{{ lang['title'] }}</th>
+												<th>{{ lang['domains'] }}</th>
+												<th>{{ lang['flags'] }}</th>
+											</tr>
+										</thead>
+										<tbody>
+											{% for MR in multiConfig %}
+												<tr>
+													<td>
+														{% if (MR['active']) %}On{% else %}Off
+														{% endif %}
+													</td>
+													<td>{{ MR['key'] }}</td>
+													<td>
+														{% for domain in MR['domains'] %}
+															{{ domain }}
+															{% else %}-
+															{{ lang['not_specified'] }}
+															-
+														{% endfor %}
+													</td>
+													<td>&nbsp;</td>
+												</tr>
+											{% else %}
+												<tr>
+													<td colspan="4">-
+														{{ lang['not_used'] }}
+														-</td>
+												</tr>
+											{% endfor %}
+										</tbody>
+									</table>
+								</td>
+							</tr>
+						{% endif %}
+					</table>
+				</div>
+			{% endif %}
 			<!-- ########################## CACHE TAB ########################## -->
 			<div id="userTabs-cache" class="tab-pane">
 				<table class="table table-sm">

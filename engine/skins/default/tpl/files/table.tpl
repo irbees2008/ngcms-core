@@ -74,19 +74,23 @@
 	</div>
 </div>
 <!-- Mass actions form: BEGIN -->
-<form id="delform" name="imagedelete" action="{{ php_self }}?mod=files" method="post">
+<form id="delform" name="filedelete" action="{{ php_self }}?mod=files" method="post">
 	<input type="hidden" name="area" value="{{ area }}"/>
 	<div class="card">
 		<div class="card-header">
 			<div class="row">
+				<div class="custom-control custom-switch py-2 mr-auto">
+					<input id="master_box" type="checkbox" name="master_box" class="custom-control-input" title="{{ lang['select_all'] }}" onclick="javascript:check_uncheck_all(this.form)"/>
+					<label for="master_box" class="custom-control-label">{{ lang['select_all_files']|default('Выделить все файлы') }}</label>
+				</div>
 				<div class="col text-right">
 					<button type="button" class="btn btn-outline-success" data-toggle="modal" data-target="#uploadFilesModal" data-backdrop="static">{{ lang['upload_file'] }}</button>
 					{% if status %}
-<button type="button" class="btn btn-outline-primary" data-toggle="modal" data-target="#categoriesModal" data-backdrop="static" title="{{ lang['categories'] }}"  data-bs-toggle="tooltip">
+						<button type="button" class="btn btn-outline-primary" data-toggle="modal" data-target="#categoriesModal" data-backdrop="static" title="{{ lang['categories'] }}" data-bs-toggle="tooltip">
 							<i class="fa fa-folder-open-o"></i>
 						</button>
 					{% endif %}
-<button type="button" class="btn btn-outline-primary" data-toggle="collapse" data-target="#collapseFilesFilter" title="{{ lang['filter']|default('Фильтр') }}" data-bs-toggle="tooltip">
+					<button type="button" class="btn btn-outline-primary" data-toggle="collapse" data-target="#collapseFilesFilter" title="{{ lang['filter']|default('Фильтр') }}" data-bs-toggle="tooltip">
 						<i class="fa fa-filter"></i>
 					</button>
 				</div>
@@ -102,11 +106,26 @@
 						<th width="15%">{{ lang['category'] }}</th>
 						<th width="10%">{{ lang['author'] }}</th>
 						<th>{{ lang['action'] }}</th>
-						<th width="5%"><input type="checkbox" name="master_box" title="{{ lang['select_all'] }}" onclick="javascript:check_uncheck_all(delform)"/></th>
+						<th width="5%"></th>
 					</tr>
 				</thead>
 				<tbody>
-					{{ entries|raw }}
+					{% for entry in entries %}
+						<tr>
+							<td>{{ entry.id }}</td>
+							<td nowrap>{{ entry.file_link|raw }}</td>
+							<td>{{ entry.size }}</td>
+							<td>{{ entry.folder }}</td>
+							<td>{{ entry.user }}</td>
+							<td nowrap>{{ entry.insert_file|raw }}
+								{{ entry.rename|raw }}</td>
+							<td><input type="checkbox" name="files[]" value="{{ entry.id }}"/></td>
+						</tr>
+					{% else %}
+						<tr>
+							<td colspan="7">{{ lang['no_files']|default('Нет файлов') }}</td>
+						</tr>
+					{% endfor %}
 				</tbody>
 			</table>
 		</div>

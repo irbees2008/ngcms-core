@@ -296,4 +296,4 @@ document.addEventListener('DOMContentLoaded', function() {
 </script>
 
 <div class="mt-3">
-	<a href="admin.php?mod=configuration" class="btn btn-secondary">{{ lang.back }}</a>
+	<a href="admin.php?mod=configuration" class="btn btn-secondary">{{ lang.back|default(lang['multisite_back_to_main'])|default('← Назад') }}</a>

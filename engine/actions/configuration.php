@@ -247,6 +247,8 @@ function systemConfigEditForm()
         'siteId'                => $siteId,
         'multiDomainName'       => $multiDomainName ?? 'main',
         'isMainSite'            => empty($multiDomainName) || $multiDomainName === 'main',
+        'canManageMultisite'    => (empty($multiDomainName) || $multiDomainName === 'main')
+            && checkPermission(['plugin' => '#admin', 'item' => 'configuration'], null, 'modify'),
     ];
     //
     // Fill parameters for multiconfig
@@ -290,7 +292,6 @@ function multisiteAdd()
     $active = intval($_POST['active'] ?? 1);
     $langCode = trim($_POST['lang_code'] ?? 'ru'); // Language code for the site
     $multilangEnabled = intval($_POST['multilang_enabled'] ?? 1); // Enable multilang translations
-
     // Database configuration
     $dbType = trim($_POST['db_type'] ?? 'shared'); // 'shared' or 'separate'
     $dbConfig = [];
@@ -773,12 +774,27 @@ function multisiteAdd()
                         $filteredAdmin[$field] = $value;
                     }
                 }
+                // Remove 'id' to let AUTO_INCREMENT assign a new one (avoids duplicate key errors)
+                unset($filteredAdmin['id']);
                 if (!empty($filteredAdmin)) {
+                    // For separate DB: check if admin already exists before inserting
+                    if ($dbType === 'separate') {
+                        $checkResult = $targetMysql->query("SELECT COUNT(*) as cnt FROM `{$targetUsersTableName}` WHERE `status` = 1");
+                        $checkRow = $checkResult ? $checkResult->fetch_assoc() : null;
+                        if ($checkRow && $checkRow['cnt'] > 0) {
+                            msg(['type' => 'info', 'text' => $lang['multisite_admin_already_exists'] ?? 'Администратор уже существует в целевой БД']);
+                            // Skip copy, admin already there
+                            goto admin_copy_done;
+                        }
+                    }
                     // Insert admin into new database
                     $fields = array_keys($filteredAdmin);
                     $values = array_map(function ($v) use ($targetMysql, $dbType) {
+                        if ($v === null) {
+                            return 'NULL';
+                        }
                         if ($dbType === 'separate') {
-                            return "'" . $targetMysql->real_escape_string($v) . "'";
+                            return "'" . $targetMysql->real_escape_string((string)$v) . "'";
                         } else {
                             return db_squote($v);
                         }
@@ -805,6 +821,7 @@ function multisiteAdd()
             } else {
                 msg(['type' => 'warning', 'text' => $lang['multisite_admin_not_found']]);
             }
+            admin_copy_done:
         } catch (Exception $e) {
             msg(['type' => 'warning', 'text' => str_replace('{error}', $e->getMessage(), $lang['multisite_admin_copy_error'])]);
         }
@@ -1092,7 +1109,6 @@ if (isset($_REQUEST['subaction']) && ($_REQUEST['subaction'] == 'save') && ($_SE
             if (function_exists('clearTwigCache')) {
                 clearTwigCache('all');
             }
-
             // Clear other cache files in root cache directory (old behavior)
             $cacheDir = root . 'cache/';
             if (is_dir($cacheDir)) {
