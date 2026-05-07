@@ -15,8 +15,8 @@ define('adminDirName', array_pop($tempVariable));
 unset($tempVariable);
 // Определяем константы только если они ещё не определены
 if (!defined('NGCMS')) define('NGCMS', true);
-if (!defined('engineName')) define('engineName', 'NGCMS-MULTISITE');
-if (!defined('engineVersion')) define('engineVersion', 'rc-1.0.1');
+if (!defined('engineName')) define('engineName', 'NGCMS');
+if (!defined('engineVersion')) define('engineVersion', '1.0.0');
 if (!defined('engineVersionType')) define('engineVersionType', 'GIT');
 if (!defined('engineVersionBuild')) define('engineVersionBuild', '996871b');
 if (!defined('minDBVersion')) define('minDBVersion', 8);

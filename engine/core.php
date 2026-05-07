@@ -521,19 +521,28 @@ $timer->registerEvent('ALL core-related plugins are loaded');
 // Execute 'core' action handler
 executeActionHandler('core');
 $timer->registerEvent('ALL core-related plugins are executed');
+// After plugins (e.g. template_switch) $config['theme'] may have changed — recalculate paths
+$activeTplSite = site_root . 'templates/' . $config['theme'] . '/';
+$activeTplUrl  = $config['home_url'] . '/templates/' . $config['theme'];
 // Update global variables in TWIG after plugins execution (if runtime was initialized by plugins)
 try {
-    $twig->addGlobal('tpl_url', tpl_url);
+    $twig->addGlobal('tpl_url', $activeTplUrl);
     $twig->addGlobal('scriptLibrary', scriptLibrary);
 } catch (LogicException $e) {
     // Runtime already initialized by plugins, use mergeGlobals instead
     $twig->env->mergeGlobals([
-        'tpl_url' => tpl_url,
+        'tpl_url' => $activeTplUrl,
         'scriptLibrary' => scriptLibrary,
     ]);
 }
-// Reconfigure allowed template paths in TWIG - site template is also available
-$twigLoader->setPaths([tpl_site, root]);
+// Reconfigure allowed template paths in TWIG - use active theme (may differ from tpl_site constant)
+// If theme was switched (e.g. by template_switch plugin), keep tpl_site as fallback so templates
+// missing in the switched theme (slider.tpl, etc.) are found in the default theme.
+if ($activeTplSite !== tpl_site) {
+    $twigLoader->setPaths([$activeTplSite, tpl_site, root]);
+} else {
+    $twigLoader->setPaths([$activeTplSite, root]);
+}
 // Load lang files after executing core scripts. This is done for the switcher plugin.
 $lang = LoadLang('common');
 $lang = LoadLangTheme();

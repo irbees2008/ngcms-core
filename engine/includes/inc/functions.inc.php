@@ -69,8 +69,9 @@ function initGZipHandler()
 function AutoBackup($delayed = false, $force = false)
 {
     global $config;
-    $backupFlagFile = root . 'cache/last_backup.tmp';
-    $backupMarkerFile = root . 'cache/last_backup_marker.tmp';
+    $backupSuffix = defined('prefix') ? '_' . prefix : '';
+    $backupFlagFile = root . 'cache/last_backup' . $backupSuffix . '.tmp';
+    $backupMarkerFile = root . 'cache/last_backup_marker' . $backupSuffix . '.tmp';
     $last_backup = is_file($backupFlagFile) ? intval(file_get_contents($backupFlagFile)) : 0;
     $time_now = time();
     if ($force) {
@@ -113,9 +114,9 @@ function AutoBackup($delayed = false, $force = false)
             ftruncate($fx, ftell($fx));
             fclose($fx);
         }
-
         // Always perform backup when time threshold is met
-        $filename = root . 'backups/backup_' . date('Y_m_d_H_i', $time_now) . '.gz';
+        $backupName = 'backup' . $backupSuffix . '_' . date('Y_m_d_H_i', $time_now);
+        $filename = root . 'backups/' . $backupName . '.gz';
         require_once root . '/includes/inc/lib_admin.php';
         dbBackup($filename, 1);
         // Delete marker
@@ -125,12 +126,10 @@ function AutoBackup($delayed = false, $force = false)
 function LangDate($format, $timestamp)
 {
     global $lang;
-
     // Проверка на корректность $lang
     if (!is_array($lang)) {
         return date($format, $timestamp);
     }
-
     $weekdays = explode(',', isset($lang['weekdays']) ? $lang['weekdays'] : '');
     $short_weekdays = explode(',', isset($lang['short_weekdays']) ? $lang['short_weekdays'] : '');
     $months = explode(',', isset($lang['months']) ? $lang['months'] : '');
@@ -361,11 +360,18 @@ function sendEmailMessage($to, $subject, $message, $filename = false, $mail_from
 //			1 - use ADMIN PANEL template
 function templateLoadVariables($die = false, $loadMode = 0)
 {
-    global $TemplateCache;
+    global $TemplateCache, $config;
     if (isset($TemplateCache[$loadMode ? 'admin' : 'site']['#variables'])) {
         return true;
     }
-    $filename = ($loadMode ? tpl_actions : tpl_site) . 'variables.ini';
+    if ($loadMode) {
+        $tplPath = tpl_actions;
+    } else {
+        // Use $config['theme'] instead of tpl_site constant so that template_switch plugin
+        // (which changes $config['theme'] at runtime) gets its variables.ini loaded correctly.
+        $tplPath = site_root . 'templates/' . ($config['theme'] ?? 'default') . '/';
+    }
+    $filename = $tplPath . 'variables.ini';
     if (!is_file($filename)) {
         if ($die) {
             exit('Internal error: cannot locate Template Variables file');
@@ -2742,7 +2748,8 @@ function ngExceptionHandler($exception)
             // Use default <noavatar> file
             // - Check if noavatar is defined on template level
             $tplVars = $TemplateCache['site']['#variables'];
-            $noAvatarURL = (isset($tplVars['configuration']) && is_array($tplVars['configuration']) && isset($tplVars['configuration']['noAvatarImage']) && $tplVars['configuration']['noAvatarImage']) ? (tpl_url . '/' . $tplVars['configuration']['noAvatarImage']) : (avatars_url . '/noavatar.gif');
+            $_activeTplUrl = $config['home_url'] . '/templates/' . ($config['theme'] ?? 'default');
+            $noAvatarURL = (isset($tplVars['configuration']) && is_array($tplVars['configuration']) && isset($tplVars['configuration']['noAvatarImage']) && $tplVars['configuration']['noAvatarImage']) ? ($_activeTplUrl . '/' . $tplVars['configuration']['noAvatarImage']) : (avatars_url . '/noavatar.gif');
             // Preload plugins for usermenu
             loadActionHandlers('usermenu');
             // Execute action handlers for 'usermenu' so plugins (e.g., pm) can expose globals like `newpm`
