@@ -15,23 +15,23 @@
 		<link rel="stylesheet" href="{{ tpl_url }}/css/style.css">
 		<link rel="stylesheet" href="{{ tpl_url }}/css/slider.css">
 		<!--[if lt IE 9]>
-													<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
-													 <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
-													<![endif]-->
+															<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+															  <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+															<![endif]-->
 		<!--[if lte IE 7]>
-													<link rel="stylesheet" href="{{ tpl_url }}/css/ie7.css">
-													 <script src="{{ tpl_url }}/js/ie7.js"></script>
-													<![endif]-->
+															<link rel="stylesheet" href="{{ tpl_url }}/css/ie7.css">
+															  <script src="{{ tpl_url }}/js/ie7.js"></script>
+															<![endif]-->
 		<!--[if lte IE 6]>
-													<link rel="stylesheet" href="{{ tpl_url }}/css/ie6.css">
-													<![endif]-->
+															<link rel="stylesheet" href="{{ tpl_url }}/css/ie6.css">
+															<![endif]-->
 			{% if pluginIsActive('rss_export') %}
 		<link href="{{ home }}/rss.xml" rel="alternate" type="application/rss+xml" title="RSS"/> {% endif %}
 		 <script src="{{ scriptLibrary }}/jq/jquery.js"></script>
 		 <script type="text/javascript" src="{{ scriptLibrary }}/functions.js"></script>
 		 <script type="text/javascript" src="{{ scriptLibrary }}/ajax.js"></script>
 		<link
-		rel="stylesheet" href="{{ home }}/lib/notify.css">  <script src="{{ home }}/lib/notify.js"></script>
+		rel="stylesheet" href="{{ scriptLibrary }}/notify.css">  <script src="{{ scriptLibrary }}/notify.js"></script>
 		<title>{{ titles }}
 			{% if pagination_total and pagination_current and pagination_current > 1 %}
 				- Страница
@@ -177,7 +177,7 @@
 							Powered by
 							<a title="Next Generation CMS" target="_blank" href="http://ngcms.org/">NG CMS</a>
 							2007
-																																														—
+																																																					—
 							{{ now|date("Y") }}.
 							<br/>{{ lang.sql_queries }}:
 							<b>{{ queries }}</b>
@@ -222,6 +222,8 @@
 				</div>
 			{% endif %}
 		{% endblock %}
+		{{ callPlugin("cookienotice.show", {})|raw }}
+{{ callPlugin("audioplayer.show", {mode: "popup"})|raw }}
 	</body>
 </html>
 {% endapply %}
