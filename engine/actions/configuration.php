@@ -378,6 +378,16 @@ function multisiteAdd()
     }
     // Test connection to separate database if needed
     if ($dbType === 'separate') {
+        // Check: same host + same db name + same prefix as main site = literally the same tables
+        $sameAsMain = (
+            ($dbConfig['host'] === $config['dbhost']) &&
+            ($dbConfig['name'] === $config['dbname']) &&
+            ($dbConfig['prefix'] === $config['prefix'])
+        );
+        if ($sameAsMain) {
+            msg(['type' => 'error', 'text' => $lang['multisite_same_as_main'] ?? 'Отдельная БД совпадает с основной (одинаковые хост, имя БД и префикс). Используйте тип «Общая база данных» или укажите другой префикс / другую базу.']);
+            return false;
+        }
         try {
             // Try to connect to the separate database
             $testConnection = new mysqli(
@@ -390,17 +400,21 @@ function multisiteAdd()
                 msg(['type' => 'error', 'text' => str_replace('{error}', $testConnection->connect_error, $lang['multisite_db_error'])]);
                 return false;
             }
-            // Test if we can create tables
-            $testPrefix = !empty($dbConfig['prefix']) ? $dbConfig['prefix'] . '_' : '';
-            $testTableName = $testPrefix . 'test_' . time();
-            $testQuery = "CREATE TABLE `{$testTableName}` (id INT)";
-            if (!$testConnection->query($testQuery)) {
-                msg(['type' => 'error', 'text' => str_replace('{error}', $testConnection->error, $lang['multisite_cannot_create_tables'])]);
-                $testConnection->close();
-                return false;
+            // If same host+db but different prefix — warn that it works like shared mode
+            if (($dbConfig['host'] === $config['dbhost']) && ($dbConfig['name'] === $config['dbname'])) {
+                msg(['type' => 'info', 'text' => $lang['multisite_same_db_diff_prefix'] ?? 'Внимание: используется та же физическая БД что и у основного сайта, но с другим префиксом. Это эквивалентно режиму «Общая база данных».']);
             }
-            // Drop test table
-            $testConnection->query("DROP TABLE `{$testTableName}`");
+            // Check if prefix already exists in that database
+            if (!empty($dbConfig['prefix'])) {
+                $testTable = $dbConfig['prefix'] . '_plugins';
+                $checkResult = $testConnection->query("SHOW TABLES LIKE '" . $testConnection->real_escape_string($testTable) . "'");
+                if ($checkResult && $checkResult->num_rows > 0) {
+                    $testConnection->close();
+                    msg(['type' => 'error', 'text' => str_replace('{prefix}', $dbConfig['prefix'], $lang['multisite_prefix_exists'] ?? 'Таблицы с префиксом {prefix} уже существуют в целевой БД.')]);
+                    return false;
+                }
+            }
+            // Connection test passed
             $testConnection->close();
             msg(['type' => 'info', 'text' => $lang['multisite_db_test_success']]);
         } catch (Exception $e) {
@@ -554,6 +568,14 @@ function multisiteAdd()
                     $configContent
                 );
             }
+            // Also update uprefix if it is explicitly present in the config
+            // (by default uprefix == prefix; without this fix shared-type multisite
+            //  keeps pointing at the main site's users table)
+            $configContent = preg_replace(
+                "/'uprefix'\s*=>\s*'[^']*'/",
+                "'uprefix' => '{$dbConfig['prefix']}'",
+                $configContent
+            );
             // Update URLs (use first domain from list)
             $firstDomain = $domainList[0];
             $siteUrl = 'http://' . $firstDomain;
@@ -571,6 +593,12 @@ function multisiteAdd()
             $configContent = preg_replace(
                 "/'home_title'\s*=>\s*'[^']*'/",
                 "'home_title' => '{$siteId}'",
+                $configContent
+            );
+            // Enable multisite mode in the generated config
+            $configContent = preg_replace(
+                "/'use_multisite'\s*=>\s*'[^']*'/",
+                "'use_multisite' => '1'",
                 $configContent
             );
             // Get uploads base path from config
@@ -618,7 +646,10 @@ function multisiteAdd()
                 "'images_dir' => '{$multisiteUploadsDir}/images/'",
                 $configContent
             );
-            file_put_contents($configFile, $configContent);
+            if (file_put_contents($configFile, $configContent) === false) {
+                msg(['type' => 'error', 'text' => str_replace('{file}', $configFile, $lang['multisite_config_write_error'] ?? 'Не удалось записать файл конфигурации {file}. Проверьте права доступа.')]);
+                return false;
+            }
         }
     }
     // Create clean database tables from template (engine/trash/tables.sql)
@@ -767,52 +798,63 @@ function multisiteAdd()
             $adminResult = $mysql->select("SELECT * FROM `{$sourceUsersTable}` WHERE `status` = 1 LIMIT 1");
             if (!empty($adminResult)) {
                 $admin = $adminResult[0];
-                // Filter fields: only use fields that exist in target table
-                $filteredAdmin = [];
-                foreach ($admin as $field => $value) {
-                    if (in_array($field, $targetColumns)) {
-                        $filteredAdmin[$field] = $value;
-                    }
-                }
-                // Remove 'id' to let AUTO_INCREMENT assign a new one (avoids duplicate key errors)
-                unset($filteredAdmin['id']);
+                // Build a clean admin record — only copy essential auth fields,
+                // reset session/activation fields to ensure working login on new site.
+                $cleanAdmin = [
+                    'name'       => $admin['name'],
+                    'mail'       => $admin['mail'] ?? '',
+                    'pass'       => $admin['pass'] ?? '',
+                    'status'     => 1,            // super admin — cannot be deleted
+                    'reg'        => time(),
+                    'last'       => 0,
+                    'news'       => 0,
+                    'where_from' => $admin['where_from'] ?? '',
+                    'info'       => $admin['info'] ?? '',
+                    'avatar'     => '',           // no avatar on new site
+                    'activation' => '',           // empty = active, no email confirmation needed
+                    'authcookie' => '',           // force re-login
+                    'newpw'      => '',
+                    'ip'         => '',
+                ];
+                // Keep only fields that exist in the target table
+                $filteredAdmin = array_intersect_key($cleanAdmin, array_flip($targetColumns));
                 if (!empty($filteredAdmin)) {
-                    // For separate DB: check if admin already exists before inserting
+                    // Check if admin already exists in target DB
+                    $adminExists = false;
                     if ($dbType === 'separate') {
                         $checkResult = $targetMysql->query("SELECT COUNT(*) as cnt FROM `{$targetUsersTableName}` WHERE `status` = 1");
                         $checkRow = $checkResult ? $checkResult->fetch_assoc() : null;
-                        if ($checkRow && $checkRow['cnt'] > 0) {
-                            msg(['type' => 'info', 'text' => $lang['multisite_admin_already_exists'] ?? 'Администратор уже существует в целевой БД']);
-                            // Skip copy, admin already there
-                            goto admin_copy_done;
-                        }
-                    }
-                    // Insert admin into new database
-                    $fields = array_keys($filteredAdmin);
-                    $values = array_map(function ($v) use ($targetMysql, $dbType) {
-                        if ($v === null) {
-                            return 'NULL';
-                        }
-                        if ($dbType === 'separate') {
-                            return "'" . $targetMysql->real_escape_string((string)$v) . "'";
-                        } else {
-                            return db_squote($v);
-                        }
-                    }, array_values($filteredAdmin));
-                    $insertSQL = "INSERT INTO `{$targetUsersTableName}` (`" . implode('`, `', $fields) . "`) VALUES (" . implode(', ', $values) . ")";
-                    if ($dbType === 'separate') {
-                        $targetMysql->query($insertSQL);
-                        if ($targetMysql->error) {
-                            msg(['type' => 'warning', 'text' => str_replace('{error}', $targetMysql->error, $lang['multisite_admin_insert_error'])]);
-                        } else {
-                            msg(['type' => 'info', 'text' => str_replace('{name}', $admin['name'], $lang['multisite_admin_copied'])]);
-                        }
+                        $adminExists = $checkRow && $checkRow['cnt'] > 0;
                     } else {
-                        $mysql->query($insertSQL);
-                        if ($mysql->db_errno()) {
-                            msg(['type' => 'warning', 'text' => str_replace('{error}', $mysql->db_error(), $lang['multisite_admin_insert_error'])]);
+                        $checkResult = $mysql->select("SELECT COUNT(*) as cnt FROM `{$targetUsersTableName}` WHERE `status` = 1");
+                        $adminExists = !empty($checkResult) && $checkResult[0]['cnt'] > 0;
+                    }
+                    if ($adminExists) {
+                        msg(['type' => 'info', 'text' => $lang['multisite_admin_already_exists'] ?? 'Администратор уже существует в целевой БД']);
+                    } else {
+                        // Insert clean admin record
+                        if ($dbType === 'separate') {
+                            $fields = array_keys($filteredAdmin);
+                            $values = array_map(function ($v) use ($targetMysql) {
+                                return $v === null ? 'NULL' : "'" . $targetMysql->real_escape_string((string)$v) . "'";
+                            }, array_values($filteredAdmin));
+                            $insertSQL = "INSERT INTO `{$targetUsersTableName}` (`" . implode('`, `', $fields) . "`) VALUES (" . implode(', ', $values) . ")";
+                            $targetMysql->query($insertSQL);
+                            if ($targetMysql->error) {
+                                msg(['type' => 'warning', 'text' => str_replace('{error}', $targetMysql->error, $lang['multisite_admin_insert_error'])]);
+                            } else {
+                                msg(['type' => 'info', 'text' => str_replace('{name}', $admin['name'], $lang['multisite_admin_copied'])]);
+                            }
                         } else {
-                            msg(['type' => 'info', 'text' => str_replace('{name}', $admin['name'], $lang['multisite_admin_copied'])]);
+                            $fields = array_keys($filteredAdmin);
+                            $values = array_map(fn($v) => $v === null ? 'NULL' : db_squote($v), array_values($filteredAdmin));
+                            $insertSQL = "INSERT INTO `{$targetUsersTableName}` (`" . implode('`, `', $fields) . "`) VALUES (" . implode(', ', $values) . ")";
+                            $mysql->query($insertSQL);
+                            if ($mysql->db_errno()) {
+                                msg(['type' => 'warning', 'text' => str_replace('{error}', $mysql->db_error(), $lang['multisite_admin_insert_error'])]);
+                            } else {
+                                msg(['type' => 'info', 'text' => str_replace('{name}', $admin['name'], $lang['multisite_admin_copied'])]);
+                            }
                         }
                     }
                 } else {
@@ -821,7 +863,6 @@ function multisiteAdd()
             } else {
                 msg(['type' => 'warning', 'text' => $lang['multisite_admin_not_found']]);
             }
-            admin_copy_done:
         } catch (Exception $e) {
             msg(['type' => 'warning', 'text' => str_replace('{error}', $e->getMessage(), $lang['multisite_admin_copy_error'])]);
         }
@@ -1135,9 +1176,13 @@ if (isset($_REQUEST['action'])) {
             break;
         case 'multisite_add':
             if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-                multisiteAdd();
-                header('Location: admin.php?mod=configuration&action=multisite_manage');
-                exit;
+                $addResult = multisiteAdd();
+                if ($addResult !== false) {
+                    header('Location: admin.php?mod=configuration&action=multisite_manage');
+                    exit;
+                }
+                // On error: fall through to render the page with error messages
+                $main_admin = multisiteManage();
             }
             break;
         case 'multisite_delete':

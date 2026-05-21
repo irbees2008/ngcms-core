@@ -20,4 +20,4 @@
 
 ---
 С уважением,
-почтовый робот Вашего сайта (работает на базе Next Generation CMS - http://ngcms.ru/)
+почтовый робот Вашего сайта (работает на базе Next Generation CMS - http://ngcms.org/)

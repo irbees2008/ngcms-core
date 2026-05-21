@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="ru">
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<title>Документация NGCMS</title>
+		<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+		<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/atom-one-light.min.css">
+		<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+		<style>
+			body {
+				display: flex;
+				flex-direction: column;
+				min-height: 100vh;
+			}
+			.hero-section {
+				background: linear-gradient(135deg, #6e48aa 0%, #9d50bb 100%);
+				color: white;
+				padding: 2rem 0;
+				margin-bottom: 0;
+			}
+			.hero-section h1 {
+				font-size: 2rem;
+				font-weight: bold;
+			}
+			.docs-container {
+				display: flex;
+				flex: 1;
+				background: #fff;
+			}
+			.docs-menu {
+				flex: 0 0 300px;
+				background: #f8f9fa;
+				border-right: 1px solid #dee2e6;
+				overflow-y: auto;
+				max-height: calc(100vh - 56px);
+				position: sticky;
+				top: 56px;
+				padding: 0;
+			}
+			.docs-menu-header {
+				padding: 20px;
+				background: #fff;
+				border-bottom: 1px solid #dee2e6;
+				position: sticky;
+				top: 0;
+				z-index: 100;
+			}
+			.docs-menu-content {
+				padding: 20px;
+			}
+			.docs-content {
+				flex: 1;
+				padding: 40px;
+				max-width: calc(100% - 300px);
+			}
+			.docs-content-wrapper {
+				max-width: 900px;
+			}
+			@media(max-width: 992px) {
+				.docs-menu {
+					flex: 0 0 250px;
+				}
+				.docs-content {
+					max-width: calc(100% - 250px);
+				}
+			}
+			@media(max-width: 768px) {
+				.docs-container {
+					flex-direction: column;
+				}
+				.docs-menu {
+					flex: 0 0 auto;
+					max-height: 400px;
+					position: static;
+					border-right: none;
+					border-bottom: 1px solid #dee2e6;
+				}
+				.docs-content {
+					max-width: 100%;
+					padding: 20px;
+				}
+			}
+			/* Стили меню */
+			.docs-menu ul {
+				list-style: none;
+				padding-left: 0;
+			}
+			.docs-menu ul ul {
+				padding-left: 1rem;
+			}
+			.docs-menu li {
+				margin: 0.25rem 0;
+			}
+			.docs-menu a {
+				color: #212529;
+				text-decoration: none;
+				display: block;
+				padding: 0.375rem 0.5rem;
+				border-radius: 0.25rem;
+				transition: all 0.2s;
+			}
+			.docs-menu a:hover {
+				background: #e9ecef;
+				color: #6e48aa;
+			}
+			.docs-menu li.active > a {
+				background: #6e48aa;
+				color: white;
+				font-weight: 500;
+			}
+			/* Стили контента */
+			#docsContent h1, #docsContent h2, #docsContent h3, #docsContent h4 {
+				margin-top: 1.5rem;
+				margin-bottom: 1rem;
+				font-weight: 600;
+			}
+			#docsContent h1 {
+				font-size: 2.5rem;
+				border-bottom: 2px solid #dee2e6;
+				padding-bottom: 0.5rem;
+				margin-bottom: 1.5rem;
+			}
+			#docsContent h2 {
+				font-size: 2rem;
+				border-bottom: 1px solid #dee2e6;
+				padding-bottom: 0.5rem;
+			}
+			#docsContent h3 {
+				font-size: 1.5rem;
+				color: #6e48aa;
+			}
+			#docsContent img {
+				max-width: 100%;
+				height: auto;
+				border-radius: 0.25rem;
+				box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+				margin: 1.5rem 0;
+			}
+			#docsContent pre {
+				background: #f8f9fa;
+				border: 1px solid #dee2e6;
+				border-radius: 0.25rem;
+				padding: 1rem;
+				overflow-x: auto;
+			}
+			#docsContent code {
+				background: #f8f9fa;
+				padding: 0.2rem 0.4rem;
+				border-radius: 0.25rem;
+				font-size: 0.875em;
+				color: #e83e8c;
+			}
+			#docsContent pre code {
+				background: transparent;
+				padding: 0;
+				color: inherit;
+			}
+			#docsContent table {
+				width: 100%;
+				margin: 1.5rem 0;
+				border-collapse: collapse;
+			}
+			#docsContent table th,
+			#docsContent table td {
+				padding: 0.75rem;
+				border: 1px solid #dee2e6;
+			}
+			#docsContent table th {
+				background: #f8f9fa;
+				font-weight: 600;
+			}
+			#docsContent blockquote {
+				border-left: 4px solid #6e48aa;
+				padding-left: 1rem;
+				margin: 1.5rem 0;
+				color: #6c757d;
+				font-style: italic;
+			}
+			#docsContent ul, #docsContent ol {
+				padding-left: 2rem;
+				margin: 1rem 0;
+			}
+			#docsContent li {
+				margin: 0.5rem 0;
+			}
+			#docsContent a {
+				color: #6e48aa;
+				text-decoration: none;
+			}
+			#docsContent a:hover {
+				color: #9d50bb;
+				text-decoration: underline;
+			}
+			/* Специальные блоки */
+			#docsContent .alert {
+				margin: 1.5rem 0;
+			}
+			.note {
+				background-color: #d1ecf1;
+				border-left: 4px solid #0c5460;
+				padding: 1rem;
+				margin: 1rem 0;
+				border-radius: 0.25rem;
+			}
+			.warning {
+				background-color: #fff3cd;
+				border-left: 4px solid #ffc107;
+				padding: 1rem;
+				margin: 1rem 0;
+				border-radius: 0.25rem;
+			}
+			.tip {
+				background-color: #d4edda;
+				border-left: 4px solid #28a745;
+				padding: 1rem;
+				margin: 1rem 0;
+				border-radius: 0.25rem;
+			}
+			/* Хлебные крошки */
+			.breadcrumb {
+				background: transparent;
+				padding: 0;
+				margin-bottom: 1.5rem;
+			}
+			/* Поиск */
+			.search-highlight {
+				background-color: #ffeb3b;
+				padding: 0.1rem 0.2rem;
+			}
+			/* Кнопка "Наверх" */
+			.back-to-top {
+				position: fixed;
+				bottom: 30px;
+				right: 30px;
+				display: none;
+				z-index: 1000;
+				width: 50px;
+				height: 50px;
+				border-radius: 50%;
+				background: #6e48aa;
+				color: white;
+				border: none;
+				font-size: 1.5rem;
+				cursor: pointer;
+				box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+				transition: all 0.3s;
+			}
+			.back-to-top:hover {
+				background: #9d50bb;
+				transform: translateY(-3px);
+				box-shadow: 0 6px 12px rgba(0,0,0,0.3);
+			}
+			/* Footer */
+			footer {
+				margin-top: auto;
+			}
+		</style>
+	</head>
+	<body>
+		<!-- Навигация -->
+		<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+			<div class="container-fluid">
+				<a class="navbar-brand d-flex align-items-center" href="?file=about.md">
+					<i class="bi bi-book-fill me-2"></i>
+					<span>NGCMS Документация</span>
+				</a>
+				<button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+					<span class="navbar-toggler-icon"></span>
+				</button>
+				<div class="collapse navbar-collapse" id="navbarNav">
+					<ul class="navbar-nav ms-auto">
+						<li class="nav-item"><a class="nav-link" href="http://ngcms.org/" target="_blank">Официальный сайт</a></li>
+						<li class="nav-item"><a class="nav-link" href="http://forum.ngcms.org" target="_blank">Форум</a></li>
+						<li class="nav-item"><a class="nav-link" href="https://github.com/irbees2008/ngcms-core" target="_blank"><i class="bi bi-github"></i> GitHub</a></li>
+					</ul>
+				</div>
+			</div>
+		</nav>
+		<!-- Hero секция -->
+		<section class="hero-section">
+			<div class="container">
+				<h1 id="heroTitle">Документация Next Generation CMS</h1>
+				<p class="lead mb-0" id="heroDescription">Полное руководство по работе с системой</p>
+			</div>
+		</section>
+		<!-- Контейнер документации -->
+		<div class="docs-container">
+			<div class="docs-menu">
+				<div class="docs-menu-header">
+					<div class="input-group">
+						<input type="text" class="form-control" id="searchInput" placeholder="Поиск...">
+						<button class="btn btn-outline-secondary" id="searchButton" title="Найти">
+							<i class="bi bi-search"></i>
+						</button>
+					</div>
+				</div>
+				<div class="docs-menu-content" id="menuContent"></div>
+			</div>
+			<div class="docs-content">
+				<div class="docs-content-wrapper">
+					<nav aria-label="breadcrumb" id="breadcrumbs"></nav>
+					<div id="docsContent"></div>
+				</div>
+			</div>
+		</div>
+		<!-- Кнопка "Наверх" -->
+		<button class="back-to-top" onclick="window.scrollTo({top: 0, behavior: 'smooth'})" title="Наверх">
+			<i class="bi bi-arrow-up"></i>
+		</button>
+		<!-- Футер -->
+		<footer class="footer bg-dark text-white py-4 mt-5">
+			<div class="container">
+				<div class="row">
+					<div class="col-md-6">
+						<h5><i class="bi bi-gear-fill"></i> Next Generation CMS</h5>
+						<p>Мощная система управления контентом для создания профессиональных веб-сайтов.</p>
+					</div>
+					<div class="col-md-3">
+						<h5>Ресурсы</h5>
+						<ul class="list-unstyled">
+							<li><a href="http://ngcms.org/" class="text-white-50">Официальный сайт</a></li>
+							<li><a href="http://forum.ngcms.org/" class="text-white-50">Форум поддержки</a></li>
+							<li><a href="https://github.com/irbees2008/ngcms-core" class="text-white-50">GitHub</a></li>
+						</ul>
+					</div>
+					<div class="col-md-3">
+						<h5>Помощь</h5>
+						<ul class="list-unstyled">
+							<li><a href="?file=about.md" class="text-white-50">О проекте</a></li>
+							<li><a href="?file=installation.md" class="text-white-50">Установка</a></li>
+							<li><a href="?file=templates.md" class="text-white-50">Шаблоны</a></li>
+						</ul>
+					</div>
+				</div>
+				<hr class="mt-3 bg-white">
+				<div class="text-center">
+					<p class="mb-0">© 2008-2026 Next Generation CMS. Все права защищены.</p>
+				</div>
+			</div>
+		</footer>
+		<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
+		<script>
+			// Конфигурация marked.js
+			marked.setOptions({
+				breaks: true,
+				gfm: true,
+				highlight: function(code, lang) {
+					if (lang && hljs.getLanguage(lang)) {
+						return hljs.highlight(code, {language: lang}).value;
+					}
+					return hljs.highlightAuto(code).value;
+				}
+			});
+			// Функция для загрузки файла (совместима с file:// и http://)
+			function loadFile(file) {
+				return new Promise((resolve, reject) => {
+					const xhr = new XMLHttpRequest();
+					xhr.open('GET', file, true);
+					xhr.onload = function() {
+						if (xhr.status === 200 || xhr.status === 0) { // 0 для file://
+							resolve(xhr.responseText);
+						} else {
+							reject(new Error(`HTTP ${xhr.status}: ${xhr.statusText}`));
+						}
+					};
+					xhr.onerror = function() {
+						reject(new Error('Не удалось загрузить файл'));
+					};
+					xhr.send();
+				});
+			}
+			// Обновление заголовка Hero секции
+			function updateHeroTitle(file) {
+				const titles = {
+					'about.md': 'О проекте NGCMS',
+					'installation.md': 'Установка системы',
+					'templates.md': 'Работа с шаблонами',
+					'plugins.md': 'Плагины и расширения',
+					'config.md': 'Настройка системы',
+					'users.md': 'Управление пользователями',
+					'news.md': 'Управление новостями',
+					'catigories.md': 'Работа с категориями',
+					'static.md': 'Статические страницы'
+				};
+				const descriptions = {
+					'about.md': 'Знакомство с Next Generation CMS',
+					'installation.md': 'Пошаговое руководство по установке',
+					'templates.md': 'Создание и настройка шаблонов',
+					'plugins.md': 'Расширение функциональности системы',
+					'config.md': 'Конфигурирование параметров CMS',
+					'users.md': 'Администрирование пользователей',
+					'news.md': 'Публикация и редактирование новостей',
+					'catigories.md': 'Организация контента по разделам',
+					'static.md': 'Создание и управление статическими страницами'
+				};
+				const title = titles[file] || 'Документация NGCMS';
+				const description = descriptions[file] || 'Полное руководство по работе с системой';
+				document.getElementById('heroTitle').textContent = title;
+				document.getElementById('heroDescription').textContent = description;
+			}
+			// Загрузка и отображение документации
+			async function loadDocumentation(file = 'about.md') {
+				try {
+					// Загрузка выбранного файла
+					const mdContent = await loadFile(file);
+					let htmlContent = marked.parse(mdContent);
+					// Преобразование специальных блоков
+					htmlContent = htmlContent.replace(/<blockquote>\s*<p><strong>Примечание:<\/strong>/gi, '<div class="note"><p><strong><i class="bi bi-info-circle-fill"></i> Примечание:</strong>');
+					htmlContent = htmlContent.replace(/<blockquote>\s*<p><strong>Внимание:<\/strong>/gi, '<div class="warning"><p><strong><i class="bi bi-exclamation-triangle-fill"></i> Внимание:</strong>');
+					htmlContent = htmlContent.replace(/<blockquote>\s*<p><strong>Совет:<\/strong>/gi, '<div class="tip"><p><strong><i class="bi bi-lightbulb-fill"></i> Совет:</strong>');
+					htmlContent = htmlContent.replace(/<\/blockquote>/gi, '</div>');
+					document.getElementById('docsContent').innerHTML = htmlContent;
+					// Обновление заголовка Hero
+					updateHeroTitle(file);
+					// Обновление активного пункта меню
+					updateActiveMenuItem(file);
+					// Обновление хлебных крошек
+					updateBreadcrumbs(file);
+					// Подсветка синтаксиса
+					document.querySelectorAll('pre code').forEach((block) => {
+						hljs.highlightElement(block);
+					});
+					// Прокрутка наверх
+					window.scrollTo({top: 0, behavior: 'smooth'});
+				} catch (error) {
+					document.getElementById('docsContent').innerHTML = `
+						<div class="alert alert-warning">
+							<h4><i class="bi bi-exclamation-triangle"></i> Ошибка загрузки файла: ${file}</h4>
+							<p>${error.message}</p>
+							<hr>
+							<p><strong>Для корректной работы документации запустите локальный веб-сервер:</strong></p>
+							<p>Откройте терминал в папке <code>c:\\OSPanel\\home\\it\\docs</code> и выполните:</p>
+							<pre><code>php -S localhost:8080</code></pre>
+							<p>Затем откройте в браузере: <a href="http://localhost:8080">http://localhost:8080</a></p>
+							<hr>
+							<p><strong>Или используйте OSPanel:</strong></p>
+							<p>Откройте: <code>http://localhost/docs/</code> или <code>http://it/docs/</code></p>
+							<hr>
+							<p><strong>Или запустите готовый скрипт:</strong></p>
+							<p>Двойной клик по файлу <code>START_SERVER.bat</code> в папке docs</p>
+						</div>
+					`;
+				}
+			}
+			// Загрузка меню
+			async function loadMenu() {
+				try {
+					const mdContent = await loadFile('menu.md');
+					document.getElementById('menuContent').innerHTML = marked.parse(mdContent);
+					// Обработка кликов по ссылкам в меню
+					document.querySelectorAll('.docs-menu a').forEach(link => {
+						link.addEventListener('click', function(e) {
+							const href = this.getAttribute('href');
+							if (href && href.includes('.md')) {
+								e.preventDefault();
+								history.pushState({file: href}, '', `?file=${href}`);
+								loadDocumentation(href);
+							}
+						});
+					});
+				} catch (error) {
+					document.getElementById('menuContent').innerHTML = `
+						<div class="alert alert-danger">
+							<strong>Ошибка загрузки меню</strong><br>
+							${error.message}
+						</div>
+					`;
+				}
+			}
+			// Обновление активного пункта меню
+			function updateActiveMenuItem(file) {
+				document.querySelectorAll('.docs-menu li').forEach(item => {
+					item.classList.remove('active');
+				});
+				document.querySelectorAll('.docs-menu a').forEach(link => {
+					if (link.getAttribute('href') === file) {
+						let parent = link.closest('li');
+						if (parent) parent.classList.add('active');
+					}
+				});
+			}
+			// Обновление хлебных крошек
+			async function updateBreadcrumbs(file) {
+				try {
+					const mdContent = await loadFile('menu.md');
+					const lines = mdContent.split('\n');
+					let breadcrumbs = [];
+					let currentLevel = 0;
+					let found = false;
+					for (const line of lines) {
+						const match = line.match(/^(\s*)- \[([^\]]+)\]\(([^)]+)\)/);
+						if (match) {
+							const level = match[1].length / 2;
+							const title = match[2];
+							const link = match[3];
+							if (link === file) {
+								breadcrumbs[level] = { title, link };
+								found = true;
+								break;
+							}
+							if (level <= currentLevel) {
+								breadcrumbs = breadcrumbs.slice(0, level);
+							}
+							if (level >= currentLevel) {
+								breadcrumbs[level] = { title, link };
+								currentLevel = level;
+							}
+						}
+					}
+					let breadcrumbsHtml = '<ol class="breadcrumb">';
+					breadcrumbs.forEach((item, i) => {
+						if (i === breadcrumbs.length - 1) {
+							breadcrumbsHtml += `<li class="breadcrumb-item active">${item.title}</li>`;
+						} else {
+							breadcrumbsHtml += `<li class="breadcrumb-item"><a href="#" onclick="loadDocumentation('${item.link}'); return false;">${item.title}</a></li>`;
+						}
+					});
+					breadcrumbsHtml += '</ol>';
+					document.getElementById('breadcrumbs').innerHTML = found ? breadcrumbsHtml : '';
+				} catch (error) {
+					console.error('Ошибка при создании хлебных крошек:', error);
+				}
+			}
+			// Поиск по документации
+			function setupSearch() {
+				const searchInput = document.getElementById('searchInput');
+				const searchButton = document.getElementById('searchButton');
+				function performSearch() {
+					const query = searchInput.value.trim().toLowerCase();
+					if (query.length < 2) return;
+					const content = document.getElementById('docsContent');
+					const text = content.textContent || content.innerText;
+					if (text.toLowerCase().includes(query)) {
+						// Сброс предыдущих результатов
+						content.innerHTML = content.innerHTML.replace(/<span class="search-highlight">([^<]*)<\/span>/gi, '$1');
+						// Подсветка новых результатов
+						const regex = new RegExp(`(${query})`, 'gi');
+						content.innerHTML = content.innerHTML.replace(regex, '<span class="search-highlight">$1</span>');
+					}
+				}
+				searchButton.addEventListener('click', performSearch);
+				searchInput.addEventListener('keypress', (e) => {
+					if (e.key === 'Enter') performSearch();
+				});
+			}
+			// Обработка истории браузера
+			window.addEventListener('popstate', (event) => {
+				if (event.state && event.state.file) {
+					loadDocumentation(event.state.file);
+				}
+			});
+			// Инициализация
+			document.addEventListener('DOMContentLoaded', () => {
+				// Загрузка меню
+				loadMenu();
+				// Определение файла для загрузки из URL
+				const urlParams = new URLSearchParams(window.location.search);
+				const fileParam = urlParams.get('file') || 'about.md';
+				// Загрузка документации
+				loadDocumentation(fileParam);
+				// Настройка поиска
+				setupSearch();
+				// Кнопка "Наверх"
+				window.addEventListener('scroll', () => {
+					const backToTop = document.querySelector('.back-to-top');
+					if (backToTop) {
+						backToTop.style.display = window.pageYOffset > 300 ? 'block' : 'none';
+					}
+				});
+			});
+		</script>
+	</body>
+</html>

@@ -30,8 +30,8 @@
 		 <script src="{{ scriptLibrary }}/jq/jquery.js"></script>
 		 <script type="text/javascript" src="{{ scriptLibrary }}/functions.js"></script>
 		 <script type="text/javascript" src="{{ scriptLibrary }}/ajax.js"></script>
-		<link
-		rel="stylesheet" href="{{ scriptLibrary }}/notify.css">  <script src="{{ scriptLibrary }}/notify.js"></script>
+		 <link rel="stylesheet" href="{{ scriptLibrary }}/notify.css">
+	   <script src="{{ scriptLibrary }}/notify.js"></script>
 		<title>{{ titles }}
 			{% if pagination_total and pagination_current and pagination_current > 1 %}
 				- Страница

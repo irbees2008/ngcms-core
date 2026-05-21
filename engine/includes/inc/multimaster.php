@@ -8,12 +8,23 @@
 function multi_multisites()
 {
     global $config, $siteDomainName, $multiDomainName, $multiconfig, $multimaster;
+
+    // Save values resolved by the first call (before config was loaded).
+    // On the second call (after subsite config is loaded), if use_multisite=0
+    // we must NOT discard the domain resolution already done by the first call.
+    $prevSiteDomain  = $siteDomainName;
+    $prevMultiDomain = $multiDomainName;
+
     $siteDomainName = '';
     $multiDomainName = '';
 
     // Проверяем, включен ли мультисайт в настройках
     // ВАЖНО: на первом вызове (до загрузки config.php) пропускаем эту проверку
     if (isset($config['use_multisite']) && empty($config['use_multisite'])) {
+        // Restore values resolved by the first call so the rest of the engine
+        // (cache dirs, twig paths, etc.) still uses the correct subdomain context.
+        $siteDomainName  = $prevSiteDomain;
+        $multiDomainName = $prevMultiDomain;
         return;
     }
 

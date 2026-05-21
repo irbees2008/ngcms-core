@@ -116,7 +116,7 @@ class tpl
             }
         } catch (\Throwable $e) {
         }
-        // Process Twig syntax directly (without [TWIG] tags)
+        // Process Twig syntax directly (without  tags)
         if (preg_match('/\{\{|\{\%/', $data)) {
             $cacheFileName = md5($data) . '.txt';
             $cacheFile = cacheRetrieveFile($cacheFileName, 3600, '_templates');
@@ -127,7 +127,7 @@ class tpl
             $result = $tx->render($vars['vars']);
             $data = $result;
         }
-        // [TWIG]..[/TWIG] - legacy support
+        // .. - legacy support
         if (preg_match_all('/\[TWIG\](.+?)\[\/TWIG\]/isu', $data, $parr)) {
             foreach ($parr[0] as $k => $v) {
                 $scode = $parr[1][$k];

@@ -723,7 +723,7 @@ function news_showlist($filterConditions = [], $paginationParams = [], $callingP
         $tvars['vars']['news']['embed']['imgCount'] = count($tvars['vars']['news']['embed']['images']);
         // Print icon if only one parent category
         if (isset($row['catid']) && $row['catid'] && !mb_stristr(',', $row['catid']) && isset($catmap[$row['catid']]) && ($catalt = $catmap[$row['catid']]) && isset($catz[$catalt]['icon']) && $catz[$catalt]['icon']) {
-            // [TWIG] news.flags.hasCategoryIcon
+            //  news.flags.hasCategoryIcon
             $tvars['news']['flags']['hasCategoryIcon'] = true;
             $tvars['vars']['icon'] = $catz[$catalt]['icon'];
             $tvars['vars']['[icon]'] = '';
@@ -741,7 +741,7 @@ function news_showlist($filterConditions = [], $paginationParams = [], $callingP
             }
         }
         if ($showModifyButtons) {
-            // [TWIG] news.flags.canEdit, news.flags.canDelete, news.url.edit, news.url.delete
+            //  news.flags.canEdit, news.flags.canDelete, news.url.edit, news.url.delete
             $tvars['vars']['news']['flags']['canEdit'] = true;
             $tvars['vars']['news']['flags']['canDelete'] = true;
             $tvars['vars']['news']['url']['edit'] = admin_url . '/admin.php?mod=news&amp;action=edit&amp;id=' . $row['id'];

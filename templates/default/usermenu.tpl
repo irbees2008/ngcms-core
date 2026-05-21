@@ -9,15 +9,19 @@
 			<div class="profile-block">
 				<div class="title">{{ lang.profile }}</div>
 				<ul>
-					{% if (global.flags.isLogged and (global.user['status'] <= 3)) %}
+					{% if isPerm() %}
 						<li>
 							<a href="{{ admin_url }}/" target="_blank">
 								<b>{{ lang.admin_panel }}</b>
 							</a>
 						</li>
+					{% endif %}
+					{% if isPerm('#admin:news:add') %}
 						<li>
 							<a href="{{ addnews_link }}">{{ lang.add_news }}</a>
 						</li>
+					{% endif %}
+					{% if isPerm() %}
 						{% if pluginIsActive('bookmarks') %}
 							<li>
 								<a href="{{ p.bookmarks.link }}">
@@ -57,9 +61,9 @@
 	</div>
 {% else %}
 	 <script language="javascript">
-			var set_login = 0;
-	var set_pass = 0;
-		</script>
+				var set_login = 0;
+		var set_pass = 0;
+			</script>
 	<!-- .modal -->
 		<div class="modal" id="auth-modal"> <div class="modal-box">
 			<div class="modal-clouse"></div>

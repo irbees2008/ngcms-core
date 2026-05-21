@@ -62,9 +62,6 @@
 - `{% for file in _files %}`
   `* <a href="{{ file.url }}">{{ file.origName }}</a>{% if file.filesize %} ({{ file.filesize }}){% endif %}<br/>`
   `{% endfor %}`
-### redirect.tpl
-- lang['langcode'], lang['encoding'] — служебные мета.
-  Примечание: редиректы в теме не используются для UX — уведомления заменены на стикеры.
 ### registration.tpl
 - form_action — URL отправки формы регистрации.
 - entry.id, entry.title, entry.input, entry.descr — поля, подготовленные модулем регистрации (итерируются в списке).

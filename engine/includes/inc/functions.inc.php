@@ -1444,18 +1444,18 @@ function newsFillVariables($row, $fullMode, $page = 0, $disablePagination = 0, $
     $alink = checkLinkAvailable('uprofile', 'show') ?
         generateLink('uprofile', 'show', ['name' => $row['author'], 'id' => $row['author_id']]) :
         generateLink('core', 'plugin', ['plugin' => 'uprofile', 'handler' => 'show'], ['name' => $row['author'], 'id' => $row['author_id']]);
-    // [TWIG] news.author.*
+    //  news.author.*
     $tvars['vars']['news']['author']['name'] = $row['author'];
     $tvars['vars']['news']['author']['id'] = $row['author_id'];
     $tvars['vars']['news']['author']['url'] = $alink;
-    // [TWIG] number of comments
+    //  number of comments
     if (getPluginStatusActive('comments')) {
         $tvars['vars']['p']['comments']['count'] = $row['com'];
     }
     $tvars['vars']['author'] = '<a href="' . $alink . '" target="_blank">' . $row['author'] . '</a>';
     $tvars['vars']['author_link'] = $alink;
     $tvars['vars']['author_name'] = $row['author'];
-    // [TWIG] news.flags.fullMode: if we're in full mode
+    //  news.flags.fullMode: if we're in full mode
     $tvars['vars']['news']['flags']['isFullMode'] = $fullMode ? true : false;
     $nlink = newsGenerateLink($row);
     // Divide into short and full content
@@ -1484,7 +1484,7 @@ function newsFillVariables($row, $fullMode, $page = 0, $disablePagination = 0, $
         $pagination = '';
         $pages = explode('<!--nextpage-->', $full);
         $pcount = count($pages);
-        // [TWIG] news.pageCount, pageNumber
+        //  news.pageCount, pageNumber
         $tvars['vars']['news']['pageCount'] = count($pages);
         $tvars['vars']['news']['pageNumber'] = $page;
         $tvars['vars']['pageCount'] = count($pages);
@@ -1504,7 +1504,7 @@ function newsFillVariables($row, $fullMode, $page = 0, $disablePagination = 0, $
             $navigations = $TemplateCache['site']['#variables']['navigation'];
             // Show pagination bar
             $tvars['vars']['pagination'] = generatePagination($page, 1, $pcount, 10, $paginationParams, $navigations);
-            // [TWIG] news.pagination
+            //  news.pagination
             $tvars['vars']['news']['pagination'] = $tvars['vars']['pagination'];
             if ($page > 1) {
                 $tvars['vars']['short-story'] = '';
@@ -1535,7 +1535,7 @@ function newsFillVariables($row, $fullMode, $page = 0, $disablePagination = 0, $
         $title = secure_html($title);
     }
     $tvars['vars']['title'] = $title;
-    // [TWIG] news.title
+    //  news.title
     $tvars['vars']['news']['title'] = $row['title'];
     // Make conversion
     if ($config['blocks_for_reg']) {
@@ -1573,7 +1573,7 @@ function newsFillVariables($row, $fullMode, $page = 0, $disablePagination = 0, $
     }
     $tvars['vars']['short-story'] = $short;
     $tvars['vars']['full-story'] = $full;
-    // [TWIG] news.short, news.full
+    //  news.short, news.full
     $tvars['vars']['news']['short'] = $short;
     $tvars['vars']['news']['full'] = $full;
     // Activities for short mode
@@ -1604,7 +1604,7 @@ function newsFillVariables($row, $fullMode, $page = 0, $disablePagination = 0, $
     $tvars['vars']['pinned'] = ($row['pinned']) ? 'news_pinned' : '';
     $tvars['vars']['category'] = GetCategories($row['catid']);
     $tvars['vars']['masterCategory'] = GetCategories($row['catid'], false, true);
-    // [TWIG] news.categories.*
+    //  news.categories.*
     $tCList = makeCategoryInfo($row['catid']);
     $tvars['vars']['news']['categories']['count'] = count($tCList);
     $tvars['vars']['news']['categories']['list'] = $tCList;
@@ -1619,24 +1619,24 @@ function newsFillVariables($row, $fullMode, $page = 0, $disablePagination = 0, $
     $tvars['vars']['print_link'] = newsGenerateLink($row, true, $page);
     $tvars['vars']['[/print-link]'] = '</a>';
     $tvars['vars']['news_link'] = $nlink;
-    // [TWIG] news.url
+    //  news.url
     $tvars['vars']['news']['url'] = [
         'full'  => $nlink,
         'print' => newsGenerateLink($row, true, $page),
     ];
-    // [TWIG] news.flags.isPinned
+    //  news.flags.isPinned
     $tvars['vars']['news']['flags']['isPinned'] = ($row['pinned']) ? true : false;
     $tvars['vars']['news-id'] = $row['id'];
     $tvars['vars']['news_id'] = $row['id'];
     $tvars['vars']['php-self'] = $PHP_SELF;
     $tvars['vars']['date'] = LangDate(timestamp, $row['postdate']);
     $tvars['vars']['views'] = $row['views'];
-    // [TWIG] news.date, news.dateStamp, news.views
+    //  news.date, news.dateStamp, news.views
     $tvars['vars']['news']['date'] = LangDate(timestamp, $row['postdate']);
     $tvars['vars']['news']['dateStamp'] = $row['postdate'];
     $tvars['vars']['news']['views'] = $row['views'];
     if ($row['editdate'] > $row['postdate']) {
-        // [TWIG] news.flags.isUpdated, news.update, news.updateStamp
+        //  news.flags.isUpdated, news.update, news.updateStamp
         $tvars['vars']['news']['flags']['isUpdated'] = true;
         $tvars['vars']['news']['update'] = LangDate($config['timestamp_updated'], $row['editdate']);
         $tvars['vars']['news']['updateStamp'] = $row['editdate'];
@@ -1644,18 +1644,18 @@ function newsFillVariables($row, $fullMode, $page = 0, $disablePagination = 0, $
         $tvars['vars']['update'] = LangDate($config['timestamp_updated'], $row['editdate']);
         $tvars['vars']['updateStamp'] = $row['editdate'];
     } else {
-        // [TWIG] news.flags.isUpdated, news.update, news.updateStamp
+        //  news.flags.isUpdated, news.update, news.updateStamp
         $tvars['vars']['news']['flags']['isUpdated'] = false;
         $tvars['regx']['[\[update\](.*)\[/update\]]'] = '';
         $tvars['vars']['update'] = '';
     }
     if ($more == '') {
-        // [TWIG] news.flags.hasPersonalMore
+        //  news.flags.hasPersonalMore
         $tvars['vars']['news']['flags']['hasPersonalMore'] = false;
         $tvars['vars']['[more]'] = '';
         $tvars['vars']['[/more]'] = '';
     } else {
-        // [TWIG] news.flags.hasPersonalMore, news.personalMore
+        //  news.flags.hasPersonalMore, news.personalMore
         $tvars['vars']['news']['flags']['hasPersonalMore'] = true;
         $tvars['vars']['news']['personalMore'] = $more;
         $tvars['vars']['personalMore'] = $more;
@@ -2649,7 +2649,26 @@ function ngExceptionHandler($exception)
         // Check if current user has specified permissions
         // RULE is: <ENTRY1>[|<ENTRY2>[|<ENTRY3>...]]
         // ENTRY1,2,.. is: <PLUGIN>[:<HANDLER>]
-        function twigIsPerm($rules) {}
+        // Проверка прав доступа для использования в Twig шаблонах
+        // Примеры:
+        //   isPerm() - проверка доступа к админ-панели (по умолчанию)
+        //   isPerm('#admin:news:add') - проверка прав на добавление новостей
+        //   isPerm('comments:moderate') - проверка прав плагина comments
+        function twigIsPerm($rules = '')
+        {
+            // Если правила не заданы - проверяем доступ к админ-панели по умолчанию
+            if (empty($rules)) {
+                return checkPermission(['plugin' => '#admin', 'item' => 'system'], null, 'admpanel.view');
+            }
+
+            // Разбираем правила формата: plugin:item:mode
+            $parts = explode(':', $rules);
+            $plugin = isset($parts[0]) && $parts[0] !== '' ? $parts[0] : '#admin';
+            $item = isset($parts[1]) && $parts[1] !== '' ? $parts[1] : 'system';
+            $mode = isset($parts[2]) && $parts[2] !== '' ? $parts[2] : 'view';
+
+            return checkPermission(['plugin' => $plugin, 'item' => $item], null, $mode);
+        }
         function twigIsSet($context, $val)
         {
             //print "call TWIG::isSet(".var_export($context, true)." || ".var_export($val, true).");<br/>";
@@ -2767,7 +2786,7 @@ function ngExceptionHandler($exception)
                 "#\[isnt-logged\](.*?)\[/isnt-logged\]#si"   => '{% if (not flags.isLogged) %}$1{% endif %}',
                 "#\[is-logged\](.*?)\[/is-logged\]#si"       => '{% if (flags.isLogged) %}$1{% endif %}',
                 "#\[login-err\](.*?)\[/login-err\]#si"       => '{% if (flags.loginError) %}$1{% endif %}',
-                "#\[if-have-perm\](.*?)\[/if-have-perm\]#si" => "{% if (global.flags.isLogged and (global.user['status'] <= 3)) %}$1{% endif %}",
+                "#\[if-have-perm\](.*?)\[/if-have-perm\]#si" => "{% if isPerm() %}$1{% endif %}",
                 //		"#\{l_([0-9a-zA-Z\-\_\.\#]+)}#"					=> "{{ lang['$1'] }}",
             ];
             // Prepare conversion table

@@ -1,11 +1,11 @@
 <script>
 window.CommentsConfig = {
-captcha_url:    "{{ captcha_url }}",
+captcha_url:    "", // не используется с ng-advanced-captcha
 post_url:       "{{ post_url }}",
 delete_url:     "{{ delete_url }}",
 edit_url:       "{{ edit_url }}",
 not_logged:     {{ not_logged     ? 'true' : 'false' }},
-use_captcha:    {{ use_captcha    ? 'true' : 'false' }},
+use_captcha:    false, // управляется ng-advanced-captcha
 use_moderation: {{ use_moderation ? 'true' : 'false' }}
 };
 </script>
