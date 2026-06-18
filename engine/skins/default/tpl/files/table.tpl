@@ -131,7 +131,7 @@
 		</div>
 		<div class="card-footer">
 			<div class="row">
-				<div class="col-lg-6 mb-2 mb-lg-0">{{ pagesss|raw }}</div>
+				<div class="col-lg-6 mb-2 mb-lg-0"></div>
 				<div class="col-lg-6">
 					{% if status %}
 						<div class="input-group">

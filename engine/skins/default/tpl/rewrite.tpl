@@ -7,7 +7,7 @@
 		<div class="col-sm-6">
 			<ol class="breadcrumb float-sm-right">
 				<li class="breadcrumb-item">
-					<a href="admin.php">
+					<a href="{{ php_self }}">
 						<i class="fa fa-home"></i>
 					</a>
 				</li>
@@ -65,12 +65,7 @@
 					<tr id="row.editRow2">
 						<td colspan="4">&nbsp;</td>
 						<td
-							colspan="2"><!--
-																																							╨Я╨╡╤А╨╡╨╛╨┐╤А╨╡╨┤╨╡╨╗╨╡╨╜╨╕╨╡ ╨╖╨╜╨░╤З╨╡╨╜╨╕╨╣ ╨┐╨╡╤А╨╡╨╝╨╡╨╜╨╜╤Л╤Е:
-																																							<table width="100%">
-																																							<tr><td>altname</td><td width="20"><input type="checkbox"></td><td><input type="text"/></td></tr>
-																																							</table>
-																																							-->
+							colspan="2">
 						</td>
 						<td colspan="2">&nbsp;</td>
 					</tr>

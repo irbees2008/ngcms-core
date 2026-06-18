@@ -13,7 +13,7 @@
 		<div class="col-12 col-sm-12 col-md-6 ">
 			<ol class="breadcrumb float-sm-right">
 				<li class="breadcrumb-item">
-					<a href="admin.php">
+					<a href="{{ php_self }}">
 						<i class="fa fa-home"></i>
 					</a>
 				</li>
@@ -28,7 +28,7 @@
 			<i class="fa fa-info-circle"></i>
 			{{ lang['multisite_editing_site'] }}:
 			<strong>{{ currentSite }}</strong>
-			<a href="admin.php?mod=configuration" class="btn btn-sm btn-secondary float-right">{{ lang['multisite_back_to_main'] }}</a>
+			<a href="{{ php_self }}?mod=configuration" class="btn btn-sm btn-secondary float-right">{{ lang['multisite_back_to_main'] }}</a>
 		</div>
 	{% endif %}
 </div>
@@ -1157,7 +1157,7 @@
 						<tr>
 							<td colspan="2">
 								<div class="mb-3">
-									<a href="admin.php?mod=configuration&action=multisite_manage" class="btn btn-primary">
+									<a href="{{ php_self }}?mod=configuration&action=multisite_manage" class="btn btn-primary">
 										<i class="fa fa-globe"></i>
 										{{ lang['multisite_manage'] }}
 									</a>

@@ -7,7 +7,7 @@
 		<div class="col-sm-6">
 			<ol class="breadcrumb float-sm-right">
 				<li class="breadcrumb-item">
-					<a href="admin.php">
+					<a href="{{ php_self }}">
 						<i class="fa fa-home"></i>
 					</a>
 				</li>

@@ -590,5 +590,4 @@
 						});
 									</script>
 		</body>
-	</body>
 </html>

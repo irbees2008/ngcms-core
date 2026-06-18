@@ -77,10 +77,43 @@
 		<button id="paint-brush" type="button" class="btn btn-outline-dark dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
 			<i class="fa fa-paint-brush"></i>
 		</button>
-		<div class="dropdown-menu p-2" aria-labelledby="paint-brush">
-			<div id="ng-color-palette" class="d-flex flex-wrap" data-area="{{ area }}" style="max-width:240px;"></div>
+		<div class="dropdown-menu p-3" aria-labelledby="paint-brush" style="min-width: 280px;">
+			<h6 class="dropdown-header px-0">Выбор цвета текста</h6>
+			<div class="form-group mb-2">
+				<label for="color-picker-color" class="small mb-1">Произвольный цвет:</label>
+				<div class="d-flex align-items-center">
+					<input type="color" id="color-picker-color" class="form-control" style="width: 60px; height: 38px; padding: 2px;" value="#000000">
+					<button type="button" class="btn btn-sm btn-primary ml-2" onclick="applyCustomColor({{ area }}, 'color')">Применить</button>
+				</div>
+			</div>
+			<div class="dropdown-divider"></div>
+			<div class="small text-muted mb-2">Быстрый выбор:</div>
+			<div id="ng-color-palette-custom" class="d-flex flex-wrap" style="gap: 4px;">
+				<button type="button" class="btn btn-sm" style="width: 30px; height: 30px; background: #000000; border: 1px solid #ddd; padding: 0;" onclick="insertext('[color=#000000]','[/color]', {{ area }})" title="Черный"></button>
+				<button type="button" class="btn btn-sm" style="width: 30px; height: 30px; background: #343a40; border: 1px solid #ddd; padding: 0;" onclick="insertext('[color=#343a40]','[/color]', {{ area }})" title="Темный"></button>
+				<button type="button" class="btn btn-sm" style="width: 30px; height: 30px; background: #6c757d; border: 1px solid #ddd; padding: 0;" onclick="insertext('[color=#6c757d]','[/color]', {{ area }})" title="Серый"></button>
+				<button type="button" class="btn btn-sm" style="width: 30px; height: 30px; background: #adb5bd; border: 1px solid #ddd; padding: 0;" onclick="insertext('[color=#adb5bd]','[/color]', {{ area }})" title="Светло-серый"></button>
+				<button type="button" class="btn btn-sm" style="width: 30px; height: 30px; background: #ced4da; border: 1px solid #ddd; padding: 0;" onclick="insertext('[color=#ced4da]','[/color]', {{ area }})" title="Очень светло-серый"></button>
+				<button type="button" class="btn btn-sm" style="width: 30px; height: 30px; background: #ffffff; border: 1px solid #ddd; padding: 0;" onclick="insertext('[color=#ffffff]','[/color]', {{ area }})" title="Белый"></button>
+				<button type="button" class="btn btn-sm" style="width: 30px; height: 30px; background: #dc3545; border: 1px solid #ddd; padding: 0;" onclick="insertext('[color=#dc3545]','[/color]', {{ area }})" title="Красный"></button>
+				<button type="button" class="btn btn-sm" style="width: 30px; height: 30px; background: #fd7e14; border: 1px solid #ddd; padding: 0;" onclick="insertext('[color=#fd7e14]','[/color]', {{ area }})" title="Оранжевый"></button>
+				<button type="button" class="btn btn-sm" style="width: 30px; height: 30px; background: #ffc107; border: 1px solid #ddd; padding: 0;" onclick="insertext('[color=#ffc107]','[/color]', {{ area }})" title="Желтый"></button>
+				<button type="button" class="btn btn-sm" style="width: 30px; height: 30px; background: #28a745; border: 1px solid #ddd; padding: 0;" onclick="insertext('[color=#28a745]','[/color]', {{ area }})" title="Зеленый"></button>
+				<button type="button" class="btn btn-sm" style="width: 30px; height: 30px; background: #20c997; border: 1px solid #ddd; padding: 0;" onclick="insertext('[color=#20c997]','[/color]', {{ area }})" title="Бирюзовый"></button>
+				<button type="button" class="btn btn-sm" style="width: 30px; height: 30px; background: #17a2b8; border: 1px solid #ddd; padding: 0;" onclick="insertext('[color=#17a2b8]','[/color]', {{ area }})" title="Голубой"></button>
+				<button type="button" class="btn btn-sm" style="width: 30px; height: 30px; background: #007bff; border: 1px solid #ddd; padding: 0;" onclick="insertext('[color=#007bff]','[/color]', {{ area }})" title="Синий"></button>
+				<button type="button" class="btn btn-sm" style="width: 30px; height: 30px; background: #6610f2; border: 1px solid #ddd; padding: 0;" onclick="insertext('[color=#6610f2]','[/color]', {{ area }})" title="Индиго"></button>
+			</div>
 		</div>
 	</div>
+	<script>
+		function applyCustomColor(area, type) {
+var colorInput = document.getElementById('color-picker-' + type);
+var color = colorInput.value.toUpperCase();
+insertext('[color=' + color + ']', '[/color]', area);
+}
+	</script>
+
 	<!-- Блоки/списки/код -->
 	<div class="btn-group btn-group-sm mr-2">
 		<button id="tags-block" type="button" class="btn btn-outline-dark dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
@@ -94,9 +127,6 @@
 				<i class="fa fa-list-ol"></i>
 				{{ lang['tags.numlist'] }}</a>
 			<div class="dropdown-divider"></div>
-			<a href="#" class="dropdown-item" onclick="insertext('[code]','[/code]', {{ area }})">
-				<i class="fa fa-code"></i>
-				{{ lang['tags.code'] }}</a>
 			<a href="#" class="dropdown-item" onclick="insertext('[quote]','[/quote]', {{ area }})">
 				<i class="fa fa-quote-left"></i>
 				{{ lang['tags.comment'] }}</a>
@@ -503,9 +533,11 @@
 		</div>
 	</div>
 {% endif %}
- <script>
-if (!window.NGCMS) window.NGCMS = {};
+<script>
+	if (!window.NGCMS)
+window.NGCMS = {};
+
 NGCMS.images_url = "{{ config['images_url']|default('/uploads/images') }}";
-NGCMS.files_url  = "{{ config['files_url']|default('/uploads/files') }}";
+NGCMS.files_url = "{{ config['files_url']|default('/uploads/files') }}";
 </script>
- <script src="/lib/news_editor.js"></script>
+<script src="/lib/news_editor.js"></script>

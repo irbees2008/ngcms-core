@@ -46,7 +46,7 @@
 									{% endif %}
 								</td>
 								<td>
-									<a href="admin.php?mod=news&action=edit&id={{ trans.id }}" class="btn btn-sm btn-primary" target="_blank">
+									<a href="{{ php_self }}?mod=news&action=edit&id={{ trans.id }}" class="btn btn-sm btn-primary" target="_blank">
 										<i class="fa fa-edit"></i>
 										{{ lang.addnews['edit_translation'] }}
 									</a>
