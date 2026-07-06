@@ -762,6 +762,9 @@ class image_managment
             case 6:
                 $cmd .= 'bmp';
                 break;
+            case 18:
+                $cmd .= 'webp';
+                break;
         }
         if (!$cmd || !function_exists($cmd)) {
             if ($param['rpc']) {
@@ -783,6 +786,9 @@ class image_managment
             case 6:
                 $img = @imagecreatefrombmp($fname);
                 break;
+            case 18:
+                $img = @imagecreatefromwebp($fname);
+                break;
         }
         if (!$img) {
             if ($param['rpc']) {
@@ -803,8 +809,8 @@ class image_managment
             imagefill($newimg, 0, 0, $nTColor);
             imagecolortransparent($newimg, $nTColor);
         } else {
-            // Check for ALPHA transparency in PNG
-            if ($origType == 3) {
+            // Check for ALPHA transparency in PNG and WebP
+            if ($origType == 3 || $origType == 18) {
                 imagealphablending($newimg, false);
                 $nTColor = imagecolorallocatealpha($newimg, 0, 0, 0, 127);
                 imagefill($newimg, 0, 0, $nTColor);
@@ -826,6 +832,9 @@ class image_managment
                 break;
             case 6:
                 $res = @imagebmp($newimg, $dir . '/thumb/' . $file);
+                break;
+            case 18:
+                $res = @imagewebp($newimg, $dir . '/thumb/' . $file, ($quality >= 10 && $quality <= 100) ? $quality : 80);
                 break;
         }
         // Set correct permissions to file
@@ -886,6 +895,9 @@ class image_managment
             case 6:
                 $cmd .= 'bmp';
                 break;
+            case 18:
+                $cmd .= 'webp';
+                break;
         }
         if (!$cmd || !function_exists($cmd)) {
             if ($param['rpc']) {
@@ -907,6 +919,9 @@ class image_managment
             case 6:
                 $img = @imagecreatefrombmp($param['image']);
                 break;
+            case 18:
+                $img = @imagecreatefromwebp($param['image']);
+                break;
         }
         if (!$img) {
             if ($param['rpc']) {
@@ -924,7 +939,7 @@ class image_managment
             // Create image area
             $newImg = imagecreatetruecolor($newX, $newY);
             // Preserver transparency
-            if (($origType == 1) || ($origType == 3)) {
+            if (($origType == 1) || ($origType == 3) || ($origType == 18)) {
                 imagecolortransparent($newImg, imagecolorallocatealpha($newImg, 0, 0, 0, 127));
                 imagealphablending($newImg, false);
                 imagesavealpha($newImg, true);
@@ -1084,6 +1099,9 @@ class image_managment
                 break;
             case 6:
                 $res = @imagebmp($img, $param['outfile']);
+                break;
+            case 18:
+                $res = @imagewebp($img, $param['outfile'], $param['outquality']);
                 break;
         }
         if (!$res) {
