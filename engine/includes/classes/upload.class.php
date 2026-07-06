@@ -765,6 +765,9 @@ class image_managment
             case 18:
                 $cmd .= 'webp';
                 break;
+            case 19:
+                $cmd .= 'avif';
+                break;
         }
         if (!$cmd || !function_exists($cmd)) {
             if ($param['rpc']) {
@@ -789,6 +792,9 @@ class image_managment
             case 18:
                 $img = @imagecreatefromwebp($fname);
                 break;
+            case 19:
+                $img = @imagecreatefromavif($fname);
+                break;
         }
         if (!$img) {
             if ($param['rpc']) {
@@ -809,8 +815,8 @@ class image_managment
             imagefill($newimg, 0, 0, $nTColor);
             imagecolortransparent($newimg, $nTColor);
         } else {
-            // Check for ALPHA transparency in PNG and WebP
-            if ($origType == 3 || $origType == 18) {
+            // Check for ALPHA transparency in PNG, WebP and AVIF
+            if ($origType == 3 || $origType == 18 || $origType == 19) {
                 imagealphablending($newimg, false);
                 $nTColor = imagecolorallocatealpha($newimg, 0, 0, 0, 127);
                 imagefill($newimg, 0, 0, $nTColor);
@@ -835,6 +841,9 @@ class image_managment
                 break;
             case 18:
                 $res = @imagewebp($newimg, $dir . '/thumb/' . $file, ($quality >= 10 && $quality <= 100) ? $quality : 80);
+                break;
+            case 19:
+                $res = @imageavif($newimg, $dir . '/thumb/' . $file, ($quality >= 10 && $quality <= 100) ? $quality : 80);
                 break;
         }
         // Set correct permissions to file
@@ -898,6 +907,9 @@ class image_managment
             case 18:
                 $cmd .= 'webp';
                 break;
+            case 19:
+                $cmd .= 'avif';
+                break;
         }
         if (!$cmd || !function_exists($cmd)) {
             if ($param['rpc']) {
@@ -922,6 +934,9 @@ class image_managment
             case 18:
                 $img = @imagecreatefromwebp($param['image']);
                 break;
+            case 19:
+                $img = @imagecreatefromavif($param['image']);
+                break;
         }
         if (!$img) {
             if ($param['rpc']) {
@@ -939,7 +954,7 @@ class image_managment
             // Create image area
             $newImg = imagecreatetruecolor($newX, $newY);
             // Preserver transparency
-            if (($origType == 1) || ($origType == 3) || ($origType == 18)) {
+            if (($origType == 1) || ($origType == 3) || ($origType == 18) || ($origType == 19)) {
                 imagecolortransparent($newImg, imagecolorallocatealpha($newImg, 0, 0, 0, 127));
                 imagealphablending($newImg, false);
                 imagesavealpha($newImg, true);
@@ -1102,6 +1117,9 @@ class image_managment
                 break;
             case 18:
                 $res = @imagewebp($img, $param['outfile'], $param['outquality']);
+                break;
+            case 19:
+                $res = @imageavif($img, $param['outfile'], $param['outquality']);
                 break;
         }
         if (!$res) {
