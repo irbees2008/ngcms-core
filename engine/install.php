@@ -999,7 +999,7 @@ function doInstall()
             'use_avatars'         => '1',
             'avatar_wh'           => '65',
             'avatar_max_size'     => '16',
-            'images_ext'          => 'gif, jpg, jpeg, png',
+            'images_ext'          => 'gif, jpg, jpeg, png, bmp, webp, avif',
             'images_max_size'     => '512',
             'thumb_size_x'        => '150',
             'thumb_size_y'        => '150',
