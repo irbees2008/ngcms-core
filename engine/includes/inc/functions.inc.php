@@ -11,6 +11,47 @@ use PHPMailer\PHPMailer\PHPMailer;
 if (!defined('NGCMS')) {
     exit('HAL');
 }
+
+/**
+ * Проверка, является ли текущий визитор ботом соцсети
+ * Боты соцсетей не должны получать сессии для правильного кэширования OG-тегов
+ * @return bool
+ */
+function isSocialBot()
+{
+    $userAgent = $_SERVER['HTTP_USER_AGENT'] ?? '';
+    return (
+        stripos($userAgent, 'TelegramBot') !== false ||
+        stripos($userAgent, 'facebookexternalhit') !== false ||
+        stripos($userAgent, 'facebookcatalog') !== false ||
+        stripos($userAgent, 'vkShare') !== false ||
+        stripos($userAgent, 'TwitterBot') !== false ||
+        stripos($userAgent, 'Twitterbot') !== false ||
+        stripos($userAgent, 'LinkedInBot') !== false ||
+        stripos($userAgent, 'WhatsApp') !== false ||
+        stripos($userAgent, 'Discordbot') !== false ||
+        stripos($userAgent, 'Slackbot') !== false
+    );
+}
+
+/**
+ * Безопасный запуск сессии (только если не бот и сессия еще не запущена)
+ * @return bool true если сессия запущена, false если это бот
+ */
+function ensureSessionStarted()
+{
+    if (session_status() === PHP_SESSION_ACTIVE) {
+        return true; // Сессия уже запущена
+    }
+
+    if (isSocialBot()) {
+        return false; // Не запускаем сессию для ботов
+    }
+
+    @session_start();
+    return true;
+}
+
 //
 // SQL security string escape
 //
@@ -195,10 +236,11 @@ function phphighlight($content = '')
 }
 function QuickTags(string $area = '', string $template = '')
 {
-    global $twig, $PHP_SELF;
+    global $twig, $PHP_SELF, $config;
     $tvars = [
         'php_self' => $PHP_SELF,
         'area'     => empty($area) ? "''" : $area,
+        'config'   => $config,
     ];
     if (!in_array($template, ['pmmes', 'editcom', 'news', 'static'])) {
         return false;
