@@ -6,12 +6,12 @@
 		<div class="col-12 col-sm-12 col-md-6 ">
 			<ol class="breadcrumb float-sm-right">
 				<li class="breadcrumb-item">
-					<a href="admin.php">
+					<a href="{{ php_self }}">
 						<i class="fa fa-home"></i>
 					</a>
 				</li>
 				<li class="breadcrumb-item">
-					<a href="admin.php?mod=configuration">{{ lang.configuration_title }}</a>
+					<a href="{{ php_self }}?mod=configuration">{{ lang.configuration_title }}</a>
 				</li>
 				<li class="breadcrumb-item active" aria-current="page">{{ lang.multisite_management }}</li>
 			</ol>
@@ -25,7 +25,7 @@
 		<h5 class="mb-0">{{ lang.multisite_add_new }}</h5>
 	</div>
 	<div class="card-body">
-		<form action="admin.php?mod=configuration&action=multisite_add" method="POST" id="multisiteForm">
+		<form action="{{ php_self }}?mod=configuration&action=multisite_add" method="POST" id="multisiteForm">
 			<input type="hidden" name="token" value="{{ token }}"/>
 
 			<div class="form-group row">
@@ -212,16 +212,16 @@
 							</td>
 							<td>
 								<div class="btn-group btn-group-sm">
-									<a href="admin.php?mod=configuration&action=multisite_toggle&site_id={{ site.key }}&token={{ token }}" class="btn btn-secondary" title="{{ lang.multisite_toggle }}">
+									<a href="{{ php_self }}?mod=configuration&action=multisite_toggle&site_id={{ site.key }}&token={{ token }}" class="btn btn-secondary" title="{{ lang.multisite_toggle }}">
 										<i class="fa fa-power-off"></i>
 									</a>
 
-									<a href="admin.php?mod=configuration&site_id={{ site.key }}" class="btn btn-primary" title="{{ lang.multisite_edit_config }}">
+									<a href="{{ php_self }}?mod=configuration&site_id={{ site.key }}" class="btn btn-primary" title="{{ lang.multisite_edit_config }}">
 										<i class="fa fa-cog"></i>
 									</a>
 
 									{% if not site.is_master %}
-										<a href="admin.php?mod=configuration&action=multisite_delete&site_id={{ site.key }}&token={{ token }}" class="btn btn-danger" onclick="return confirm('{{ lang.multisite_delete_confirm }}');" title="{{ lang.delete }}">
+										<a href="{{ php_self }}?mod=configuration&action=multisite_delete&site_id={{ site.key }}&token={{ token }}" class="btn btn-danger" onclick="return confirm('{{ lang.multisite_delete_confirm }}');" title="{{ lang.delete }}">
 											<i class="fa fa-trash"></i>
 										</a>
 									{% endif %}
@@ -296,4 +296,4 @@ document.addEventListener('DOMContentLoaded', function() {
 </script>
 
 <div class="mt-3">
-	<a href="admin.php?mod=configuration" class="btn btn-secondary">{{ lang.back|default(lang['multisite_back_to_main'])|default('← Назад') }}</a>
+	<a href="{{ php_self }}?mod=configuration" class="btn btn-secondary">{{ lang.back|default(lang['multisite_back_to_main'])|default('← Назад') }}</a>

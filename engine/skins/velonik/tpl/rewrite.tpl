@@ -3,7 +3,7 @@
 	<div class="col-12">
 		<ol class="breadcrumb m-0">
 			<li class="breadcrumb-item">
-				<a href="admin.php">
+				<a href="{{ php_self }}">
 					<i class="fa fa-home"></i>
 				</a>
 			</li>
@@ -109,7 +109,7 @@ function populateCfg() {
 var cbody = document.getElementById('cfg.body');
 var tmp = '';
 var dID;
-for (dID in dData) 
+for (dID in dData)
 tmp = tmp + populateTemplate(dData[dID]);
 var tStorage = document.getElementById('temp.data');
 tStorage.innerHTML = '<table><tbody>' + tmp + '</tbody></table>';

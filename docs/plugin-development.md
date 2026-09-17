@@ -165,7 +165,70 @@ twigRegisterFunction('myplugin', 'show', 'plugin_myplugin_showTwig');
 ```twig
 {{ callPlugin("myplugin.show", { param1: 'value1', param2: 123 }) }}
 ```
-### 9.4 Подключение стилей и скриптов
+### 9.4 Пагинация и toast-уведомления в админке
+Для списков в `extra-config` используйте общий helper `generateAdminPagelist()`. Он сам сокращает длинный список страниц, добавляет многоточия и сохраняет единый стиль админки.
+
+```php
+$page = max(1, (int)($_GET['page'] ?? 1));
+$perPage = 50;
+$total = count($items);
+$pageCount = max(1, (int)ceil($total / $perPage));
+$page = min($page, $pageCount);
+$items = array_slice($items, ($page - 1) * $perPage, $perPage);
+
+$pageUrl = admin_url . '/admin.php?mod=extra-config&plugin=myplugin'
+  . '&status=' . rawurlencode($status)
+  . '&page=%page%';
+
+$templateVars['pagelist'] = generateAdminPagelist([
+  'current' => $page,
+  'count' => $pageCount,
+  'url' => $pageUrl,
+]);
+```
+
+В Twig выводите готовый HTML как `raw`:
+
+```twig
+{% if pageCount > 1 %}
+  <div class="mt-2">{{ pagelist|raw }}</div>
+{% endif %}
+```
+
+Не выводите страницы ручным циклом `1..pageCount`: на больших списках это создаёт длинную строку ссылок и отличается от остальных админских плагинов.
+
+Для всплывающих уведомлений используйте `window.showToast()`. PHP-функция `notify()` доступна не во всех контекстах, поэтому для страниц `extra-config` сообщение сначала передаётся в Twig как JSON:
+
+```php
+$toasts[] = ['type' => 'success', 'message' => 'Настройки сохранены.'];
+
+$templateVars['toast_json'] = json_encode(
+  $toasts,
+  JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT
+);
+```
+
+Затем шаблон вызывает подключённый в админке toast-хелпер:
+
+```twig
+{% if toast_json and toast_json != '[]' %}
+<script>
+(function () {
+  var toasts = {{ toast_json|raw }};
+  if (typeof window.showToast !== 'function') return;
+  toasts.forEach(function (toast) {
+    window.showToast(toast.message, {
+      type: toast.type,
+      title: '{{ lang['myplugin:title']|e('js') }}'
+    });
+  });
+})();
+</script>
+{% endif %}
+```
+
+Типы обычно передают как `success`, `error`, `warning` или `info`. Не вставляйте текст сообщения напрямую в JavaScript: используйте `json_encode` с `JSON_HEX_*`, а пользовательские значения выводите с экранированием.
+### 9.5 Подключение стилей и скриптов
 Подключение CSS: `register_stylesheet($tpath['url::<file>'] . '/file.css');`
 Подключение JS: `register_htmlvar('js', $url);`
 ## 10. Безопасность и практики

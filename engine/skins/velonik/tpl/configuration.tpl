@@ -3,7 +3,7 @@
 	<div class="col-12">
 		<ol class="breadcrumb m-0">
 			<li class="breadcrumb-item">
-				<a href="admin.php">
+				<a href="{{ php_self }}">
 					<i class="fa fa-home"></i>
 				</a>
 			</li>
@@ -1131,7 +1131,7 @@
 							<tr>
 								<td colspan="2">
 									<div class="mb-3">
-										<a href="admin.php?mod=configuration&action=multisite_manage" class="btn btn-primary">
+										<a href="{{ php_self }}?mod=configuration&action=multisite_manage" class="btn btn-primary">
 											<i class="fa fa-globe"></i>
 											{{ lang['multisite_manage'] }}
 										</a>

@@ -62,9 +62,10 @@ function news_showone($newsID, $alt_name, $callingParams = [])
             return false;
         }
         // Check if canonical link should be added
-        if ($callingParams['addCanonicalLink']) {
-            $EXTRA_HTML_VARS[] = ['type' => 'plain', 'data' => '<link rel="canonical" href="' . newsGenerateLink($row, false, 0, true) . '"/>'];
-        }
+        // ОТКЛЮЧЕНО: canonical выводится через {{ canonical }}, дублирование убрано
+        // if ($callingParams['addCanonicalLink']) {
+        //     $EXTRA_HTML_VARS[] = ['type' => 'plain', 'data' => '<link rel="canonical" href="' . newsGenerateLink($row, false, 0, true) . '"/>'];
+        // }
         // Check if correct categories were specified [ only for SINGLE category display
         if ((isset($callingParams['validateCategoryID']) || isset($callingParams['validateCategoryAlt']) || 1) && $config['news_multicat_url']) {
             if (getIsSet($row['catid'])) {
@@ -339,13 +340,29 @@ function news_showone($newsID, $alt_name, $callingParams = [])
     if (is_array(getIsSet($callingParams['emulate'])) || ($callingParams['style'] == 'export')) {
         return $tpl->show($templateName);
     }
-    // Set meta tags for news page
-    $SYSTEM_FLAGS['meta']['description'] = (getIsSet($row['description']) != '') ? $row['description'] : ((getIsSet($catmap[$masterCatID]) && is_array($catz[$catmap[$masterCatID]])) ? $catz[$catmap[$masterCatID]]['description'] : $config['description']);
+    // Set meta tags for news page (обрезаем для SEO оптимизации)
+    $metaDescription = (getIsSet($row['description']) != '') ? $row['description'] : ((getIsSet($catmap[$masterCatID]) && is_array($catz[$catmap[$masterCatID]])) ? $catz[$catmap[$masterCatID]]['description'] : $config['description']);
+    // Обрезаем description до 150-160 символов (рекомендация Google)
+    if (function_exists('mb_strlen') && mb_strlen($metaDescription, 'UTF-8') > 155) {
+        $metaDescription = mb_substr($metaDescription, 0, 155, 'UTF-8') . '...';
+    } elseif (strlen($metaDescription) > 155) {
+        $metaDescription = substr($metaDescription, 0, 155) . '...';
+    }
+    $SYSTEM_FLAGS['meta']['description'] = $metaDescription;
+
     $SYSTEM_FLAGS['meta']['keywords'] = (getIsSet($row['keywords']) != '') ? $row['keywords'] : ((getIsSet($catmap[$masterCatID]) && is_array($catz[$catmap[$masterCatID]])) ? $catz[$catmap[$masterCatID]]['keywords'] : $config['keywords']);
-    // Prepare title
+
+    // Prepare title (обрезаем до 60 символов для Google)
+    $newsTitle = secure_html($row['title']);
+    if (function_exists('mb_strlen') && mb_strlen($newsTitle, 'UTF-8') > 60) {
+        $newsTitle = mb_substr($newsTitle, 0, 60, 'UTF-8') . '...';
+    } elseif (strlen($newsTitle) > 60) {
+        $newsTitle = substr($newsTitle, 0, 60) . '...';
+    }
+
     //$SYSTEM_FLAGS['info']['title']['group']	= $config["category_link"]?GetCategories($row['catid'], true):LangDate(timestamp, $row['postdate']);
     $SYSTEM_FLAGS['info']['title']['group'] = GetCategories($row['catid'], true);
-    $SYSTEM_FLAGS['info']['title']['item'] = secure_html($row['title']);
+    $SYSTEM_FLAGS['info']['title']['item'] = $newsTitle;
     // We are in short or full mode. Add data into {mainblock}
     $template['vars']['mainblock'] .= $tpl->show($templateName);
     return $row;

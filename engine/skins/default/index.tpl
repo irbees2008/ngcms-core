@@ -84,6 +84,11 @@
 			<button class="navbar-toggler position-absolute d-md-none collapsed" type="button" data-toggle="collapse" data-target="#menu-content" aria-controls="sidebarMenu" aria-expanded="false" aria-label="Toggle navigation">
 				<span class="navbar-toggler-icon"></span>
 			</button>
+			<!-- Часы реального времени -->
+			<div id="site-clock" class="text-white mx-3 d-none d-md-block" style="font-size: 14px; white-space: nowrap;">
+				<i class="fa fa-clock-o"></i>
+				<span id="clock-display">Загрузка...</span>
+			</div>
 			<div class="btn-group ml-auto mr-2 py-1" role="group" aria-label="Button group with nested dropdown">
 				<ul class="navbar-nav ml-auto">
 					<li
@@ -539,6 +544,34 @@
 						if (typeof $.fn.tooltip !== 'undefined') {
 						$('[data-bs-toggle="tooltip"]').tooltip();
 						}
+						
+						// Инициализация часов реального времени (серверное время)
+						var serverTime = new Date('{{ "now"|date('c') }}'); // Серверное время в ISO формате
+						var clientTime = new Date();
+						var timeDiff = serverTime - clientTime; // Разница между сервером и клиентом
+						
+						function updateClock() {
+						var clockDisplay = document.getElementById('clock-display');
+						if (!clockDisplay) return;
+						
+						var now = new Date(Date.now() + timeDiff); // Применяем серверную корректировку
+						var months = ['января', 'февраля', 'марта', 'апреля', 'мая', 'июня', 
+						              'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'];
+						
+						var day = now.getDate();
+						var month = months[now.getMonth()];
+						var year = now.getFullYear();
+						var hours = String(now.getHours()).padStart(2, '0');
+						var minutes = String(now.getMinutes()).padStart(2, '0');
+						var seconds = String(now.getSeconds()).padStart(2, '0');
+						
+						var timeString = day + ' ' + month + ' ' + year + ' ' + hours + ':' + minutes + ':' + seconds;
+						clockDisplay.textContent = timeString;
+						}
+						
+						// Обновляем часы каждую секунду
+						updateClock(); // Первое обновление сразу
+						setInterval(updateClock, 1000);
 						});
 									</script>
 			 <script>

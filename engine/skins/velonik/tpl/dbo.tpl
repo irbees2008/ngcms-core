@@ -3,7 +3,7 @@
 	<div class="col-12">
 		<ol class="breadcrumb m-0">
 			<li class="breadcrumb-item">
-				<a href="admin.php">
+				<a href="{{ php_self }}">
 					<i class="fa fa-home"></i>
 				</a>
 			</li>
@@ -129,14 +129,14 @@ box.addEventListener('change', function () {
 const isChecked = this.checked;
 // Найти все чекбоксы таблицы
 const table = this.closest('table');
-if (! table) 
+if (! table)
 return;
 const checkboxes = table.querySelectorAll('input[name="tables[]"]');
 checkboxes.forEach(cb => cb.checked = isChecked);
 // Синхронизировать оба master-чекбокса
 const allMasters = table.querySelectorAll('input[id^="master_box"]');
 allMasters.forEach(mb => {
-if (mb !== this) 
+if (mb !== this)
 mb.checked = isChecked;
 });
 });

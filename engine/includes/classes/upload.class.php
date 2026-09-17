@@ -508,13 +508,13 @@ class file_managment
             }
             $storageDir = ($row['storage'] ? $config['attach_dir'] : $this->dname) . $row['folder'];
             // Check if thumb file exists & delete it
-            if ($row['preview'] && file_exists($storageDir . '/thumb/' . $row['name'])) {
+            if (empty($param['keep_file']) && $row['preview'] && file_exists($storageDir . '/thumb/' . $row['name'])) {
                 if (!@unlink($storageDir . '/thumb/' . $row['name'])) {
                     msg(['type' => 'error', 'text' => str_replace('{file}', $row['folder'] . '/thumb/' . $row['name'], $lang['upload.error.delete'])]);
                 }
             }
             // Check if file file exists & delete it
-            if (file_exists($storageDir . '/' . $row['name'])) {
+            if (empty($param['keep_file']) && file_exists($storageDir . '/' . $row['name'])) {
                 if (!@unlink($storageDir . '/' . $row['name'])) {
                     msg(['type' => 'error', 'text' => str_replace('{file}', $row['folder'] . '/' . $row['name'], $lang['upload.error.delete'])]);
                     return 0;

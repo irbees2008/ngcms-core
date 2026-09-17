@@ -3,7 +3,7 @@
 	<div class="col-12">
 		<ol class="breadcrumb m-0">
 			<li class="breadcrumb-item">
-				<a href="admin.php">
+				<a href="{{ php_self }}">
 					<i class="fa fa-home"></i>
 				</a>
 			</li>
@@ -28,7 +28,7 @@ f[name].classList.toggle('pChanged', f[name].value != v);
 // Перехватываем submit и сохраняем права через AJAX, чтобы не открывать страницу с JSON
 document.addEventListener('DOMContentLoaded', function () {
 var form = document.getElementById('permSubmit');
-if (! form) 
+if (! form)
 return;
 form.addEventListener('submit', function (e) {
 e.preventDefault();

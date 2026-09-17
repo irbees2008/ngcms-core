@@ -19,7 +19,7 @@ title: $(this).val()
 }, function (data) {
 $('#news_relates').fadeIn(300).html(data);
 });
-} else 
+} else
 $('#news_relates').fadeOut(300);
 return false;
 }
@@ -33,7 +33,7 @@ return false;
 	<div class="col-12">
 		<ol class="breadcrumb m-0">
 			<li class="breadcrumb-item">
-				<a href="admin.php">
+				<a href="{{ php_self }}">
 					<i class="fa fa-home"></i>
 				</a>
 			</li>

@@ -14,7 +14,7 @@
 		<h4>{{ orig_name }}</h4>
 	</div>
 </div>
-<form method="post" action="admin.php">
+<form method="post" action="{{ php_self }}">
 	<input type="hidden" name="mod" value="images"/>
 	<input type="hidden" name="subaction" value="editApply"/>
 	<input type="hidden" name="id" value="{{ id }}"/>

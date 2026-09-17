@@ -210,6 +210,37 @@ function massModifyNews($list, $setValue, $permCheck = true)
 //
 // Return value: number of successfully updated news
 //
+function news_attachment_used_elsewhere(array $attachment, $newsID, string $table): bool
+{
+    global $mysql;
+    $id = (int)($attachment['id'] ?? 0);
+    $linkedNewsID = (int)$newsID;
+    $folder = trim((string)($attachment['folder'] ?? ''), '/\\');
+    $name = trim((string)($attachment['name'] ?? ''), '/\\');
+    $storage = !empty($attachment['storage']);
+    if ($folder === '' || $name === '') return false;
+
+    $sameFileWhere = 'folder = ' . db_squote($folder) . ' and name = ' . db_squote($name) . ' and storage = ' . ($storage ? '1' : '0') . ' and id <> ' . $id;
+    if ($storage) {
+        $sameFileWhere = 'folder = ' . db_squote($folder) . ' and name = ' . db_squote($name) . ' and storage = 1 and id <> ' . $id;
+        if ($mysql->result('select count(*) from ' . prefix . '_files where ' . $sameFileWhere) > 0) return true;
+        if ($mysql->result('select count(*) from ' . prefix . '_images where ' . $sameFileWhere) > 0) return true;
+    } else {
+        if ($mysql->result('select count(*) from ' . prefix . '_' . $table . ' where ' . $sameFileWhere) > 0) return true;
+    }
+
+    $needle = strtolower(str_replace('\\', '/', $folder . '/' . $name));
+    $newsRows = $mysql->select('select * from ' . prefix . '_news where id <> ' . db_squote($linkedNewsID), 1) ?: [];
+    foreach ($newsRows as $row) {
+        foreach ($row as $value) {
+            if (!is_string($value) || $value === '') continue;
+            $content = strtolower(str_replace('\\', '/', html_entity_decode(rawurldecode($value), ENT_QUOTES, 'UTF-8')));
+            if (strpos($content, $needle) !== false) return true;
+        }
+    }
+    return false;
+}
+
 function massDeleteNews($list, $permCheck = true)
 {
     global $mysql, $lang, $PFILTERS, $userROW;
@@ -302,12 +333,12 @@ function massDeleteNews($list, $permCheck = true)
         $fmanager = new file_managment();
         // ** Files
         foreach ($mysql->select('select * from ' . prefix . '_files where (storage=1) and (linked_ds=1) and (linked_id=' . db_squote($nrow['id']) . ')') as $frec) {
-            $fmanager->file_delete(['type' => 'file', 'id' => $frec['id']]);
+            $fmanager->file_delete(['type' => 'file', 'id' => $frec['id'], 'keep_file' => news_attachment_used_elsewhere($frec, $nrow['id'], 'files')]);
         }
 
         // ** Images
         foreach ($mysql->select('select * from ' . prefix . '_images where (storage=1) and (linked_ds=1) and (linked_id=' . db_squote($nrow['id']) . ')') as $frec) {
-            $fmanager->file_delete(['type' => 'image', 'id' => $frec['id']]);
+            $fmanager->file_delete(['type' => 'image', 'id' => $frec['id'], 'keep_file' => news_attachment_used_elsewhere($frec, $nrow['id'], 'images')]);
         }
 
         $results[] = '#' . $nrow['id'] . ' (' . secure_html($nrow['title']) . ') - Ok';
