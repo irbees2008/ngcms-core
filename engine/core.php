@@ -415,17 +415,15 @@ if (!isset($template['vars']['what']) || $template['vars']['what'] === '') {
 if (!isset($template['vars']['version']) || $template['vars']['version'] === '') {
     $template['vars']['version'] = defined('engineVersion') ? engineVersion : '';
 }
-// Some scanners read only headers/HEAD, add X-Generator when enabled in config
-if (!empty($config['x_ng_headers'])) {
-    $gen = (defined('engineName') ? engineName : 'NGCMS');
-    if (defined('engineVersion')) {
-        $gen .= ' ' . engineVersion;
-    }
-    if (defined('engineVersionType') && defined('engineVersionBuild')) {
-        $gen .= ' (' . engineVersionType . ' ' . engineVersionBuild . ')';
-    }
-    header('X-Generator: ' . $gen);
+// Advertise the engine name and version in every HTTP response.
+$gen = (defined('engineName') ? engineName : 'NGCMS');
+if (defined('engineVersion')) {
+    $gen .= ' ' . engineVersion;
 }
+if (defined('engineVersionType') && defined('engineVersionBuild')) {
+    $gen .= ' (' . engineVersionType . ' ' . engineVersionBuild . ')';
+}
+header('X-Generator: ' . $gen);
 // Give domainName to URL handler engine for generating absolute links
 $UHANDLER->setOptions(['domainPrefix' => $config['home_url']]);
 // Check if engine is installed in subdirectory
