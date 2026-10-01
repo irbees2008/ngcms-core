@@ -2938,6 +2938,9 @@ function ngExceptionHandler($exception)
                 // если мэппинг действия 'twig' ещё не попал в конфиг активных плагинов.
                 if (preg_match("#^(.+?)\.(.+?)$#", $funcName, $m)) {
                     $pluginId = $m[1];
+                    if (!getPluginStatusActive($pluginId)) {
+                        return null;
+                    }
                     // Пройдёмся по version-файлам, найдём нужный плагин и подключим его основной файл
                     $plist = function_exists('pluginsGetList') ? pluginsGetList() : [];
                     if (isset($plist[$pluginId]) && is_array($plist[$pluginId])) {
