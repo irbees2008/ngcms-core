@@ -32,16 +32,23 @@ function admRPCFilesUpload($params)
         return;
     }
     $fmanager->get_limits($uploadType);
+    $uploadCategory = ($_REQUEST['category'] == '') ? 'default' : $_REQUEST['category'];
     $dir = $fmanager->dname;
     $ures = $fmanager->file_upload([
         'rpc'        => 1,
         'dsn'        => 0,
-        'category'   => ($_REQUEST['category'] == '') ? 'default' : $_REQUEST['category'],
+        'category'   => $uploadCategory,
         'type'       => $uploadType,
         'replace'    => $_REQUEST['replace'],
         'randprefix' => $_REQUEST['rand'],
         'http_var'   => 'Filedata',
     ]);
+    if (is_array($ures) && !empty($ures['status']) && !empty($ures['data']['name'])) {
+        $ures['data']['category'] = $uploadCategory;
+        $fileCategory = trim($uploadCategory, '/');
+        $filePath = ($fileCategory !== '' ? $fileCategory . '/' : '') . $ures['data']['name'];
+        $ures['data']['url'] = rtrim($fmanager->uname, '/') . '/' . $filePath;
+    }
     // Return if this is a file or we have upload error
     if (($uploadType == 'file') || (!$ures['status'])) {
         return $ures;
@@ -67,6 +74,7 @@ function admRPCFilesUpload($params)
         }
         $thumb = $imanager->create_thumb($config['images_dir'] . $ures['data']['category'], $ures['data']['name'], $tsx, $tsy, $config['thumb_quality'], ['rpc' => 1]);
         $ures['data']['thumb'] = $thumb;
+        $ures['data']['thumb_url'] = rtrim($fmanager->uname, '/') . '/' . trim($uploadCategory, '/') . '/thumb/' . $ures['data']['name'];
         if (is_array($thumb) && ($thumb['status'])) {
             // If we created thumb - check if we need to transform it
             $stampThumb = ($mkStamp && $config['stamp_place'] && ($stampFileName != '')) ? 1 : 0;
