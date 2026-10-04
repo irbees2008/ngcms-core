@@ -108,6 +108,7 @@ function editNewsForm()
             generateLink('uprofile', 'show', ['name' => $row['author'], 'id' => $row['author_id']]) :
             generateLink('core', 'plugin', ['plugin' => 'uprofile', 'handler' => 'show'], ['name' => $row['author'], 'id' => $row['author_id']]),
         'smilies'     => $config['use_smilies'] ? InsertSmilies('', 20, 'currentInputAreaID') : '',
+        'emoji_picker' => InsertEmojiPicker('currentInputAreaID'),
         'quicktags'   => $config['use_bbcodes'] ? QuickTags('currentInputAreaID', 'news') : '',
         'approve'     => $row['approve'],
         'token'       => genUToken('admin.news.edit'),
@@ -677,6 +678,7 @@ function addNewsForm($retry = '')
         'extcat'     => makeCategoryList(['nameval' => 0, 'checkarea' => 1]),
         'JEV'        => $retry ? $retry : '{}',
         'smilies'    => ($config['use_smilies']) ? InsertSmilies('', 20, 'currentInputAreaID') : '',
+        'emoji_picker' => InsertEmojiPicker('currentInputAreaID'),
         'quicktags'  => ($config['use_bbcodes']) ? QuickTags('currentInputAreaID', 'news') : '',
         'token'      => genUToken('admin.news.add'),
         'flags'      => [

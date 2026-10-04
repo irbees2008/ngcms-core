@@ -130,6 +130,24 @@ return false;
 								</div>
 							</div>
 						</div>
+						<div id="modal-emoji" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="emoji-modal-label" aria-hidden="true">
+							<div class="modal-dialog modal-lg">
+								<div class="modal-content">
+									<div class="modal-header">
+										<h5 id="emoji-modal-label" class="modal-title">Вставить emoji</h5>
+										<button type="button" class="close" data-dismiss="modal" aria-label="Закрыть"><span aria-hidden="true">&times;</span></button>
+									</div>
+									<div class="modal-body">
+										<style>
+											.emoji-picker-grid { display: flex; flex-wrap: wrap; gap: 4px; }
+											.emoji-picker-item { border: 0; background: transparent; border-radius: 4px; cursor: pointer; font-size: 1.5rem; line-height: 1; padding: 6px; }
+											.emoji-picker-item:hover { background: #f0f0f0; }
+										</style>
+										{{ emoji_picker }}
+									</div>
+								</div>
+							</div>
+						</div>
 					{% endif %}
 					{% if (flags.edit_split) %}
 						<div class="mb-3">
@@ -360,7 +378,7 @@ return false;
 </form>
 <script type="text/javascript">
 	// Global variable: ID of current active input area
-var currentInputAreaID = 'ng_news_content {{ flags.edit_split ? '_short' : '' }}';
+var currentInputAreaID = '{{ flags.edit_split ? 'ng_news_content_short' : 'ng_news_content' }}';
 // Toggle editor height function
 function toggleEditorHeight() {
 var isAutoHeight = document.getElementById('autoHeightToggle').checked;

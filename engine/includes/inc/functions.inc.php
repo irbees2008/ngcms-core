@@ -202,7 +202,7 @@ function LangDate($format, $timestamp)
 // Generate a list of smilies to show
 function InsertSmilies(string $insert_location, int $break_location = 0, string $area = '')
 {
-    global $config, $twig;
+    global $config, $twig, $parse;
     if ($config['use_smilies']) {
         $smilies = explode(',', $config['smilies']);
         // For smilies in comments, try to use 'smilies.tpl' from site template
@@ -225,6 +225,30 @@ function InsertSmilies(string $insert_location, int $break_location = 0, string 
         }
         return $output;
     }
+}
+
+// Generate a separate Unicode emoji picker for editors.
+function InsertEmojiPicker(string $area = '')
+{
+    $categories = [
+        'Лица' => '😀 😃 😄 😁 😆 😅 😂 🤣 😊 😇 🙂 🙃 😉 😌 😍 🥰 😘 😗 😙 😚 😋 😛 😝 😜 🤪 🤨 🧐 🤓 😎 🤩 🥳 😏 😒 😞 😔 😟 😕 🙁 ☹️ 😣 😖 😫 😩 🥺 😢 😭 😤 😠 😡 🤬 🤯 😳 🥵 🥶 😱 😨 😰 😥 😓 🤗 🤔 🫡 🤭 🤫 🤥 😶 😐 😑 😬 🙄 😯 😦 😧 😮 😲 🥱 😴 🤤 😪 😵 🤐 🤑 🤠 😈 👿 👹 👺 🤡 💩 👻 💀 ☠️ 👽 👾 🤖 🎃 😺 😸 😹 😻 😼 😽 🙀 😿 😾',
+        'Жесты' => '👋 🤚 🖐️ ✋ 🖖 👌 🤏 ✌️ 🤞 🤟 🤘 🤙 👈 👉 👆 👇 ☝️ ✍️ 👏 🙌 👐 🤲 🙏 💪 🖕 👍 👎 ✊ 👊 🤝 👏 💅 👂 👃 👀 👁️ 🧠 👄 💋',
+        'Символы' => '❤️ 🧡 💛 💚 💙 💜 🖤 🤍 🤎 💔 ❣️ 💕 💞 💓 💗 💖 💘 💝 💟 ✨ ⭐ 🌟 💫 🔥 💥 💯 ✅ ❌ ❗ ❓ ⁉️ ⚠️ 🚫 💬 💤 🎵 🎶 ☀️ 🌙 🌈 ⚡ ❄️ ☁️ ☔ ☕',
+        'Еда' => '🍏 🍎 🍐 🍊 🍋 🍌 🍉 🍇 🍓 🫐 🍒 🍑 🥭 🍍 🥥 🥝 🍅 🥑 🍕 🍔 🍟 🌭 🌮 🌯 🥗 🍿 🍩 🍪 🎂 🍰 🧁 🍫 🍭 🍬 🍺 🍻 🍷 🥂 🍸 ☕',
+        'Животные' => '🐶 🐱 🐭 🐹 🐰 🦊 🐻 🐼 🐨 🐯 🦁 🐮 🐷 🐸 🐵 🙈 🙉 🙊 🐔 🐧 🐦 🐣 🦄 🐝 🦋 🐌 🐞 🐢 🐍 🐙 🐠 🐟 🐬 🐳 🦈 🐊 🐘 🦒 🦓 🦧 🐘',
+        'Предметы' => '⚽ 🏀 🏈 ⚾ 🎾 🏆 🎮 🎲 🎯 🎸 🎹 🎺 📱 💻 ⌚ 📷 💡 🔑 🔒 🔓 🔔 📌 📎 ✏️ 📝 📚 📖 ✉️ 📧 📅 🛒 🎁 🚗 ✈️ 🚀 🏠 💰 💎 🔍 🔧 🛠️',
+    ];
+    $target = empty($area) ? "''" : $area;
+    $output = '';
+    foreach ($categories as $name => $emojiList) {
+        $output .= '<div class="emoji-picker-category"><h6>' . htmlspecialchars($name, ENT_QUOTES, 'UTF-8') . '</h6><div class="emoji-picker-grid">';
+        foreach (preg_split('/\s+/u', trim($emojiList), -1, PREG_SPLIT_NO_EMPTY) as $emoji) {
+            $insert = htmlspecialchars(json_encode($emoji . ' ', JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT), ENT_QUOTES, 'UTF-8');
+            $output .= '<button type="button" class="emoji-picker-item" onclick="insertext(' . $insert . ', \'\', ' . $target . '); return false;" aria-label="' . htmlspecialchars($emoji, ENT_QUOTES, 'UTF-8') . '">' . $emoji . '</button>';
+        }
+        $output .= '</div></div>';
+    }
+    return $output;
 }
 function phphighlight($content = '')
 {

@@ -29,12 +29,17 @@ if ($_REQUEST['mode'] == 'plugin') {
     }
 
     if ($_REQUEST['item'] == 'readme') {
-        $filePath = realpath(root . 'plugins/' . $plugin . '/readme');
+        $filePath = realpath(root . 'plugins/' . $extras[$plugin]['dir'] . '/plugin.md');
         $basePath = realpath(root . 'plugins/');
         if ($filePath && $basePath && str_starts_with($filePath, $basePath) && file_exists($filePath)) {
-            echo '<pre>';
-            echo htmlspecialchars(file_get_contents($filePath), ENT_QUOTES, 'UTF-8');
-            echo '</pre>';
+            $metadata = plugins_load_markdown_file($filePath);
+            if (is_array($metadata) && class_exists('Michelf\\MarkdownExtra')) {
+                echo \Michelf\MarkdownExtra::defaultTransform($metadata['_body'] ?? '');
+            } else {
+                echo '<pre>';
+                echo htmlspecialchars($metadata['_body'] ?? '', ENT_QUOTES, 'UTF-8');
+                echo '</pre>';
+            }
         }
     }
     if ($_REQUEST['item'] == 'history') {

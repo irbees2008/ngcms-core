@@ -682,6 +682,14 @@
 					</td>
 				</tr>
 				<tr>
+					<td width="50%">{{ lang['smilies_mode'] }}
+						<small class="form-text text-muted">{{ lang['smilies_mode_desc'] }}</small>
+					</td>
+					<td width="50%">
+						{{ mkSelect({'name' : 'save_con[smilies_mode]', 'value' : config['smilies_mode']|default('emoji'), 'values' : {'emoji': lang['smilies_mode_emoji'], 'images': lang['smilies_mode_images']} }) }}
+					</td>
+				</tr>
+				<tr>
 					<td width="50%">{{ lang['use_bbcodes'] }}
 						<small class="form-text text-muted">{{ lang['use_bbcodes_desc'] }}</small>
 					</td>

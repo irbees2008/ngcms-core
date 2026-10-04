@@ -654,73 +654,71 @@ function pluginsLoadConfig()
     return false;
 }
 //
-// Load 'version' file from plugin directory
+// Load plugin metadata and documentation from plugin.md.
 //
-function plugins_load_version_file($filename)
+function plugins_load_markdown_file($filename)
 {
-    // config variables & function init
-    $config_params = ['id', 'icons', 'name', 'version', 'acts', 'file', 'config', 'install', 'deinstall', 'management', 'type', 'description', 'author', 'author_uri', 'permanent', 'library', 'actions', 'minenginebuild'];
-    $required_params = ['id', 'name', 'version', 'type'];
-    $list_params = ['library', 'actions'];
-    $ver = [];
-    foreach ($list_params as $id) {
-        $ver[$id] = [];
-    }
-    // open file
-    if (!($file = @fopen($filename, 'r'))) {
+    if (!is_file($filename) || !($content = @file_get_contents($filename))) {
         return false;
     }
-    // read file
-    while (!feof($file)) {
-        $line = fgets($file);
-        if (preg_match("/^(.+?) *\: *(.+?) *$/i", $line, $r) == 1) {
-            $key = rtrim(mb_strtolower($r[1]));
-            $value = rtrim($r[2]);
-            if (in_array($key, $config_params)) {
-                if (in_array($key, $list_params)) {
-                    $ver[$key][] = $value;
-                } else {
-                    $ver[$key] = $value;
+    $content = preg_replace('/^\xEF\xBB\xBF/', '', $content);
+
+    if (!preg_match('/\A---\s*\r?\n(.*?)\r?\n---(?:\r?\n|\z)/s', $content, $match)) {
+        return false;
+    }
+
+    $config_params = ['id', 'icons', 'name', 'version', 'acts', 'file', 'config', 'install', 'deinstall', 'management', 'type', 'description', 'author', 'author_uri', 'permanent', 'library', 'actions', 'minenginebuild', 'title', 'information', 'preinstall', 'preinstall_vars'];
+    $list_params = ['library', 'actions'];
+    $metadata = ['library' => [], 'actions' => []];
+    $currentList = null;
+    foreach (preg_split('/\r?\n/', $match[1]) as $line) {
+        if (preg_match('/^([A-Za-z_][A-Za-z0-9_]*)\s*:\s*(.*)$/', trim($line), $parts)) {
+            $key = strtolower($parts[1]);
+            $value = trim($parts[2], " \t\"'");
+            if (in_array($key, $list_params, true)) {
+                $currentList = $key;
+                if ($value !== '') {
+                    $metadata[$key][] = $value;
+                }
+            } elseif (in_array($key, $config_params, true)) {
+                $metadata[$key] = $value;
+                $currentList = null;
+            } else {
+                $currentList = null;
+            }
+        } elseif ($currentList && preg_match('/^[-*]\s*(.+)$/', trim($line), $parts)) {
+            $metadata[$currentList][] = trim($parts[1], " \t\"'");
+        }
+    }
+
+    foreach (['acts', 'actions'] as $key) {
+        if (isset($metadata[$key]) && is_string($metadata[$key])) {
+            $metadata[$key] = str_replace(' ', '', $metadata[$key]);
+        }
+    }
+    foreach (['library', 'actions'] as $key) {
+        $values = $metadata[$key];
+        $metadata[$key] = [];
+        foreach ($values as $item) {
+            $parts = array_map('trim', explode(';', $item, 2));
+            if (count($parts) !== 2 || !$parts[0] || !$parts[1]) {
+                return false;
+            }
+            foreach (explode(',', $parts[0]) as $entry) {
+                if (trim($entry)) {
+                    $metadata[$key][trim($entry)] = $parts[1];
                 }
             }
         }
     }
-    // Make some cleanup
-    $ver['acts'] = isset($ver['acts']) ? str_replace(' ', '', $ver['acts']) : '';
-    if (isset($ver['permanent']) && ($ver['permanent'] == 'yes')) {
-        $ver['permanent'] = 1;
-    } else {
-        $ver['permanent'] = 0;
-    }
-    // check for filling required params
-    foreach ($required_params as $v) {
-        if (!$ver[$v]) {
+    $metadata['permanent'] = in_array(strtolower((string) ($metadata['permanent'] ?? 'no')), ['1', 'yes', 'true'], true) ? 1 : 0;
+    foreach (['id', 'name', 'version', 'type'] as $key) {
+        if (empty($metadata[$key])) {
             return false;
         }
     }
-    // check for library/actions filling
-    foreach (['library', 'actions'] as $key) {
-        $list = $ver[$key];
-        $ver[$key] = [];
-        foreach ($list as $rec) {
-            if (!$rec) {
-                continue;
-            }
-            list($ids, $fname) = explode(';', $rec);
-            $ids = trim($ids);
-            $fname = trim($fname);
-            if (!$ids || !$fname) {
-                return false;
-            }
-            $idlist = explode(',', $ids);
-            foreach ($idlist as $entry) {
-                if (trim($entry)) {
-                    $ver[$key][trim($entry)] = $fname;
-                }
-            }
-        }
-    }
-    return $ver;
+    $metadata['_body'] = preg_replace('/\A---\s*\r?\n.*?\r?\n---(?:\r?\n|\z)/s', '', $content);
+    return $metadata;
 }
 //
 // Get a list of installed plugins
@@ -739,12 +737,10 @@ function pluginsGetList()
         if (($dir == '.') || ($dir == '..') || (!is_dir($edir))) {
             continue;
         }
-        // Check 'version' file
-        if (!is_file($edir . '/version')) {
+        if (!is_file($edir . '/plugin.md')) {
             continue;
         }
-        // Load version file
-        $ver = plugins_load_version_file($edir . '/version');
+        $ver = plugins_load_markdown_file($edir . '/plugin.md');
         if (!is_array($ver)) {
             continue;
         }

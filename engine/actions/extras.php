@@ -42,7 +42,7 @@ function admGeneratePluginList()
             'author'      => $extra['author'],
             'id'          => $extra['id'],
             'style'       => getPluginStatusActive($id) ? 'pluginEntryActive' : 'pluginEntryInactive',
-            'readme'      => file_exists(extras_dir . '/' . $id . '/readme') && filesize(extras_dir . '/' . $id . '/readme') ? (admin_url . '/includes/showinfo.php?mode=plugin&amp;item=readme&amp;plugin=' . $id) : '',
+            'readme'      => is_file(extras_dir . '/' . $extra['dir'] . '/plugin.md') && filesize(extras_dir . '/' . $extra['dir'] . '/plugin.md') ? (admin_url . '/includes/showinfo.php?mode=plugin&amp;item=readme&amp;plugin=' . $id) : '',
             'history'     => file_exists(extras_dir . '/' . $id . '/history') && filesize(extras_dir . '/' . $id . '/history') ? (admin_url . '/includes/showinfo.php?mode=plugin&amp;item=history&amp;plugin=' . $id) : '',
             'flags'       => [
                 'isCompatible'  => $extra['isCompatible'],
@@ -139,22 +139,15 @@ function repoSync()
                     'version' => 'unknown',     // Версия пока неизвестна
                     'description' => 'No description available', // Описание по умолчанию
                 ];
-                // Получаем содержимое version.ini
-                $versionUrl = $item['url'] . '/version.ini';
+                // Получаем единый файл метаданных и документации plugin.md
+                $metadataUrl = $item['url'] . '/plugin.md';
                 $versionReq = new http_get();
-                $versionResponse = $versionReq->get($versionUrl, 3, 1);
-                if ($versionResponse) {
-                    $versionData = parse_ini_string($versionResponse);
-                    $plugins[$pluginName]['version'] = $versionData['version'] ?? 'unknown';
+                $metadataResponse = $versionReq->get($metadataUrl, 3, 1);
+                if ($metadataResponse && preg_match('/^version:\s*["\']?([^"\'\r\n]+)["\']?/mi', $metadataResponse, $versionMatch)) {
+                    $plugins[$pluginName]['version'] = trim($versionMatch[1]);
                 }
-                // Получаем содержимое readme.ini
-                $readmeUrl = $item['url'] . '/readme.ini';
-                $readmeReq = new http_get();
-                $readmeResponse = $readmeReq->get($readmeUrl, 3, 1);
-                if ($readmeResponse) {
-                    $readmeData = parse_ini_string($readmeResponse);
-                    $plugins[$pluginName]['description'] = $readmeData['description'] ?? 'No description available';
-                    $plugins[$pluginName]['author'] = $readmeData['author'] ?? 'Unknown author';
+                if ($metadataResponse && preg_match('/^description:\s*["\']?([^"\'\r\n]+)["\']?/mi', $metadataResponse, $descriptionMatch)) {
+                    $plugins[$pluginName]['description'] = trim($descriptionMatch[1]);
                 }
             }
         }

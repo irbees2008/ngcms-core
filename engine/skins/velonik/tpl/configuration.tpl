@@ -68,6 +68,14 @@
 						<td width="50%" class="ng-select">
 							{{ mkSelect({'name' : 'save_con[dbtype]', 'value' : config['dbtype'], 'id' : 'db_dbtype', 'values' : { 'pdo' : lang['pdo'] } }) }}
 						</td>
+					<tr>
+						<td width="50%">{{ lang['smilies_mode'] }}
+							<small class="form-text text-muted">{{ lang['smilies_mode_desc'] }}</small>
+						</td>
+						<td>
+							{{ mkSelect({'name' : 'save_con[smilies_mode]', 'value' : config['smilies_mode']|default('emoji'), 'values' : {'emoji': lang['smilies_mode_emoji'], 'images': lang['smilies_mode_images']} }) }}
+						</td>
+					</tr>
 					</tr>
 					<tr>
 						<td width="50%">{{ lang['dbhost'] }}
@@ -1146,15 +1154,7 @@
 											</tr>
 										</thead>
 										<tbody>
-											{% for MR in multiConfig %}
-												<tr>
-													<td>
-														{% if (MR['active']) %}On{% else %}Off
-														{% endif %}
-													</td>
-													<td>{{ MR['key'] }}</td>
-													<td>
-														{% for domain in MR['domains'] %}
+										</td>
 															{{ domain }}
 															{% else %}-
 															{{ lang['not_specified'] }}

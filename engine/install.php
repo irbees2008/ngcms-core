@@ -577,17 +577,11 @@ function doConfig_plugins()
             if (($dName == '.') || ($dName == '..')) {
                 continue;
             }
-            if (is_dir($pluginsDir . '/' . $dName) && file_exists($vfn = $pluginsDir . '/' . $dName . '/version') && (filesize($vfn)) && ($vf = fopen($vfn, 'r'))) {
-                $pluginRec = [];
-                while (!feof($vf)) {
-                    $line = fgets($vf);
-                    if (preg_match("/^(.+?) *\: *(.+?) *$/i", trim($line), $m)) {
-                        if (in_array(strtolower($m[1]), ['id', 'title', 'information', 'preinstall', 'preinstall_vars', 'install'])) {
-                            $pluginRec[strtolower($m[1])] = $m[2];
-                        }
-                    }
+            if (is_dir($pluginsDir . '/' . $dName) && is_file($pluginMd = $pluginsDir . '/' . $dName . '/plugin.md')) {
+                $pluginRec = plugins_load_markdown_file($pluginMd);
+                if (!is_array($pluginRec)) {
+                    continue;
                 }
-                fclose($vf);
                 if (isset($pluginRec['id']) && isset($pluginRec['title'])) {
                     array_push($pluglist, $pluginRec);
                 }
@@ -985,6 +979,7 @@ function doInstall()
             'timestamp_admin_news' => 'd.m.Y H:i',
             'timestamp_updated'   => 'j.m.Y - H:i',
             'smilies'             => 'smile, biggrin, tongue, wink, cool, angry, sad, cry, upset, tired, blush, surprise, thinking, shhh, kiss, crazy, undecide, confused, down, up',
+            'smilies_mode'        => 'emoji',
             'blocks_for_reg'      => '1',
             'use_smilies'         => '1',
             'use_bbcodes'         => '1',

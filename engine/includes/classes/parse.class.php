@@ -486,7 +486,7 @@ class parse
             // Экранируем спецсимволы как и ранее
             $escaped = str_replace(array('[', '<', '{', '/', '"', ']'), array('&#91;', '&lt;', '&#123;', '&#47;', '&#34;', '&#93;'), $inner);
             if ($lang !== '') {
-                $replacement = '<div class="bbCodeName" style="padding-left:5px;font-weight:bold;font-size:7pt">Код:</div>' .
+                $replacement = '<div class="bbCodeName" style="padding-left:5px;font-weight:bold;font-size:7pt">Код : ' . $lang . '</div>' .
                     '<div class="code_sample"><pre style="border:1px inset;max-height:200px;overflow:auto;" class="brush:' . $lang . '">' . $escaped . '</pre></div>';
             } else {
                 $replacement = '<code>' . $escaped . '</code>';
@@ -545,17 +545,56 @@ class parse
         $content = str_replace("\n</p>\n", '</p>', $content);
         return $content;
     }
+    public static function smileyEmojiMap()
+    {
+        return [
+            'smile'    => '😊',
+            'biggrin'  => '😁',
+            'tongue'   => '😛',
+            'wink'     => '😉',
+            'cool'     => '😎',
+            'angry'    => '😠',
+            'sad'      => '😢',
+            'cry'      => '😭',
+            'upset'    => '😟',
+            'tired'    => '😫',
+            'blush'    => '😊',
+            'surprise' => '😮',
+            'thinking' => '🤔',
+            'shhh'     => '🤫',
+            'kiss'     => '😘',
+            'crazy'    => '🤪',
+            'undecide' => '😕',
+            'confused' => '😕',
+            'down'     => '👎',
+            'up'       => '👍',
+        ];
+    }
+
+    public function getSmileyEmoji($smile)
+    {
+        $map = self::smileyEmojiMap();
+        return $map[$smile] ?? '';
+    }
+
     public function smilies($content)
     {
         global $config;
         if (!$config['use_smilies']) {
             return $content;
         }
+        $useEmoji = (($config['smilies_mode'] ?? 'emoji') === 'emoji');
         $smilies_arr = explode(',', $config['smilies']);
-        foreach ($smilies_arr as $null => $smile) {
+        $find = [];
+        $replace = [];
+        foreach ($smilies_arr as $smile) {
             $smile = trim($smile);
             $find[] = "':$smile:'";
-            $replace[] = "<img class=\"smilies\" alt=\"$smile\" src=\"" . skins_url . "/smilies/$smile.png\" />";
+            if ($useEmoji) {
+                $replace[] = self::smileyEmojiMap()[$smile] ?? ":$smile:";
+            } else {
+                $replace[] = "<img class=\"smilies\" alt=\"$smile\" src=\"" . skins_url . "/smilies/$smile.png\" />";
+            }
         }
         return preg_replace($find, $replace, $content);
     }

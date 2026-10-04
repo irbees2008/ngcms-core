@@ -56,6 +56,8 @@ function systemConfigSave()
     if (is_null($save_con) || !is_array($save_con)) {
         return false;
     }
+    $smiliesMode = $save_con['smilies_mode'] ?? ($config['smilies_mode'] ?? 'emoji');
+    $save_con['smilies_mode'] = in_array($smiliesMode, ['emoji', 'images'], true) ? $smiliesMode : 'emoji';
     // Determine which config to save
     $siteId = trim($_REQUEST['site_id'] ?? '');
     $configFile = confroot . 'config.php';

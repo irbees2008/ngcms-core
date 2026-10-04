@@ -249,6 +249,9 @@ insertext('[color=' + color + ']', '[/color]', area);
 		<button type="button" data-toggle="modal" data-target="#modal-smiles" class="btn btn-outline-dark">
 			<i class="fa fa-smile-o"></i>
 		</button>
+		<button type="button" data-toggle="modal" data-target="#modal-emoji" class="btn btn-outline-dark" title="Вставить emoji">
+			<span aria-hidden="true">😀</span>
+		</button>
 	</div>
 	<!-- Dropdown: вставка [code=язык]...[/code] -->
 	{% if callPlugin('code_highlight.hasAnyEnabled', {}) %}
