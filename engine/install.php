@@ -567,6 +567,7 @@ function doConfig_perm()
 function doConfig_plugins()
 {
     global $tvars, $tpl, $templateDir;
+    include_once root . 'includes/inc/extras.inc.php';
     $tvars['vars']['menu_plugins'] = ' class="hover"';
     printHeader();
     // Now we should scan plugins for preinstall configuration

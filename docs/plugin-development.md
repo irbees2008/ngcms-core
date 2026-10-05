@@ -8,15 +8,46 @@ engine/plugins/<pluginID>/
   config.php            # Страница настроек в админке
   install.php           # Установка (миграции БД, дефолтные параметры)
   uninstall.php         # Деинсталляция (очистка/удаление таблиц)
-  version               # Метаданные плагина
+  plugin.md             # Метаданные и документация плагина
   lang/<locale>/main.ini# Локализация (site, config секции)
   tpl/*.tpl             # Шаблоны вывода
   lib/                  # (опц.) Дополнительные классы/утилиты
   inc/                  # (опц.) Вспомогательные обработчики
 ```
-Минимум: `version`, основной файл, `config.php`.
-## 3. Файл `version`
-Поля: `ID`, `Name/Name_EN`, `Version`, `Acts` (где работает: index, news_short, news_full, ppages, twig), `File`, `Config`, `Install`, `Deinstall`, `Description`, `Author`, `MinEngineBuild`, `Icons`. Используется системой для отображения и активации плагина.
+Минимум: `plugin.md`, основной файл и `config.php` (если плагину нужны настройки).
+## 3. Единый файл `plugin.md`
+`plugin.md` содержит front matter с метаданными и Markdown-документацию ниже него. Это единственный файл, который движок использует для обнаружения, отображения и активации плагина.
+
+Поддерживаемые поля front matter: `id`, `name`, `version`, `type`, `acts`, `file`, `config`, `install`, `deinstall`, `description`, `author`, `author_uri`, `minenginebuild`, `icons`, `title`, `information`, `preinstall`, `permanent`, `library`, `actions`.
+
+Пример:
+```markdown
+---
+id: "helloworld"
+name: "Пример HelloWorld"
+version: "0.1.0"
+acts: "index, news_short, news_full, twig"
+file: "helloworld.php"
+config: "config.php"
+install: "install.php"
+deinstall: "uninstall.php"
+type: "plugin"
+description: "Демонстрационный плагин NGCMS."
+author: "Demo Author"
+minenginebuild: "2020731"
+icons: "<i class=\"fa fa-smile-o fa-3x\" aria-hidden=\"true\"></i>"
+actions:
+  - "ppages; helloworld.php"
+---
+
+# HelloWorld
+
+Описание, установка, настройки и история изменений плагина.
+```
+
+Поля `actions` и `library` записываются списком в формате `идентификаторы; путь-к-файлу`. Поля `id`, `name`, `version` и `type` обязательны.
+
+Файлы `version`, `readme`, `README.txt`, `README.md`, `plugin.ini`, `info.ini` и `info.xml` больше не используются движком как метаданные плагина. Файлы `lang/*.ini` остаются языковыми файлами, а `config.php` — исполняемой конфигурацией плагина.
 ## 4. Жизненный цикл
 - Установка: `install.php` с функцией `plugin_<id>_install($action)`
   - `confirm` → страница подтверждения через `generate_install_page()`
@@ -148,7 +179,7 @@ $output = $xt->render($tVars);
 - Безопасность: автоэкранирование HTML
 - Синтаксис: `{{ variable }}` вместо `{variable}`
 **Требования:**
-- В файле `version` добавить `Acts: twig`
+- В front matter файла `plugin.md` добавить `acts: "..., twig"`
 - `MinEngineBuild: 2020731` или выше
 ### 9.3 Регистрация Twig-функций
 Для вызова плагина через `{{ callPlugin() }}`:
@@ -251,35 +282,36 @@ engine/plugins/helloworld/
   config.php            # Одна настройка add_suffix
   install.php           # Создаёт таблицу счётчика и дефолтный параметр
   uninstall.php         # Удаляет таблицу
-  version               # Метаданные плагина
+  plugin.md             # Метаданные и документация плагина
   lang/russian/main.ini # Локализация (site + config секции)
   tpl/helloworld.tpl    # Шаблон страницы плагина
 ```
-### 12.2 Файл `version`
-```plaintext
-;
-; Version description file for plugin @@ Next Generation CMS
-;
-ID: helloworld
-Name: Пример HelloWorld
-Name_EN: HelloWorld Example
-Version: 0.1.0
-Acts: index, news_short, news_full
-File: helloworld.php
-Config: config.php
-Install: install.php
-Deinstall: uninstall.php
-Type: plugin
-Description: Демонстрационный плагин: страница + суффикс заголовков новостей + счётчик посещений.
-Description_EN: Demo plugin: page + news title suffix + visit counter.
-Author: Demo Author
-Title: HelloWorld
-Information: Показывает базовые приёмы создания плагинов.
-Preinstall: no
-MinEngineBuild: 23b3116
-Icons: <i class="fa fa-smile-o fa-3x" aria-hidden="true"></i>
+### 12.2 Файл `plugin.md`
+```markdown
+---
+id: "helloworld"
+name: "Пример HelloWorld"
+version: "0.1.0"
+acts: "index, news_short, news_full"
+file: "helloworld.php"
+config: "config.php"
+install: "install.php"
+deinstall: "uninstall.php"
+type: "plugin"
+description: "Демонстрационный плагин: страница и счётчик посещений."
+author: "Demo Author"
+title: "HelloWorld"
+information: "Показывает базовые приёмы создания плагинов."
+preinstall: "no"
+minenginebuild: "2020731"
+icons: "<i class=\"fa fa-smile-o fa-3x\" aria-hidden=\"true\"></i>"
+---
+
+# HelloWorld
+
+Здесь находится документация плагина.
 ```
-Ключевые поля: `ID` (должен совпадать с названием директории), `Acts` определяет области, где плагин активен.
+Ключевое поле `id` должно совпадать с идентификатором плагина, а `acts` определяет области, где плагин активен.
 ### 12.3 Файл `install.php`
 ```php
 <?php
@@ -421,7 +453,7 @@ helloworld:add_suffix_descr = Включите, чтобы к заголовку
 ### 12.10 Итог
 Плагин покрывает: миграции, локализацию, конфиг, фильтр, страницу, шаблон. Можно расширять, добавляя новые таблицы, права доступа и кэш.
 ## 13. Чеклист перед публикацией
-1. Файл `version` корректен (ID совпадает с директорией).
+1. Файл `plugin.md` корректен (ID совпадает с директорией).
 2. Защита `defined('NGCMS')` в каждом PHP.
 3. Все языковые строки вынесены в `lang/`.
 4. Нет жёстких путей; используется API движка (`prefix`, `generateLink`).
@@ -430,14 +462,14 @@ helloworld:add_suffix_descr = Включите, чтобы к заголовку
 7. Шаблоны без inline PHP.
 8. Кодировка файлов UTF-8 без BOM (рекомендуется).
 9. По необходимости — регистрация CSS/JS.
-10. Документация/README (опционально) описывает цель и параметры.
+10. Markdown-раздел `plugin.md` описывает цель, установку и параметры.
 ## 14. Расширения
 - Дополнительные блоки: `block_<id>.php` могут размещаться для виджетов.
 - Ajax обработчики: отдельные файлы с проверкой доступа.
 - Скины: подкаталог `tpl/skins/<skinName>` + параметры `localsource/localskin`.
 ## 15. Типовые ошибки
 - Отсутствует вызов `pluginsLoadConfig()` → настройки не отображаются.
-- Неверный ID в `version` → плагин не активируется.
+- Неверный ID в `plugin.md` → плагин не активируется.
 - Не зарегистрирована страница через `register_plugin_page` → 404 при обращении.
 - Пропущена деинсталляция таблиц → «мусор» в БД.
 ## 16. Рекомендации по стилю
@@ -447,7 +479,7 @@ helloworld:add_suffix_descr = Включите, чтобы к заголовку
 - Небольшие функции: каждая отвечает за одну задачу (обновить рейтинг, показать форму, обработать отправку и т.п.).
 ## 17. Быстрый старт
 1. Скопируйте пример `helloworld`.
-2. Переименуйте директорию/ID и скорректируйте файл `version`.
+2. Переименуйте директорию/ID и скорректируйте front matter в `plugin.md`.
 3. Измените таблицы и параметры в `install.php`.
 4. Добавьте свои фильтры/страницы.
 5. Установите плагин через админку.
@@ -462,7 +494,7 @@ if (!getPluginStatusActive('comments')) {
 }
 ```
 ### 18.2 Рекомендации по зависимостям
-- Указывайте зависимости в `readme`
+- Указывайте зависимости в Markdown-разделе `plugin.md`
 - Проверяйте наличие до использования API зависимого плагина
 - Используйте graceful degradation где возможно
 ## 19. Глобальные переменные и константы NGCMS
@@ -565,12 +597,12 @@ $tVars = [
 $xt = $twig->loadTemplate($tpath['item'] . 'item.tpl');
 $output = $xt->render($tVars);
 ```
-### 21.3 Обновление version файла
+### 21.3 Обновление метаданных в `plugin.md`
 ```diff
-- Acts: index, news_full
-+ Acts: index, news_full, twig
-- MinEngineBuild: 23b3116
-+ MinEngineBuild: 2020731
+- acts: "index, news_full"
++ acts: "index, news_full, twig"
+- minenginebuild: "23b3116"
++ minenginebuild: "2020731"
 ```
 ## 22. Bootstrap 4/5 в админ-панели
 ### 22.1 Карточки (Cards)

@@ -12,7 +12,7 @@
 	</div>
 	{% if pluginIsActive('ai_rewriter') %}
 		<div class="btn-group btn-group-sm mr-2">
-			<button type="button" class="btn btn-outline-primary" title="Сделать рерайт" onclick="aiRewriteCurrentArea();">
+			<button type="button" class="btn btn-outline-primary" title="{{ lang['ai_rewriter:rewrite'] }}" onclick="aiRewriteCurrentArea();">
 				<i class="fa fa-magic"></i>
 			</button>
 		</div>

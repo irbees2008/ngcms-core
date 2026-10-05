@@ -260,11 +260,15 @@ function phphighlight($content = '')
 }
 function QuickTags(string $area = '', string $template = '')
 {
-    global $twig, $PHP_SELF, $config;
+    global $twig, $PHP_SELF, $config, $lang;
+    if ($template === 'news') {
+        LoadPluginLang('ai_rewriter', 'main', '', '', ':');
+    }
     $tvars = [
         'php_self' => $PHP_SELF,
         'area'     => empty($area) ? "''" : $area,
         'config'   => $config,
+        'lang'     => $lang,
     ];
     if (!in_array($template, ['pmmes', 'editcom', 'news', 'static'])) {
         return false;
