@@ -315,6 +315,7 @@ $tVars = [
     'unnAppLabel'           => $unnAppLabel,
     // Глобальный токен для RPC admin.statistics.* (нужен для кнопки очистки кэша в топбаре)
     'token_statistics'      => genUToken('admin.statistics'),
+    'token_quicklinks'      => genUToken('admin.quicklinks'),
     // Унифицированный профиль пользователя для шаблонов
     'user' => array(
         'id'     => $userROW['id'],

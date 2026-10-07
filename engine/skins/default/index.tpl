@@ -464,7 +464,8 @@
 						lang: {{ encode_lang ?: '{}' }},
 						langcode: '{{ lang['langcode'] }}',
 						php_self: '{{ php_self }}',
-						skins_url: '{{ skins_url }}'
+						skins_url: '{{ skins_url }}',
+						token_quicklinks: '{{ token_quicklinks|e('js') }}'
 						};
 						(function () {
 						var panel = document.getElementById('quick-links');
@@ -507,6 +508,35 @@
 						localStorage.setItem(pendingKey, JSON.stringify(limited));
 						} catch (e) {}
 						}
+						function requestQuickLinks(method, data) {
+						var params = Object.assign({ token: NGCMS.token_quicklinks }, data || {});
+						var body = new URLSearchParams();
+						body.set('json', '1');
+						body.set('methodName', method);
+						body.set('params', JSON.stringify(params));
+						return fetch(String(NGCMS.admin_url || '/engine').replace(/\/$/, '') + '/rpc.php', {
+							method: 'POST',
+							credentials: 'same-origin',
+							headers: { 'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8' },
+							body: body.toString()
+						}).then(function (response) { return response.json(); }).then(function (response) {
+							if (!response || response.status !== 1) throw new Error(response && response.errorText || 'Ошибка сохранения');
+							return response;
+						});
+						}
+						var saveQueue = Promise.resolve();
+						function persistState() {
+							saveItems();
+							savePending();
+							var snapshot = { items: items.slice(0, maxItems), pending: pending };
+							saveQueue = saveQueue.catch(function () {}).then(function () {
+								return requestQuickLinks('admin.quicklinks.save', snapshot);
+							}).then(function (response) {
+								try { localStorage.removeItem(storageKey); localStorage.removeItem(pendingKey); } catch (e) {}
+								return response;
+							});
+							return saveQueue;
+						}
 						function pageTitle() {
 						var heading = document.querySelector('main h1, main h2, main .page-title');
 						var headingText = heading && heading.textContent.trim();
@@ -536,7 +566,9 @@
 						remove.innerHTML = '<i class="fa fa-times" aria-hidden="true"></i>';
 						remove.addEventListener('click', function () {
 							items = items.filter(function (entry) { return entry.url !== item.url; });
-							saveItems(); render();
+							delete pending[item.url];
+							render();
+							persistState().catch(showQuickLinksError);
 						});
 						row.appendChild(link);
 						row.appendChild(remove);
@@ -552,24 +584,29 @@
 						return url.pathname + url.search + url.hash;
 						} catch (e) { return ''; }
 						}
-						items = readItems();
-						var pending = readPending();
-						items = items.filter(function (item) {
-							if (item.manual === false && (item.visits || 0) < visitThreshold) {
-								var previous = pending[item.url] || {};
-								pending[item.url] = { title: item.title, visits: Math.max(previous.visits || 0, item.visits || 0), updated: Math.max(previous.updated || 0, item.updated || 0) };
-								return false;
+						var items = [];
+						var pending = {};
+						function mergeItem(item) {
+							var safeUrl = toAdminUrl(item.url);
+							var safeTitle = String(item.title || '').trim().slice(0, 80);
+							if (!safeUrl || !safeTitle) return;
+							item = { url: safeUrl, title: safeTitle, visits: item.visits || 0, updated: item.updated || 0, manual: !!item.manual };
+							var existing = items.find(function (entry) { return entry.url === item.url; });
+							if (!existing) { items.push(item); return; }
+							existing.visits = Math.max(existing.visits || 0, item.visits || 0);
+							existing.updated = Math.max(existing.updated || 0, item.updated || 0);
+							if (item.manual) { existing.manual = true; existing.title = item.title; }
+						}
+						function trackCurrentPage() {
+							var currentUrl = toAdminUrl(location.href);
+							if (!currentUrl || /action=logout/.test(currentUrl)) return;
+							var current = items.find(function (item) { return item.url === currentUrl; });
+							if (current) {
+								current.visits = (current.visits || 0) + 1;
+								current.updated = Date.now();
+								delete pending[currentUrl];
+								return;
 							}
-							return true;
-						});
-						var currentUrl = toAdminUrl(location.href);
-						if (currentUrl && !/action=logout/.test(currentUrl)) {
-						var current = items.find(function (item) { return item.url === currentUrl; });
-						if (current) {
-							current.visits = (current.visits || 0) + 1;
-							current.updated = Date.now();
-							delete pending[currentUrl];
-						} else {
 							var currentPending = pending[currentUrl] || { title: pageTitle(), visits: 0, updated: 0 };
 							currentPending.title = pageTitle();
 							currentPending.visits = (currentPending.visits || 0) + 1;
@@ -586,8 +623,47 @@
 								}
 							}
 						}
+						function showQuickLinksError(error) {
+							if (typeof window.showNotify === 'function') window.showNotify('Не удалось сохранить быстрые ссылки на сервере: ' + error.message, 'danger');
+							else if (window.console) console.error(error);
 						}
-						saveItems(); savePending(); render();
+						async function initializeQuickLinks() {
+							var localItems = readItems();
+							var localPending = readPending();
+							try {
+								var stored = await requestQuickLinks('admin.quicklinks.get');
+								items = Array.isArray(stored.items) ? stored.items : [];
+								pending = stored.pending && typeof stored.pending === 'object' ? stored.pending : {};
+								localItems.forEach(mergeItem);
+								Object.keys(localPending).forEach(function (url) {
+									var previous = pending[url] || {};
+									pending[url] = {
+										title: localPending[url].title || previous.title,
+										visits: Math.max(previous.visits || 0, localPending[url].visits || 0),
+										updated: Math.max(previous.updated || 0, localPending[url].updated || 0)
+									};
+								});
+							} catch (error) {
+								items = [];
+								localItems.forEach(mergeItem);
+								pending = localPending;
+							}
+							items.sort(function (a, b) { return Number(!!b.manual) - Number(!!a.manual) || (b.visits || 0) - (a.visits || 0); });
+							items = items.slice(0, maxItems);
+							items = items.filter(function (item) {
+								if (item.manual === false && (item.visits || 0) < visitThreshold) {
+									var previous = pending[item.url] || {};
+									pending[item.url] = { title: item.title, visits: Math.max(previous.visits || 0, item.visits || 0), updated: Math.max(previous.updated || 0, item.updated || 0) };
+									return false;
+								}
+								return true;
+							});
+							trackCurrentPage();
+							render();
+							document.getElementById('quick-links-toggle').disabled = false;
+							persistState().catch(showQuickLinksError);
+						}
+						document.getElementById('quick-links-toggle').disabled = true;
 						document.getElementById('quick-links-toggle').addEventListener('click', function () {
 							form.hidden = !form.hidden;
 							if (!form.hidden) { titleInput.value = pageTitle(); urlInput.value = location.pathname + location.search + location.hash; message.textContent = ''; titleInput.focus(); }
@@ -603,8 +679,11 @@
 							if (existing) { existing.title = title; existing.manual = true; existing.updated = Date.now(); }
 							else items.push({ url: url, title: title, visits: 0, updated: Date.now(), manual: true });
 							delete pending[url];
-							saveItems(); savePending(); render(); form.hidden = true;
+							render();
+							persistState().catch(showQuickLinksError);
+							form.hidden = true;
 						});
+						initializeQuickLinks();
 						})();
 						$('#menu-content .sub-menu').on('show.bs.collapse', function () {
 						$('#menu-content .sub-menu.show').not(this).removeClass('show');
@@ -613,7 +692,12 @@
 						async function clearBrowserCaches() {
 						try {
 						try {
-						window.localStorage && window.localStorage.clear();
+						if (window.localStorage) {
+							for (var i = window.localStorage.length - 1; i >= 0; i--) {
+								var key = window.localStorage.key(i);
+								if (key && key.indexOf('ngcms.quick-links.v1.') !== 0) window.localStorage.removeItem(key);
+							}
+						}
 						} catch (e) {}
 						try {
 						window.sessionStorage && window.sessionStorage.clear();
