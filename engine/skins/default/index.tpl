@@ -92,7 +92,7 @@
 			<div class="btn-group ml-auto mr-2 py-1" role="group" aria-label="Button group with nested dropdown">
 				<ul class="navbar-nav ml-auto">
 					<li
-						class="nav-item">
+						class="nav-item nav-badge-item">
 						<!-- Иконка уведомлений -->
 						<a type="button" class="nav-link" data-toggle="modal" data-target="#notificationsModal" title="{{ lang['notifications']|default('Уведомления') }}" data-bs-toggle="tooltip" data-bs-placement="bottom">
 							<i class="fa fa-bell-o fa-lg"></i>
@@ -113,6 +113,12 @@
 						<!-- Иконка добавления контента -->
 						<a type="button" class="nav-link" data-toggle="modal" data-target="#addContentModal" title="{{ lang['content.add']|default('Добавить контент') }}" data-bs-toggle="tooltip" data-bs-placement="bottom">
 							<i class="fa fa-plus fa-lg"></i>
+						</a>
+					</li>
+					<li class="nav-item nav-badge-item">
+						<a type="button" class="nav-link" data-toggle="modal" data-target="#quickLinksModal" title="Часто открываемое" aria-label="Часто открываемое" data-bs-toggle="tooltip" data-bs-placement="bottom">
+							<i class="fa fa-star-o fa-lg"></i>
+							<span id="quick-links-badge" class="badge badge-notife badge-danger">0</span>
 						</a>
 					</li>
 					<li
@@ -327,6 +333,41 @@
 				</div>
 			</div>
 		</div>
+		<div class="modal fade" id="quickLinksModal" tabindex="-1" role="dialog" aria-labelledby="quickLinksModalLabel" aria-hidden="true">
+			<div class="modal-dialog modal-dialog-centered" role="document">
+				<div class="modal-content">
+					<div class="modal-header">
+						<h5 class="modal-title" id="quickLinksModalLabel">Часто открываемое</h5>
+						<button type="button" class="close" data-dismiss="modal" aria-label="Закрыть">
+							<span aria-hidden="true">&times;</span>
+						</button>
+					</div>
+					<div class="modal-body">
+						<section id="quick-links" class="quick-links" data-user-id="{{ user.id }}">
+							<div class="quick-links-heading">
+								<span>Страницы админки</span>
+								<span id="quick-links-count" class="quick-links-count">0/20</span>
+								<button type="button" id="quick-links-toggle" class="quick-links-add-toggle" aria-label="Добавить страницу" title="Добавить страницу">
+									<i class="fa fa-plus" aria-hidden="true"></i>
+								</button>
+							</div>
+							<ul id="quick-links-list" class="quick-links-list" aria-live="polite"></ul>
+							<form id="quick-links-form" class="quick-links-form" hidden>
+								<label for="quick-links-title">Название</label>
+								<input id="quick-links-title" type="text" maxlength="80" autocomplete="off" required>
+								<label for="quick-links-url">Адрес админки</label>
+								<input id="quick-links-url" type="text" autocomplete="url" required>
+								<div class="quick-links-form-actions">
+									<button type="submit" class="btn btn-sm btn-outline-primary">Добавить</button>
+									<button type="button" id="quick-links-cancel" class="btn btn-sm btn-link">Отмена</button>
+								</div>
+								<div id="quick-links-message" class="quick-links-message" role="status"></div>
+							</form>
+						</section>
+					</div>
+				</div>
+			</div>
+		</div>
 		<!-- Модальное окно для добавления контента -->
 		<div class="modal fade" id="addContentModal" tabindex="-1" role="dialog" aria-labelledby="addContentModalLabel" aria-hidden="true">
 			<div class="modal-dialog" role="document">
@@ -425,6 +466,146 @@
 						php_self: '{{ php_self }}',
 						skins_url: '{{ skins_url }}'
 						};
+						(function () {
+						var panel = document.getElementById('quick-links');
+						if (!panel) return;
+						var list = document.getElementById('quick-links-list');
+						var count = document.getElementById('quick-links-count');
+						var form = document.getElementById('quick-links-form');
+						var titleInput = document.getElementById('quick-links-title');
+						var urlInput = document.getElementById('quick-links-url');
+						var message = document.getElementById('quick-links-message');
+						var maxItems = 20;
+						var storageKey = 'ngcms.quick-links.v1.' + panel.dataset.userId + '.' + location.host;
+						var pendingKey = storageKey + '.pending';
+						var visitThreshold = 10;
+						var adminPath = '/engine';
+						try { adminPath = new URL(NGCMS.admin_url || '/engine', location.origin).pathname.replace(/\/$/, ''); } catch (e) {}
+						var items = [];
+						function readItems() {
+						try {
+						var saved = JSON.parse(localStorage.getItem(storageKey) || '[]');
+						return Array.isArray(saved) ? saved.filter(function (item) {
+							return item && typeof item.url === 'string' && typeof item.title === 'string';
+						}) : [];
+						} catch (e) { return []; }
+						}
+						function saveItems() {
+						try { localStorage.setItem(storageKey, JSON.stringify(items.slice(0, maxItems))); } catch (e) {}
+						}
+						function readPending() {
+						try {
+						var saved = JSON.parse(localStorage.getItem(pendingKey) || '{}');
+						return saved && typeof saved === 'object' && !Array.isArray(saved) ? saved : {};
+						} catch (e) { return {}; }
+						}
+						function savePending() {
+						try {
+						var recent = Object.keys(pending).sort(function (a, b) { return (pending[b].updated || 0) - (pending[a].updated || 0); }).slice(0, 100);
+						var limited = {};
+						recent.forEach(function (url) { limited[url] = pending[url]; });
+						localStorage.setItem(pendingKey, JSON.stringify(limited));
+						} catch (e) {}
+						}
+						function pageTitle() {
+						var heading = document.querySelector('main h1, main h2, main .page-title');
+						var headingText = heading && heading.textContent.trim();
+						if (headingText) return headingText.slice(0, 80);
+						var plugin = new URLSearchParams(location.search).get('plugin');
+						if (plugin) return 'Плагин: ' + plugin;
+						var activeLink = Array.prototype.find.call(document.querySelectorAll('.nav-side-menu a'), function (link) {
+							try { return new URL(link.href).pathname === location.pathname && new URL(link.href).search === location.search; } catch (e) { return false; }
+						});
+						if (activeLink && activeLink.textContent.trim()) return activeLink.textContent.trim().slice(0, 80);
+						return (document.title.split(/\s+-\s+/)[0] || location.pathname).slice(0, 80);
+						}
+						function render() {
+						items.sort(function (a, b) { return (b.visits || 0) - (a.visits || 0) || (b.updated || 0) - (a.updated || 0); });
+						list.textContent = '';
+						items.forEach(function (item) {
+						var row = document.createElement('li');
+						var link = document.createElement('a');
+						link.href = item.url;
+						link.textContent = item.title;
+						link.title = item.title + ' · посещений: ' + (item.visits || 0);
+						var remove = document.createElement('button');
+						remove.type = 'button';
+						remove.className = 'quick-links-remove';
+						remove.title = 'Удалить ссылку';
+						remove.setAttribute('aria-label', 'Удалить ' + item.title);
+						remove.innerHTML = '<i class="fa fa-times" aria-hidden="true"></i>';
+						remove.addEventListener('click', function () {
+							items = items.filter(function (entry) { return entry.url !== item.url; });
+							saveItems(); render();
+						});
+						row.appendChild(link);
+						row.appendChild(remove);
+						list.appendChild(row);
+						});
+						count.textContent = items.length + '/' + maxItems;
+						document.getElementById('quick-links-badge').textContent = items.length;
+						}
+						function toAdminUrl(value) {
+						try {
+						var url = new URL(value, location.origin);
+						if (url.origin !== location.origin || !(url.pathname === adminPath || url.pathname.indexOf(adminPath + '/') === 0) || /\/rpc\.php$/i.test(url.pathname)) return '';
+						return url.pathname + url.search + url.hash;
+						} catch (e) { return ''; }
+						}
+						items = readItems();
+						var pending = readPending();
+						items = items.filter(function (item) {
+							if (item.manual === false && (item.visits || 0) < visitThreshold) {
+								var previous = pending[item.url] || {};
+								pending[item.url] = { title: item.title, visits: Math.max(previous.visits || 0, item.visits || 0), updated: Math.max(previous.updated || 0, item.updated || 0) };
+								return false;
+							}
+							return true;
+						});
+						var currentUrl = toAdminUrl(location.href);
+						if (currentUrl && !/action=logout/.test(currentUrl)) {
+						var current = items.find(function (item) { return item.url === currentUrl; });
+						if (current) {
+							current.visits = (current.visits || 0) + 1;
+							current.updated = Date.now();
+							delete pending[currentUrl];
+						} else {
+							var currentPending = pending[currentUrl] || { title: pageTitle(), visits: 0, updated: 0 };
+							currentPending.title = pageTitle();
+							currentPending.visits = (currentPending.visits || 0) + 1;
+							currentPending.updated = Date.now();
+							pending[currentUrl] = currentPending;
+							if (currentPending.visits >= visitThreshold) {
+								if (items.length >= maxItems) {
+									var candidates = items.filter(function (item) { return item.manual === false; }).sort(function (a, b) { return (a.visits || 0) - (b.visits || 0) || (a.updated || 0) - (b.updated || 0); });
+									if (candidates.length) items.splice(items.indexOf(candidates[0]), 1);
+								}
+								if (items.length < maxItems) {
+									items.push({ url: currentUrl, title: currentPending.title, visits: currentPending.visits, updated: currentPending.updated, manual: false });
+									delete pending[currentUrl];
+								}
+							}
+						}
+						}
+						saveItems(); savePending(); render();
+						document.getElementById('quick-links-toggle').addEventListener('click', function () {
+							form.hidden = !form.hidden;
+							if (!form.hidden) { titleInput.value = pageTitle(); urlInput.value = location.pathname + location.search + location.hash; message.textContent = ''; titleInput.focus(); }
+						});
+					document.getElementById('quick-links-cancel').addEventListener('click', function () { form.hidden = true; });
+						form.addEventListener('submit', function (event) {
+							event.preventDefault();
+							var url = toAdminUrl(urlInput.value.trim());
+							var title = titleInput.value.trim().slice(0, 80);
+							if (!url || !title) { message.textContent = 'Укажите корректный адрес страницы админки и название.'; return; }
+							var existing = items.find(function (item) { return item.url === url; });
+							if (!existing && items.length >= maxItems) { message.textContent = 'Лимит 20 ссылок. Удалите одну, чтобы добавить новую.'; return; }
+							if (existing) { existing.title = title; existing.manual = true; existing.updated = Date.now(); }
+							else items.push({ url: url, title: title, visits: 0, updated: Date.now(), manual: true });
+							delete pending[url];
+							saveItems(); savePending(); render(); form.hidden = true;
+						});
+						})();
 						$('#menu-content .sub-menu').on('show.bs.collapse', function () {
 						$('#menu-content .sub-menu.show').not(this).removeClass('show');
 						});
@@ -544,31 +725,31 @@
 						if (typeof $.fn.tooltip !== 'undefined') {
 						$('[data-bs-toggle="tooltip"]').tooltip();
 						}
-						
+
 						// Инициализация часов реального времени (серверное время)
 						var serverTime = new Date('{{ "now"|date('c') }}'); // Серверное время в ISO формате
 						var clientTime = new Date();
 						var timeDiff = serverTime - clientTime; // Разница между сервером и клиентом
-						
+
 						function updateClock() {
 						var clockDisplay = document.getElementById('clock-display');
 						if (!clockDisplay) return;
-						
+
 						var now = new Date(Date.now() + timeDiff); // Применяем серверную корректировку
-						var months = ['января', 'февраля', 'марта', 'апреля', 'мая', 'июня', 
+						var months = ['января', 'февраля', 'марта', 'апреля', 'мая', 'июня',
 						              'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'];
-						
+
 						var day = now.getDate();
 						var month = months[now.getMonth()];
 						var year = now.getFullYear();
 						var hours = String(now.getHours()).padStart(2, '0');
 						var minutes = String(now.getMinutes()).padStart(2, '0');
 						var seconds = String(now.getSeconds()).padStart(2, '0');
-						
+
 						var timeString = day + ' ' + month + ' ' + year + ' ' + hours + ':' + minutes + ':' + seconds;
 						clockDisplay.textContent = timeString;
 						}
-						
+
 						// Обновляем часы каждую секунду
 						updateClock(); // Первое обновление сразу
 						setInterval(updateClock, 1000);

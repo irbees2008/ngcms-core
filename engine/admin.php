@@ -278,7 +278,7 @@ if (is_array($userROW)) {
             $unapproved3 = '<a class="dropdown-item" href="' . $PHP_SELF . '?mod=static"><i class="fa fa-times"></i> ' . $unapp3 . ' ' . Padeg($unapp3, $lang['head_stat_pending_skl']) . '</a>';
     }
     $unnAppCount = (int)$newpm + (int)$unapp1 + (int)$unapp2 + (int)$unapp3;
-    $unnAppLabel = ($unnAppCount != "0") ? '<span class="label label-danger">' . $unnAppCount . '</span>' : '';
+    $unnAppLabel = $unnAppCount;
     $unnAppText = $lang['head_notify'] . (($unnAppCount != "0") ? $unnAppCount . ' ' . Padeg($unnAppCount, $lang['head_notify_skl']) : $lang['head_notify_no']);
 }
 $datetimepicker_lang_default = "
