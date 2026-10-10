@@ -656,6 +656,19 @@ function pluginsLoadConfig()
 //
 // Load plugin metadata and documentation from plugin.md.
 //
+function plugins_parse_markdown_scalar($value)
+{
+    $value = trim($value);
+    if (strlen($value) >= 2 && $value[0] === '"' && substr($value, -1) === '"') {
+        $decoded = json_decode($value);
+        return is_string($decoded) ? $decoded : substr($value, 1, -1);
+    }
+    if (strlen($value) >= 2 && $value[0] === "'" && substr($value, -1) === "'") {
+        return str_replace("''", "'", substr($value, 1, -1));
+    }
+    return $value;
+}
+
 function plugins_load_markdown_file($filename)
 {
     if (!is_file($filename) || !($content = @file_get_contents($filename))) {
@@ -674,7 +687,7 @@ function plugins_load_markdown_file($filename)
     foreach (preg_split('/\r?\n/', $match[1]) as $line) {
         if (preg_match('/^([A-Za-z_][A-Za-z0-9_]*)\s*:\s*(.*)$/', trim($line), $parts)) {
             $key = strtolower($parts[1]);
-            $value = trim($parts[2], " \t\"'");
+            $value = plugins_parse_markdown_scalar($parts[2]);
             if (in_array($key, $list_params, true)) {
                 $currentList = $key;
                 if ($value !== '') {
@@ -687,7 +700,7 @@ function plugins_load_markdown_file($filename)
                 $currentList = null;
             }
         } elseif ($currentList && preg_match('/^[-*]\s*(.+)$/', trim($line), $parts)) {
-            $metadata[$currentList][] = trim($parts[1], " \t\"'");
+            $metadata[$currentList][] = plugins_parse_markdown_scalar($parts[1]);
         }
     }
 

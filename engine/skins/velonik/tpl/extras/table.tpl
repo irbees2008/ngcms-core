@@ -56,7 +56,7 @@
 					class="x_content">
 					<!-- Блок с иконкой -->
 					<div class="card-icon">
-						{{ entry.icons }}
+						{{ entry.icons|raw }}
 					</div>
 					<p class="card-text">{{ entry.description }}</p>
 					<span class="badge badge-{{ entry.flags.isCompatible ? 'success' : 'warning' }}">
