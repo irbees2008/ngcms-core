@@ -27,7 +27,9 @@
 	<input type="hidden" name="plugin" value="{{ plugin }}"/>
 	<input type="hidden" name="action" value="commit"/>
 	<div class="card">
-		<h5 class="card-header">{{ plugin }}</h5>
+		<h5 class="card-header d-flex justify-content-between align-items-center" data-plugin-settings-header>
+			<span>{{ plugin }}</span>{{ documentation_button|raw }}
+		</h5>
 		<table class="table table-sm extra-config">
 			<tbody>
 				{{ entries|raw }}
@@ -38,3 +40,4 @@
 		</div>
 	</div>
 </form>
+{{ documentation_modal|raw }}

@@ -70,3 +70,33 @@ if (!is_array($extras[$plugin])) {
         $main_admin = $xt->render($tVars);
     }
 }
+
+if ($stype == 'config' && isset($extras[$plugin]['dir']) && function_exists('plugin_documentation_markup')) {
+    list($documentationButton, $documentationModal) = plugin_documentation_markup($plugin, $extras[$plugin]['dir']);
+    if ($documentationButton !== '' && strpos($main_admin, 'data-plugin-settings-header') === false) {
+        $pluginName = json_encode($plugin, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT);
+        $main_admin = '<div class="card plugin-settings-card">' .
+            '<h5 class="card-header d-flex justify-content-between align-items-center" data-plugin-settings-header>' .
+            '<span>' . htmlspecialchars($plugin, ENT_QUOTES, 'UTF-8') . '</span>' . $documentationButton . '</h5>' .
+            '<div class="card-body plugin-settings-content">' . $main_admin . '</div></div>' .
+            $documentationModal .
+            '<script>(function(){function normalizePluginSettingsHeading(){' .
+            'var content=document.querySelector(".plugin-settings-content");if(!content){return;}' .
+            'var title=' . $pluginName . ';' .
+            'content.querySelectorAll("h1,h2,h3,h4,h5").forEach(function(heading){' .
+            'if(heading.textContent.trim().toLowerCase()===title.toLowerCase()){heading.remove();}});}' .
+            'if(document.readyState==="loading"){document.addEventListener("DOMContentLoaded",normalizePluginSettingsHeading);}' .
+            'else{normalizePluginSettingsHeading();}})();</script>';
+    } elseif (
+        $documentationButton !== '' &&
+        strpos($main_admin, 'data-plugin-documentation') !== false &&
+        strpos($main_admin, 'id="pluginDocumentationModal"') === false
+    ) {
+        $main_admin .= $documentationModal;
+    }
+}
+
+if ($stype == 'config' && isset($_SESSION['extra_config_saved']) && $_SESSION['extra_config_saved'] === (string)$plugin) {
+    unset($_SESSION['extra_config_saved']);
+    msgSticker($lang['commited']);
+}

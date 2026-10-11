@@ -35,6 +35,49 @@ params:
 
 */
 
+function plugin_documentation_markup($plugin, $pluginDir = '')
+{
+    global $lang;
+
+    if ($pluginDir === '') {
+        $plugins = pluginsGetList();
+        $pluginDir = isset($plugins[$plugin]['dir']) ? $plugins[$plugin]['dir'] : '';
+    }
+    if ($pluginDir === '') {
+        return ['', ''];
+    }
+
+    $documentationPath = extras_dir . '/' . $pluginDir . '/plugin.md';
+    if (!is_file($documentationPath) || filesize($documentationPath) === 0) {
+        return ['', ''];
+    }
+
+    $documentationUrl = admin_url . '/includes/showinfo.php?mode=plugin&item=readme&plugin=' . rawurlencode($plugin);
+    $documentationLabel = isset($lang['documentation']) ? $lang['documentation'] : 'Documentation';
+    $closeLabel = isset($lang['documentation_close']) ? $lang['documentation_close'] : 'Close';
+    $escapedUrl = htmlspecialchars($documentationUrl, ENT_QUOTES, 'UTF-8');
+    $escapedLabel = htmlspecialchars($documentationLabel, ENT_QUOTES, 'UTF-8');
+    $escapedCloseLabel = htmlspecialchars($closeLabel, ENT_QUOTES, 'UTF-8');
+
+    $button = '<button type="button" class="btn btn-outline-secondary btn-sm" title="' . $escapedLabel .
+        '" aria-label="' . $escapedLabel . '" data-plugin-documentation data-url="' . $escapedUrl .
+        '" data-toggle="modal" data-target="#pluginDocumentationModal" data-bs-toggle="tooltip" data-bs-target="#pluginDocumentationModal">' .
+        '<i class="fa fa-book" aria-hidden="true"></i></button>';
+    $modal = '<div class="modal fade" id="pluginDocumentationModal" tabindex="-1" role="dialog" aria-hidden="true">' .
+        '<div class="modal-dialog modal-lg" role="document"><div class="modal-content">' .
+        '<div class="modal-header"><h5 class="modal-title">' . $escapedLabel . '</h5>' .
+        '<button type="button" class="close" data-dismiss="modal" data-bs-dismiss="modal" aria-label="' . $escapedCloseLabel . '">' .
+        '<span aria-hidden="true">&times;</span></button></div>' .
+        '<div class="modal-body p-0"><iframe id="pluginDocumentationFrame" title="' . $escapedLabel .
+        '" style="width:100%;height:70vh;border:0"></iframe></div>' .
+        '<div class="modal-footer"><button type="button" class="btn btn-secondary" data-dismiss="modal" data-bs-dismiss="modal">' .
+        $escapedCloseLabel . '</button></div></div></div></div>' .
+        '<script>document.addEventListener("click",function(event){var button=event.target.closest("[data-plugin-documentation]");' .
+        'if(button){document.getElementById("pluginDocumentationFrame").src=button.getAttribute("data-url");}});</script>';
+
+    return [$button, $modal];
+}
+
 function generate_config_page($module, $params, $values = [])
 {
     global $tpl, $lang, $main_admin, $PHP_SELF;
@@ -96,6 +139,9 @@ function generate_config_page($module, $params, $values = [])
     $tpl->template('group', tpl_actions . 'extra-config');
     $tpl->template('entries', tpl_actions . 'extra-config');
 
+    $entries = '';
+    list($documentationButton, $documentationModal) = plugin_documentation_markup($module);
+
     // For each param do
     foreach ($params as $param) {
         if ($param['mode'] == 'group') {
@@ -120,7 +166,14 @@ function generate_config_page($module, $params, $values = [])
     }
 
     $tpl->template('table', tpl_actions . 'extra-config');
-    $tvars['vars'] = ['entries' => $entries, 'plugin' => $module, 'php_self' => $PHP_SELF, 'token' => genUToken('admin.extra-config')];
+    $tvars['vars'] = [
+        'entries' => $entries,
+        'plugin' => $module,
+        'documentation_button' => $documentationButton,
+        'documentation_modal' => $documentationModal,
+        'php_self' => $PHP_SELF,
+        'token' => genUToken('admin.extra-config'),
+    ];
     $tpl->vars('table', $tvars);
     $main_admin = $tpl->show('table');
 }
@@ -172,12 +225,11 @@ function load_commit_params($cfg, $outparams)
 // Priint page with config change complition notification
 function print_commit_complete($plugin)
 {
-    global $tpl, $PHP_SELF, $main_admin;
+    global $PHP_SELF;
 
-    $tpl->template('done', tpl_actions . 'extra-config');
-    $tvars['vars'] = ['plugin' => $plugin, 'php_self' => $PHP_SELF];
-    $tpl->vars('done', $tvars);
-    $main_admin = $tpl->show('done');
+    $_SESSION['extra_config_saved'] = (string)$plugin;
+    header('Location: ' . $PHP_SELF . '?mod=extra-config&plugin=' . rawurlencode($plugin), true, 303);
+    exit;
 }
 
 // check if table exists
