@@ -12,6 +12,7 @@ class NGPDO
     protected $connectionParams = [];
     protected $reconnectAttempts = 0;
     protected $maxReconnectAttempts = 3;
+    protected $queryLoggingEnabled = true;
     public function __construct(array $params)
     {
         // Save connection params for potential reconnection
@@ -136,8 +137,10 @@ class NGPDO
             }
         }
         $duration = $this->eventLogger->tickStop($tStart);
-        $this->eventLogger->registerEvent('NG_PDO', 'QUERY', $sql, $duration);
-        $this->qList[] = ['query' => $sql, 'duration' => $duration, 'start' => $tStart];
+        if ($this->queryLoggingEnabled) {
+            $this->eventLogger->registerEvent('NG_PDO', 'QUERY', $sql, $duration);
+            $this->qList[] = ['query' => $sql, 'duration' => $duration, 'start' => $tStart];
+        }
         return $r;
     }
     public function record(string $sql, array $params = [])
@@ -171,8 +174,10 @@ class NGPDO
             }
         }
         $duration = $this->eventLogger->tickStop($tStart);
-        $this->eventLogger->registerEvent('NG_PDO', 'RECORD', $sql, $duration);
-        $this->qList[] = ['query' => $sql, 'duration' => $duration];
+        if ($this->queryLoggingEnabled) {
+            $this->eventLogger->registerEvent('NG_PDO', 'RECORD', $sql, $duration);
+            $this->qList[] = ['query' => $sql, 'duration' => $duration];
+        }
         return $r;
     }
     public function exec(string $sql, array $params = [])
@@ -206,8 +211,10 @@ class NGPDO
             }
         }
         $duration = $this->eventLogger->tickStop($tStart);
-        $this->eventLogger->registerEvent('NG_PDO', 'EXEC', $sql, $duration);
-        $this->qList[] = ['query' => $sql, 'duration' => $duration];
+        if ($this->queryLoggingEnabled) {
+            $this->eventLogger->registerEvent('NG_PDO', 'EXEC', $sql, $duration);
+            $this->qList[] = ['query' => $sql, 'duration' => $duration];
+        }
         return $r;
     }
     public function result(string $sql, array $params = [])
@@ -241,8 +248,10 @@ class NGPDO
             }
         }
         $duration = $this->eventLogger->tickStop($tStart);
-        $this->eventLogger->registerEvent('NG_PDO', 'RESULT', $sql, $duration);
-        $this->qList[] = ['query' => $sql, 'duration' => $duration];
+        if ($this->queryLoggingEnabled) {
+            $this->eventLogger->registerEvent('NG_PDO', 'RESULT', $sql, $duration);
+            $this->qList[] = ['query' => $sql, 'duration' => $duration];
+        }
         if ($r !== null && count($r)) {
             return $r[array_shift(array_keys($r))];
         }
@@ -368,6 +377,10 @@ class NGPDO
     public function getQueryCount()
     {
         return $this->qCount;
+    }
+    public function setQueryLogging(bool $enabled): void
+    {
+        $this->queryLoggingEnabled = $enabled;
     }
     public function getQueryList()
     {

@@ -151,6 +151,7 @@ CREATE TABLE `XPREFIX_news` (
   KEY `news_main` (`pinned`,`postdate`,`approve`,`mainpage`),
   KEY `news_mainid` (`approve`,`mainpage`,`pinned`,`id`),
   KEY `news_catid` (`approve`,`catpinned`,`id`),
+  KEY `idx_news_approved_order` (`approve`,`catpinned`,`postdate`,`id`),
   KEY `news_altname` (`alt_name`),
   KEY `news_mainpage` (`approve`,`pinned`,`id`),
   KEY `news_mcount` (`mainpage`,`approve`),
@@ -166,6 +167,7 @@ CREATE TABLE `XPREFIX_news_map` (
   `categoryID` int(11) default NULL,
   `dt` datetime default NULL,
   KEY `newsID` (`newsID`),
+  KEY `idx_news_category` (`newsID`,`categoryID`),
   KEY `categoryID` (`categoryID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 -- --------------------------------------------------------

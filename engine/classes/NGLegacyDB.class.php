@@ -12,6 +12,7 @@ class NGLegacyDB
      * @var NGPDO Instance of PDO connection
      */
     protected $db;
+    protected $queryCache = null;
 
     public function __construct($standAlone = true)
     {
@@ -35,22 +36,48 @@ class NGLegacyDB
 
     public function select($sql, $assocMode = 1)
     {
-        return $this->db->query($sql);
+        return $this->runWithQueryCache('select', $sql, function () use ($sql) {
+            return $this->db->query($sql);
+        });
     }
 
     public function record($sql, $assocMode = 1)
     {
-        return $this->db->record($sql);
+        return $this->runWithQueryCache('record', $sql, function () use ($sql) {
+            return $this->db->record($sql);
+        });
     }
 
     public function query($sql)
     {
-        return $this->db->exec($sql);
+        return $this->runWithQueryCache('query', $sql, function () use ($sql) {
+            return $this->db->exec($sql);
+        });
     }
 
     public function result($sql)
     {
-        return $this->db->result($sql);
+        return $this->runWithQueryCache('result', $sql, function () use ($sql) {
+            return $this->db->result($sql);
+        });
+    }
+
+    public function setQueryCache($queryCache)
+    {
+        if ($queryCache !== null && !is_callable($queryCache)) {
+            throw new InvalidArgumentException('Database query cache handler must be callable');
+        }
+
+        $this->queryCache = $queryCache;
+    }
+
+    protected function runWithQueryCache($operation, $sql, $execute)
+    {
+        if ($this->queryCache === null) {
+            return $execute();
+        }
+
+        return call_user_func($this->queryCache, $operation, $sql, $execute);
     }
 
     public function db_quote($string)

@@ -153,8 +153,10 @@ function generate_config_page($module, $params, $values = [])
             $tvars['vars'] = ['title' => $param['title'], 'entries' => $line];
             if (isset($param['toggle']) && $param['toggle']) {
                 $tvars['regx']['#\[toggle\](.+?)\[\/toggle\]#is'] = '$1';
+                $tvars['vars']['toggle'] = true;
                 $tvars['vars']['toggle_mode'] = (isset($param['toggle.mode']) && ($param['toggle.mode'] == 'hide')) ? 'none' : '';
             } else {
+                $tvars['vars']['toggle'] = false;
                 $tvars['regx']['#\[toggle\](.+?)\[\/toggle\]#is'] = '';
             }
             $tpl->vars('group', $tvars);

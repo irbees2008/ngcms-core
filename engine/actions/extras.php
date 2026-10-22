@@ -158,6 +158,11 @@ function repoSync()
 //  Main module code
 // ==============================================================
 $lang = LoadLang('extras', 'admin');
+if (isset($_SESSION['x_filter_deinstall_notice'])) {
+    $deinstallNotice = $_SESSION['x_filter_deinstall_notice'];
+    unset($_SESSION['x_filter_deinstall_notice']);
+    msgSticker($deinstallNotice, 'info');
+}
 $extras = pluginsGetList();
 ksort($extras);
 // ==============================================================

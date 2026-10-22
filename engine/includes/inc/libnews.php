@@ -545,12 +545,35 @@ function news_showlist($filterConditions = [], $paginationParams = [], $callingP
     $nCount = 0;
     $output = '';
     $outputList = [];
+    $categoryMapID = null;
     // Call `SELECT` query
     // * Check if we need to override query
     if (isset($callingParams['overrideSQLquery']) && ($callingParams['overrideSQLquery'] != '')) {
         $query['result'] = $callingParams['overrideSQLquery'];
         // ** FORCE TO DISABLE PAGINATION !!
         $callingParams['disablePagination'] = true;
+    } elseif (
+        isset($callingParams['paginationCategoryID']) &&
+        intval($callingParams['paginationCategoryID']) > 0 &&
+        is_array($filterConditions) &&
+        count($filterConditions) === 4 &&
+        mb_strtoupper($filterConditions[0]) === 'DATA' &&
+        $filterConditions[1] === 'category' &&
+        $filterConditions[2] === '=' &&
+        intval($filterConditions[3]) === intval($callingParams['paginationCategoryID'])
+    ) {
+        $categoryMapID = intval($callingParams['paginationCategoryID']);
+        $query['result'] = 'SELECT N.* FROM ' . prefix . '_news N FORCE INDEX (idx_news_approved_order) WHERE N.approve = 1 AND (SELECT NM.newsID FROM ' . prefix . '_news_map NM FORCE INDEX (idx_news_category) WHERE NM.newsID = N.id AND NM.categoryID = ' . db_squote($categoryMapID) . ' LIMIT 1) IS NOT NULL ORDER BY N.catpinned DESC, N.postdate DESC LIMIT ' . $limit_start . ', ' . $limit_count;
+    } elseif (
+        is_array($filterConditions) &&
+        count($filterConditions) === 4 &&
+        mb_strtoupper($filterConditions[0]) === 'DATA' &&
+        $filterConditions[1] === 'mainpage' &&
+        $filterConditions[2] === '=' &&
+        intval($filterConditions[3]) === 1 &&
+        $orderBy === 'pinned desc, id desc'
+    ) {
+        $query['result'] = 'SELECT N.* FROM ' . prefix . '_news N FORCE INDEX (news_mainid) WHERE N.approve = 1 AND N.mainpage = 1' . $query['orderby'];
     } else {
         // $query['result'] = "SELECT * FROM " . prefix . "_news WHERE " . $query['filter'] . $query['orderby'];
         // Optimize query
@@ -561,7 +584,9 @@ function news_showlist($filterConditions = [], $paginationParams = [], $callingP
         $newsCount = count($selectResult);
         $pages_count = 1;
     } else {
-        if (isset($callingParams['paginationCategoryID']) && ($callingParams['paginationCategoryID'] > 0)) {
+        if ($categoryMapID !== null) {
+            $query['count'] = 'SELECT COUNT(DISTINCT newsID) FROM ' . prefix . '_news_map WHERE categoryID = ' . db_squote($categoryMapID);
+        } elseif (isset($callingParams['paginationCategoryID']) && ($callingParams['paginationCategoryID'] > 0)) {
             $query['count'] = 'SELECT count(*) FROM ' . prefix . '_news_map NM JOIN ' . prefix . '_news N ON NM.newsID = N.id WHERE NM.categoryID = ' . db_squote($callingParams['paginationCategoryID']) . ' AND N.approve = 1';
         } else {
             $query['count'] = 'SELECT count(*) as count FROM ' . prefix . '_news WHERE ' . $query['filter'];

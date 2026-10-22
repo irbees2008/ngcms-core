@@ -340,6 +340,7 @@ session_set_cookie_params([
     'samesite' => $isHttps ? 'None' : 'Lax',
 ]);
 session_start();
+$timer->registerEvent('PHP session started');
 // Базовая привязка сессии к User-Agent (мягкая защита)
 if (!isset($_SESSION['ua_fingerprint'])) {
     $_SESSION['ua_fingerprint'] = substr(hash('sha256', ($_SERVER['HTTP_USER_AGENT'] ?? 'na')), 0, 16);
