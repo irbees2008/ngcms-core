@@ -1,7 +1,7 @@
 # Справочник Twig‑переменных по шаблонам (темы: default, default2, mangguo)
 Документ перечисляет часто используемые Twig‑переменные по файлам шаблонов и кратко поясняет их назначение. Переменные доступны в контексте соответствующего экрана/плагина, поэтому часть из них появляется только при рендере конкретного модуля (поиска, статических страниц, комментариев, плагинов и т. д.).
 - Нотация lang.\* — строки локализации, доступны глобально.
-- Глобальные помощники: pluginIsActive('name'), фильтры (например, |truncateHTML, |striptags, |date, |cdate), функции random().
+- Глобальные помощники: `isHandler('news:main|search')`, `isCategory('sport')`, `isNews('news-alt')`, `pluginIsActive('name')`; фильтры (например, `|truncateHTML`, `|striptags`, `|date`, `|cdate`) и функция `random()`.
 - Глобальные пути: home (URL сайта), tpl_url (URL активной темы), admin_url, scriptLibrary.
 - Глобальные блоки (по ситуации): mainblock, categories, notify, personal_menu, search_form, voting, switcher.
 - Глобальные флаги/пользователь: global.flags._, global.user._ (см. usermenu в default2).

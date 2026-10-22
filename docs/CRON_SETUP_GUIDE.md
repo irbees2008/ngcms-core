@@ -41,14 +41,14 @@
 2. «Создать задачу» → указать имя, например `NGCMS-cron`.
 3. Триггер: «Повторять задачу каждые» → `5 минут`, «в течение» → «Неопределенно».
 4. Действие → «Запуск программы»:
-   - Программа: `C:\OSPanel\modules\PHP-8.2\PHP\php.exe`
-   - Аргументы: `C:\OSPanel\home\it\syscron.php`
-   - Рабочая папка: `C:\OSPanel\home\it`
+   - Программа: `C:\OSPanell\modules\PHP-8.2\php.exe`
+   - Аргументы: `C:\OSPanell\home\it\syscron.php`
+   - Рабочая папка: `C:\OSPanell\home\it`
 
 ### Через PowerShell / schtasks (эквивалент)
 ```powershell
-$action = New-ScheduledTaskAction -Execute 'C:\OSPanel\modules\PHP-8.2\PHP\php.exe' `
-    -Argument 'syscron.php' -WorkingDirectory 'C:\OSPanel\home\it'
+$action = New-ScheduledTaskAction -Execute 'C:\OSPanell\modules\PHP-8.2\php.exe' `
+    -Argument 'syscron.php' -WorkingDirectory 'C:\OSPanell\home\it'
 $trigger = New-ScheduledTaskTrigger -Once -At (Get-Date) `
     -RepetitionInterval (New-TimeSpan -Minutes 5) -RepetitionDuration ([TimeSpan]::MaxValue)
 Register-ScheduledTask -TaskName 'NGCMS-cron' -Action $action -Trigger $trigger `
@@ -136,7 +136,7 @@ grep CRON /var/log/syslog
    ```bash
    php syscron.php
    ```
-   (на Windows — `C:\OSPanel\modules\PHP-8.2\PHP\php.exe syscron.php`
+   (на Windows — `C:\OSPanell\modules\PHP-8.2\php.exe syscron.php`
    из папки сайта).
 2. Проверить лог плагина `nsched`:
    `engine/cache/logs/nsched.log` — там должны появляться строки вида

@@ -208,6 +208,17 @@
   - Шаблон `site.notify.tpl` загружается так: `$twig->loadTemplate($tpath['site.notify'].'site.notify.tpl', $conversionConfig)`.
   - Явная таблица конверсий в данном файле не задаётся через `setConversion`, следовательно предполагается, что `site.notify.tpl` написан на чистом Twig и не требует legacy-конверсий.
 
+## Тема `templates/newsonline`
+
+Все 121 файла `.tpl` в теме (включая вложенные шаблоны плагинов и `static/`) приведены к Twig-синтаксису. Старые плейсхолдеры в фигурных скобках и управляющие маркеры заменены; буквальные BBCode-теги в `bbcodes.tpl` оставлены строками редактора.
+
+- Формы регистрации и восстановления пароля перебирают `entries` и подключают соответственно `registration.entries.tpl` и `lostpassword.entries.tpl`.
+- В `search.table.tpl` `entries` — массив уже отрендеренных фрагментов новостей, поэтому он выводится через `join('')|raw`.
+- Шаблоны списков используют соответствующие контексты `entry.*`; шаблоны профиля — `user.*` и `userRec.*`.
+- Календарь использует `weeks`, `weekdays`, `currentMonth`, `prevMonth` и `nextMonth`; ячейки дней берут данные из `week[1]`–`week[7]`.
+- Шаблоны с дополнительными полями используют `p.xfields[field].value`; доступность поля проверяется по его значению.
+- Шаблоны комментариев используют контекстные флаги `not_logged`, `use_captcha`, `noajax`, `regonly` и `commforbidden`, а также условия `can_admin_reply` и `config.use_bbcodes`.
+
 ---
 
 ## Информация об авторе новости: (плагин `news_author_info`)
