@@ -821,10 +821,21 @@ class parse
                     }
                     if (is_array($rec)) {
                         // Generate file ULR
-                        $fname = ($rec['storage'] ? $config['attach_dir'] : $config['files_dir']) . $rec['folder'] . '/' . $rec['name'];
+                        if ((int)$rec['storage'] === 2) {
+                            if (function_exists('finance_private_file_path') && function_exists('finance_private_file_url')) {
+                                $fname = finance_private_file_path((string)$rec['folder'], (string)$rec['name']);
+                                $fileUrl = finance_private_file_url((int)$rec['id'], (int)$rec['linked_id']);
+                            } else {
+                                $fname = '';
+                                $fileUrl = '';
+                            }
+                        } else {
+                            $fname = ($rec['storage'] ? $config['attach_dir'] : $config['files_dir']) . $rec['folder'] . '/' . $rec['name'];
+                            $fileUrl = ($rec['storage'] ? $config['attach_url'] : $config['files_url']) . '/' . $rec['folder'] . '/' . $rec['name'];
+                        }
                         $fsize = (file_exists($fname) && ($fsize = @filesize($fname))) ? Formatsize($fsize) : 'n/a';
                         $params = [
-                            'url'   => ($rec['storage'] ? $config['attach_url'] : $config['files_url']) . '/' . $rec['folder'] . '/' . $rec['name'],
+                            'url'   => $fileUrl,
                             'title' => ($title == '') ? $rec['orig_name'] : $title,
                             'size'  => $fsize,
                         ];
@@ -854,11 +865,22 @@ class parse
                     }
                     if (is_array($rec)) {
                         // Generate file ULR
-                        $fname = ($rec['storage'] ? $config['attach_dir'] : $config['files_dir']) . $rec['folder'] . '/' . $rec['name'];
+                        if ((int)$rec['storage'] === 2) {
+                            if (function_exists('finance_private_file_path') && function_exists('finance_private_file_url')) {
+                                $fname = finance_private_file_path((string)$rec['folder'], (string)$rec['name']);
+                                $fileUrl = finance_private_file_url((int)$rec['id'], (int)$rec['linked_id']);
+                            } else {
+                                $fname = '';
+                                $fileUrl = '';
+                            }
+                        } else {
+                            $fname = ($rec['storage'] ? $config['attach_dir'] : $config['files_dir']) . $rec['folder'] . '/' . $rec['name'];
+                            $fileUrl = ($rec['storage'] ? $config['attach_url'] : $config['files_url']) . '/' . $rec['folder'] . '/' . $rec['name'];
+                        }
                         // Decide what to do
                         switch ($catch[2]) {
                             case 'url':
-                                array_push($rdest, ($rec['storage'] ? $config['attach_url'] : $config['files_url']) . '/' . $rec['folder'] . '/' . $rec['name']);
+                                array_push($rdest, $fileUrl);
                                 break;
                             case 'size':
                                 array_push($rdest, (file_exists($fname) && ($fsize = @filesize($fname))) ? Formatsize($fsize) : 'n/a');

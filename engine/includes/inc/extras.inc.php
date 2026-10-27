@@ -358,6 +358,10 @@ function load_extras($action, $plugin = '')
     if (isset($array['actions'][$action]) && is_array($array['actions'][$action])) {
         // There're some modules
         foreach ($array['actions'][$action] as $key => $value) {
+            // Action maps can be stale; only active plugins may be loaded.
+            if (!getPluginStatusActive($key)) {
+                continue;
+            }
             // Skip plugins in manual mode
             if ($plugin && ($key != $plugin)) {
                 continue;
@@ -395,7 +399,7 @@ function loadPlugin($pluginName, $actionList = '*')
     $plugList = getPluginsActiveList();
     $loadCount = 0;
     // Don't load if plugin is not activated
-    if (!$plugList['active'][$pluginName]) {
+    if (empty($plugList['active'][$pluginName])) {
         return false;
     }
     // Scan all available actions and preload plugin's file if needed

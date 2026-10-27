@@ -142,13 +142,24 @@ function news_showone($newsID, $alt_name, $callingParams = [])
             $callingParams['linkedFiles']['ids'][] = $v['id'];
             $callingParams['linkedFiles']['data'][] = $v;
             // Calculate file size
-            $fname = ($v['storage'] ? $config['attach_dir'] : $config['files_dir']) . $v['folder'] . '/' . $v['name'];
+            if ((int)$v['storage'] === 2) {
+                if (function_exists('finance_private_file_path') && function_exists('finance_private_file_url')) {
+                    $fname = finance_private_file_path((string)$v['folder'], (string)$v['name']);
+                    $fileUrl = finance_private_file_url((int)$v['id'], (int)$row['id']);
+                } else {
+                    $fname = '';
+                    $fileUrl = '';
+                }
+            } else {
+                $fname = ($v['storage'] ? $config['attach_dir'] : $config['files_dir']) . $v['folder'] . '/' . $v['name'];
+                $fileUrl = ($v['storage'] ? $config['attach_url'] : $config['files_url']) . '/' . $v['folder'] . '/' . $v['name'];
+            }
             $sizeBytes = (is_readable($fname) && ($fs = @filesize($fname))) ? $fs : 0;
             $sizeHuman = $sizeBytes ? Formatsize($sizeBytes) : '';
             $tvars['vars']['_files'][] = [
                 'plugin'      => $v['plugin'],
                 'pidentity'   => $v['pidentity'],
-                'url'         => ($v['storage'] ? $config['attach_url'] : $config['files_url']) . '/' . $v['folder'] . '/' . $v['name'],
+                'url'         => $fileUrl,
                 'name'        => $v['name'],
                 'origName'    => secure_html($v['orig_name']),
                 'description' => secure_html($v['description']),
@@ -352,17 +363,9 @@ function news_showone($newsID, $alt_name, $callingParams = [])
 
     $SYSTEM_FLAGS['meta']['keywords'] = (getIsSet($row['keywords']) != '') ? $row['keywords'] : ((getIsSet($catmap[$masterCatID]) && is_array($catz[$catmap[$masterCatID]])) ? $catz[$catmap[$masterCatID]]['keywords'] : $config['keywords']);
 
-    // Prepare title (обрезаем до 60 символов для Google)
-    $newsTitle = secure_html($row['title']);
-    if (function_exists('mb_strlen') && mb_strlen($newsTitle, 'UTF-8') > 60) {
-        $newsTitle = mb_substr($newsTitle, 0, 60, 'UTF-8') . '...';
-    } elseif (strlen($newsTitle) > 60) {
-        $newsTitle = substr($newsTitle, 0, 60) . '...';
-    }
-
     //$SYSTEM_FLAGS['info']['title']['group']	= $config["category_link"]?GetCategories($row['catid'], true):LangDate(timestamp, $row['postdate']);
     $SYSTEM_FLAGS['info']['title']['group'] = GetCategories($row['catid'], true);
-    $SYSTEM_FLAGS['info']['title']['item'] = $newsTitle;
+    $SYSTEM_FLAGS['info']['title']['item'] = secure_html($row['title']);
     // We are in short or full mode. Add data into {mainblock}
     $template['vars']['mainblock'] .= $tpl->show($templateName);
     return $row;
@@ -563,7 +566,17 @@ function news_showlist($filterConditions = [], $paginationParams = [], $callingP
         intval($filterConditions[3]) === intval($callingParams['paginationCategoryID'])
     ) {
         $categoryMapID = intval($callingParams['paginationCategoryID']);
-        $query['result'] = 'SELECT N.* FROM ' . prefix . '_news N FORCE INDEX (idx_news_approved_order) WHERE N.approve = 1 AND (SELECT NM.newsID FROM ' . prefix . '_news_map NM FORCE INDEX (idx_news_category) WHERE NM.newsID = N.id AND NM.categoryID = ' . db_squote($categoryMapID) . ' LIMIT 1) IS NOT NULL ORDER BY N.catpinned DESC, N.postdate DESC LIMIT ' . $limit_start . ', ' . $limit_count;
+        $query['result'] = 'SELECT N.* FROM (SELECT N.id, N.catpinned, N.postdate FROM ' . prefix . '_news N FORCE INDEX (idx_news_approved_order) WHERE N.approve = 1 AND (SELECT NM.newsID FROM ' . prefix . '_news_map NM FORCE INDEX (idx_news_category) WHERE NM.newsID = N.id AND NM.categoryID = ' . db_squote($categoryMapID) . ' LIMIT 1) IS NOT NULL ORDER BY N.catpinned DESC, N.postdate DESC LIMIT ' . $limit_start . ', ' . $limit_count . ') AS NP JOIN ' . prefix . '_news N ON N.id = NP.id ORDER BY NP.catpinned DESC, NP.postdate DESC';
+    } elseif (
+        is_array($filterConditions) &&
+        count($filterConditions) === 4 &&
+        mb_strtoupper($filterConditions[0]) === 'DATA' &&
+        $filterConditions[1] === 'mainpage' &&
+        $filterConditions[2] === '=' &&
+        intval($filterConditions[3]) === 1 &&
+        $orderBy === 'pinned desc, postdate desc'
+    ) {
+        $query['result'] = 'SELECT N.* FROM ' . prefix . '_news N FORCE INDEX (idx_news_home_order) WHERE N.approve = 1 AND N.mainpage = 1' . $query['orderby'];
     } elseif (
         is_array($filterConditions) &&
         count($filterConditions) === 4 &&
@@ -580,6 +593,9 @@ function news_showlist($filterConditions = [], $paginationParams = [], $callingP
         $query['result'] = 'SELECT N.* FROM ' . prefix . '_news N JOIN (SELECT id FROM ' . prefix . '_news WHERE ' . $query['filter'] . ') as NT on NT.id=N.id' . $query['orderby'];
     }
     $selectResult = $mysql->select($query['result']);
+    if (!is_array($selectResult)) {
+        throw new \RuntimeException('Failed to load news list from the database.');
+    }
     if (isset($callingParams['disablePagination']) && ($callingParams['disablePagination'])) {
         $newsCount = count($selectResult);
         $pages_count = 1;
@@ -699,13 +715,24 @@ function news_showlist($filterConditions = [], $paginationParams = [], $callingP
                     $callingParams['linkedFiles']['ids'][] = $v['id'];
                     $callingParams['linkedFiles']['data'][] = $v;
                     // Calculate file size
-                    $fname = ($v['storage'] ? $config['attach_dir'] : $config['files_dir']) . $v['folder'] . '/' . $v['name'];
+                    if ((int)$v['storage'] === 2) {
+                        if (function_exists('finance_private_file_path') && function_exists('finance_private_file_url')) {
+                            $fname = finance_private_file_path((string)$v['folder'], (string)$v['name']);
+                            $fileUrl = finance_private_file_url((int)$v['id'], (int)$row['id']);
+                        } else {
+                            $fname = '';
+                            $fileUrl = '';
+                        }
+                    } else {
+                        $fname = ($v['storage'] ? $config['attach_dir'] : $config['files_dir']) . $v['folder'] . '/' . $v['name'];
+                        $fileUrl = ($v['storage'] ? $config['attach_url'] : $config['files_url']) . '/' . $v['folder'] . '/' . $v['name'];
+                    }
                     $sizeBytes = (is_readable($fname) && ($fs = @filesize($fname))) ? $fs : 0;
                     $sizeHuman = $sizeBytes ? Formatsize($sizeBytes) : '';
                     $tvars['vars']['_files'][] = [
                         'plugin'      => $v['plugin'],
                         'pidentity'   => $v['pidentity'],
-                        'url'         => ($v['storage'] ? $config['attach_url'] : $config['files_url']) . '/' . $v['folder'] . '/' . $v['name'],
+                        'url'         => $fileUrl,
                         'name'        => $v['name'],
                         'origName'    => secure_html($v['orig_name']),
                         'description' => secure_html($v['description']),

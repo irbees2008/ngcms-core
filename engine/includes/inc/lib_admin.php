@@ -332,7 +332,7 @@ function massDeleteNews($list, $permCheck = true)
         // Delete attached news/files if any
         $fmanager = new file_managment();
         // ** Files
-        foreach ($mysql->select('select * from ' . prefix . '_files where (storage=1) and (linked_ds=1) and (linked_id=' . db_squote($nrow['id']) . ')') as $frec) {
+        foreach ($mysql->select('select * from ' . prefix . '_files where (storage in (1,2)) and (linked_ds=1) and (linked_id=' . db_squote($nrow['id']) . ')') as $frec) {
             $fmanager->file_delete(['type' => 'file', 'id' => $frec['id'], 'keep_file' => news_attachment_used_elsewhere($frec, $nrow['id'], 'files')]);
         }
 
@@ -722,7 +722,11 @@ function addNews($mode = [])
 
                 $flagUpdateAttachCount = true;
                 //
-                $up = $fmanager->file_upload(['dsn' => true, 'linked_ds' => 1, 'linked_id' => $id, 'type' => 'file', 'http_var' => 'userfile', 'http_varnum' => $i]);
+                $uploadParams = ['dsn' => true, 'linked_ds' => 1, 'linked_id' => $id, 'type' => 'file', 'http_var' => 'userfile', 'http_varnum' => $i];
+                if (function_exists('finance_news_requires_private_files') && finance_news_requires_private_files((int)$id)) {
+                    $uploadParams['private_storage'] = true;
+                }
+                $up = $fmanager->file_upload($uploadParams);
                 //print "OUT: <pre>".var_export($up, true)."</pre>";
                 if (!is_array($up)) {
                     // Error uploading file
@@ -740,7 +744,7 @@ function addNews($mode = [])
     }
 
     // Update attach count if we need this
-    $numFiles = $mysql->result('select count(*) as cnt from ' . prefix . '_files where (storage=1) and (linked_ds=1) and (linked_id=' . db_squote($id) . ')');
+    $numFiles = $mysql->result('select count(*) as cnt from ' . prefix . '_files where (storage in (1,2)) and (linked_ds=1) and (linked_id=' . db_squote($id) . ')');
     if ($numFiles) {
         $mysql->query('update ' . prefix . '_news set num_files = ' . intval($numFiles) . ' where id = ' . db_squote($id));
     }
@@ -1080,7 +1084,11 @@ function editNews($mode = [])
 
                 $flagUpdateAttachCount = true;
                 //
-                $up = $fmanager->file_upload(['dsn' => true, 'linked_ds' => 1, 'linked_id' => $id, 'type' => 'file', 'http_var' => 'userfile', 'http_varnum' => $i]);
+                $uploadParams = ['dsn' => true, 'linked_ds' => 1, 'linked_id' => $id, 'type' => 'file', 'http_var' => 'userfile', 'http_varnum' => $i];
+                if (function_exists('finance_news_requires_private_files') && finance_news_requires_private_files((int)$id)) {
+                    $uploadParams['private_storage'] = true;
+                }
+                $up = $fmanager->file_upload($uploadParams);
                 //print "OUT: <pre>".var_export($up, true)."</pre>";
                 if (!is_array($up)) {
                     // Error uploading file
@@ -1098,7 +1106,7 @@ function editNews($mode = [])
     }
 
     // Update attach count if we need this
-    $numFiles = $mysql->result('select count(*) as cnt from ' . prefix . '_files where (storage=1) and (linked_ds=1) and (linked_id=' . db_squote($id) . ')');
+    $numFiles = $mysql->result('select count(*) as cnt from ' . prefix . '_files where (storage in (1,2)) and (linked_ds=1) and (linked_id=' . db_squote($id) . ')');
     if ($numFiles != $row['num_files']) {
         $mysql->query('update ' . prefix . '_news set num_files = ' . intval($numFiles) . ' where id = ' . db_squote($id));
     }

@@ -19,6 +19,62 @@ function get_item_dir($type)
             return false;
     }
 }
+function ngcms_private_upload_dir($create = false)
+{
+    $documentRoot = realpath((string)($_SERVER['DOCUMENT_ROOT'] ?? ''));
+    if ($documentRoot === false) {
+        $documentRoot = realpath(dirname(__DIR__, 3));
+    }
+    if ($documentRoot === false) {
+        throw new RuntimeException('Unable to resolve the site document root for private uploads.');
+    }
+
+    $directory = dirname($documentRoot) . DIRECTORY_SEPARATOR . basename($documentRoot) . '-finance-private';
+    if ($create && !is_dir($directory) && !@mkdir($directory, 0750, true) && !is_dir($directory)) {
+        throw new RuntimeException('Unable to create private upload storage outside the document root: ' . $directory);
+    }
+    if ($create && !is_writable($directory)) {
+        throw new RuntimeException('Private upload storage is not writable: ' . $directory);
+    }
+
+    $resolvedDirectory = realpath($directory);
+    $resolvedDirectory = $resolvedDirectory === false ? $directory : $resolvedDirectory;
+    $rootPrefix = rtrim($documentRoot, '/\\') . DIRECTORY_SEPARATOR;
+    $pathPrefix = rtrim($resolvedDirectory, '/\\') . DIRECTORY_SEPARATOR;
+    $isWindows = DIRECTORY_SEPARATOR === '\\';
+    if (strpos($isWindows ? strtolower($pathPrefix) : $pathPrefix, $isWindows ? strtolower($rootPrefix) : $rootPrefix) === 0) {
+        throw new RuntimeException('Private upload storage must be outside the site document root.');
+    }
+    return rtrim($resolvedDirectory, '/\\');
+}
+
+function ngcms_private_upload_path($folder, $name)
+{
+    if (!preg_match('#^[a-f0-9]{2}/[a-f0-9]{2}/[0-9]{3}$#i', (string)$folder)
+        || !preg_match('/^[a-zA-Z0-9._-]+$/', (string)$name)
+        || $name === '.' || $name === '..') {
+        throw new RuntimeException('Invalid private upload location in database.');
+    }
+    $parts = explode('/', $folder);
+    $storageRoot = ngcms_private_upload_dir();
+    $path = $storageRoot . DIRECTORY_SEPARATOR .
+        implode(DIRECTORY_SEPARATOR, $parts) . DIRECTORY_SEPARATOR . $name;
+    $resolvedParent = realpath(dirname($path));
+    $resolvedFile = realpath($path);
+    $resolvedLocation = $resolvedFile !== false ? $resolvedFile : $resolvedParent;
+    if ($resolvedLocation !== false) {
+        $rootPrefix = rtrim($storageRoot, '/\\') . DIRECTORY_SEPARATOR;
+        $pathPrefix = rtrim($resolvedLocation, '/\\') . DIRECTORY_SEPARATOR;
+        $isWindows = DIRECTORY_SEPARATOR === '\\';
+        $rootPrefix = $isWindows ? strtolower($rootPrefix) : $rootPrefix;
+        $pathPrefix = $isWindows ? strtolower($pathPrefix) : $pathPrefix;
+        if (strpos($pathPrefix, $rootPrefix) !== 0) {
+            throw new RuntimeException('Private upload path escapes its storage directory.');
+        }
+    }
+    return $path;
+}
+
 class file_managment
 {
     // CONSTRUCTOR
@@ -108,6 +164,13 @@ class file_managment
     {
         global $config, $lang, $mysql, $userROW;
         $lang = loadLang('files');
+        $privateStorage = !empty($param['private_storage']);
+        if ($privateStorage) {
+            if (!function_exists('ngcms_private_upload_dir')) {
+                throw new RuntimeException('The core private upload storage helper is unavailable.');
+            }
+            $param['dsn'] = true;
+        }
         // Normalize category (to make it possible to have empty category)
         $wCategory = ($param['category'] != '') ? ($param['category'] . '/') : '';
         //print "CALL file_upload -> upload(".$param['http_var']."//".$param['http_varnum'].")<br>\n<pre>"; var_dump($param); print "</pre><br>\n";
@@ -240,7 +303,8 @@ class file_managment
         // DSN - Data Storage Network. Store data in BTREE if requested
         if ($param['dsn']) {
             // Check if directory for DSN exists
-            $wDir = $config['attach_dir'];
+            $storage = $privateStorage ? 2 : 1;
+            $wDir = $privateStorage ? ngcms_private_upload_dir(true) : $config['attach_dir'];
             if (!is_dir($wDir)) {
                 if ($param['rpc']) {
                     return ['status' => 0, 'errorCode' => 305, 'errorText' => str_replace('{dir}', $wDir, $lang['upload.error.dsn'])];
@@ -254,7 +318,8 @@ class file_managment
             $dir1 = mb_substr($fn_md5, 0, 2);
             $dir2 = mb_substr($fn_md5, 2, 2);
             $wDir .= '/' . $dir1;
-            if (!is_dir($wDir) && !@mkdir($wDir, 0777)) {
+            $directoryMode = $privateStorage ? 0750 : 0777;
+            if (!is_dir($wDir) && !@mkdir($wDir, $directoryMode)) {
                 if ($param['rpc']) {
                     return ['status' => 0, 'errorCode' => 306, 'errorText' => str_replace('{dir}', $wDir, $lang['upload.error.dircreate'])];
                 } else {
@@ -263,7 +328,7 @@ class file_managment
                 }
             }
             $wDir .= '/' . $dir2;
-            if (!is_dir($wDir) && !@mkdir($wDir, 0777)) {
+            if (!is_dir($wDir) && !@mkdir($wDir, $directoryMode)) {
                 if ($param['rpc']) {
                     return ['status' => 0, 'errorCode' => 307, 'errorText' => str_replace('{dir}', $wDir, $lang['upload.error.dircreate'])];
                 } else {
@@ -282,7 +347,7 @@ class file_managment
                     continue;
                 }
                 // Fine. Create this dir ... but check for simultaneous run
-                if (!@mkdir($wDir . '/' . $xDir, 0777)) {
+                if (!@mkdir($wDir . '/' . $xDir, $directoryMode)) {
                     if (is_dir($wDir . '/' . $xDir)) {
                         continue;
                     }
@@ -337,7 +402,7 @@ class file_managment
             // Create record in SQL DB (or replace old)
             $mysql->query('insert into ' . prefix . '_' . $this->tname . ' ' .
                 '(name, storage, orig_name, folder, date, user, owner_id, category, linked_ds, linked_id, plugin, pidentity, description) ' .
-                'values (' . db_squote($fname) . ', 1,' . db_squote($origFname) . ',' . db_squote($dir1 . '/' . $dir2 . '/' . $xDir) . ', unix_timestamp(now()), ' . db_squote($userROW['name']) . ',' . db_squote($userROW['id']) . ', ' . $this->tcat . ', ' . db_squote($param['linked_ds']) . ', ' . db_squote($param['linked_id']) . ', ' . db_squote($param['plugin']) . ', ' . db_squote($param['pidentity']) . ', ' . db_squote($param['description']) . ')');
+                'values (' . db_squote($fname) . ', ' . db_squote($storage) . ',' . db_squote($origFname) . ',' . db_squote($dir1 . '/' . $dir2 . '/' . $xDir) . ', unix_timestamp(now()), ' . db_squote($userROW['name']) . ',' . db_squote($userROW['id']) . ', ' . $this->tcat . ', ' . db_squote($param['linked_ds']) . ', ' . db_squote($param['linked_id']) . ', ' . db_squote($param['plugin']) . ', ' . db_squote($param['pidentity']) . ', ' . db_squote($param['description']) . ')');
             $rowID = $mysql->record('select LAST_INSERT_ID() as id');
             // SQL error
             if (!is_array($rowID)) {
@@ -506,7 +571,14 @@ class file_managment
                 msg(['type' => 'error', 'text' => $lang['upload.error.perm.delete']]);
                 return 0;
             }
-            $storageDir = ($row['storage'] ? $config['attach_dir'] : $this->dname) . $row['folder'];
+            if ((int)$row['storage'] === 2) {
+                if (!function_exists('ngcms_private_upload_path')) {
+                    throw new RuntimeException('The core private upload path helper is unavailable for file deletion.');
+                }
+                $storageDir = dirname(ngcms_private_upload_path((string)$row['folder'], (string)$row['name']));
+            } else {
+                $storageDir = ($row['storage'] ? $config['attach_dir'] : $this->dname) . $row['folder'];
+            }
             // Check if thumb file exists & delete it
             if (empty($param['keep_file']) && $row['preview'] && file_exists($storageDir . '/thumb/' . $row['name'])) {
                 if (!@unlink($storageDir . '/thumb/' . $row['name'])) {
@@ -567,6 +639,10 @@ class file_managment
             $limit = 'name = ' . db_squote($param['name']) . ' and folder=' . db_squote($param['category']);
         }
         if (is_array($row = $mysql->record('select * from ' . prefix . '_' . $this->tname . ' where ' . $limit))) {
+            if ((int)$row['storage'] === 2 && $param['move']) {
+                msg(['type' => 'error', 'text' => $lang['upload.error.rename']]);
+                return 0;
+            }
             if ($param['move']) {
                 if ($param['newcategory']) {
                     $param['newcategory'] = trim(str_replace([' ', '\\', '/', chr(0)], ['_', ''], $param['newcategory']));
@@ -591,22 +667,35 @@ class file_managment
                 return 0;
             }
             // Check if we have enough access and all required directories are created
-            if (!is_writable($this->dname . $row['folder'] . '/' . $row['name'])) {
+            if ((int)$row['storage'] === 2) {
+                if (!function_exists('ngcms_private_upload_path')) {
+                    throw new RuntimeException('The core private upload path helper is unavailable for file rename.');
+                }
+                $sourcePath = ngcms_private_upload_path((string)$row['folder'], (string)$row['name']);
+                $storageDirectory = dirname($sourcePath);
+                $storageRoot = ngcms_private_upload_dir();
+            } else {
+                $storageRoot = $row['storage'] ? $config['attach_dir'] : $this->dname;
+                $storageDirectory = rtrim($storageRoot, '/\\') . DIRECTORY_SEPARATOR . $row['folder'];
+                $sourcePath = $storageDirectory . DIRECTORY_SEPARATOR . $row['name'];
+            }
+            if (!is_writable($sourcePath)) {
                 msg(['type' => 'error', 'text' => $lang['upload.error.sysperm.access']]);
                 return 0;
             }
-            if ($param['move'] && !is_dir($this->dname . $param['newcategory'])) {
+            if ($param['move'] && !is_dir(rtrim($storageRoot, '/\\') . DIRECTORY_SEPARATOR . $param['newcategory'])) {
                 msg(['type' => 'error', 'text' => str_replace('{category}', $param['newcategory'], $lang['upload.error.catnexists'])]);
                 return 0;
             }
             if ($param['move']) {
                 // MOVE action
-                if (copy($this->dname . $row['folder'] . '/' . $row['name'], $this->dname . $param['newcategory'] . '/' . $newname)) {
-                    unlink($this->dname . $row['folder'] . '/' . $row['name']);
+                $targetDirectory = rtrim($storageRoot, '/\\') . DIRECTORY_SEPARATOR . $param['newcategory'];
+                if (copy($sourcePath, $targetDirectory . '/' . $newname)) {
+                    unlink($sourcePath);
                     $mysql->query('update ' . prefix . '_' . $this->tname . ' set name=' . db_squote($newname) . ', orig_name=' . db_squote($newname) . ', folder=' . db_squote($param['newcategory']) . ' where id = ' . $row['id']);
-                    if (file_exists($this->dname . $row['folder'] . '/thumb/' . $row['name'])) {
-                        copy($this->dname . $row['folder'] . '/thumb/' . $row['name'], $this->dname . $param['newcategory'] . '/thumb/' . $newname);
-                        unlink($this->dname . $row['folder'] . '/thumb/' . $row['name']);
+                    if (file_exists($storageDirectory . '/thumb/' . $row['name'])) {
+                        copy($storageDirectory . '/thumb/' . $row['name'], $targetDirectory . '/thumb/' . $newname);
+                        unlink($storageDirectory . '/thumb/' . $row['name']);
                     }
                     return 1;
                 } else {
@@ -615,11 +704,11 @@ class file_managment
                 }
             } else {
                 // RENAME action
-                if (rename($this->dname . $row['folder'] . '/' . $row['name'], $this->dname . $row['folder'] . '/' . $newname)) {
+                if (rename($sourcePath, $storageDirectory . '/' . $newname)) {
                     msg(['text' => $lang['upload.renamed']]);
                     $mysql->query('update ' . prefix . '_' . $this->tname . ' set name=' . db_squote($newname) . ', orig_name=' . db_squote($newname) . ' where id = ' . $row['id']);
-                    if (file_exists($this->dname . $row['folder'] . '/thumb/' . $row['name'])) {
-                        rename($this->dname . $row['folder'] . '/thumb/' . $row['name'], $this->dname . $row['folder'] . '/thumb/' . $newname);
+                    if (file_exists($storageDirectory . '/thumb/' . $row['name'])) {
+                        rename($storageDirectory . '/thumb/' . $row['name'], $storageDirectory . '/thumb/' . $newname);
                     }
                     return 1;
                 }

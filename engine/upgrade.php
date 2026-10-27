@@ -336,13 +336,14 @@ function upgradeAdsProSchema($db): void
     echo "<div class='action'><div class='success'>Схема ads_pro проверена</div></div>";
 }
 /**
- * Создает индексы, используемые оптимизированной выборкой новостей категории.
+ * Создает индексы, используемые оптимизированной выборкой новостей.
  */
 function upgradeNewsCategoryIndexes($db): void
 {
     $indexes = [
         prefix . '_news' => [
             'idx_news_approved_order' => ['approve', 'catpinned', 'postdate', 'id'],
+            'idx_news_home_order' => ['approve', 'mainpage', 'pinned', 'postdate'],
         ],
         prefix . '_news_map' => [
             'idx_news_category' => ['newsID', 'categoryID'],

@@ -141,7 +141,7 @@ function systemDboModify()
         }
         // Обновляем кол-во приложенных файлов/изображений к новостям
         $db->exec('update ' . prefix . '_news set num_files = 0, num_images = 0');
-        foreach ($db->query('select linked_id, count(id) as cnt from ' . prefix . '_files where (storage=1) and (linked_ds=1) group by linked_id') as $row) {
+        foreach ($db->query('select linked_id, count(id) as cnt from ' . prefix . '_files where (storage in (1,2)) and (linked_ds=1) group by linked_id') as $row) {
             $db->exec('update ' . prefix . '_news set num_files = :cnt where id = :id', ['cnt' => $row['cnt'], 'id' => $row['linked_id']]);
         }
         foreach ($db->query('select linked_id, count(id) as cnt from ' . prefix . '_images where (storage=1) and (linked_ds=1) group by linked_id') as $row) {

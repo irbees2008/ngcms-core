@@ -189,10 +189,18 @@ function editNewsForm()
                 'orig_name' => $arow['orig_name'],
             ];
             // Check if file exists
-            $fname = ($arow['storage'] ? $config['attach_dir'] : $config['files_dir']) . $arow['folder'] . '/' . $arow['name'];
+            if ((int)$arow['storage'] === 2) {
+                $fname = ngcms_private_upload_path((string)$arow['folder'], (string)$arow['name']);
+                $fileUrl = function_exists('finance_private_file_url')
+                    ? finance_private_file_url((int)$arow['id'], (int)$row['id'])
+                    : '';
+            } else {
+                $fname = ($arow['storage'] ? $config['attach_dir'] : $config['files_dir']) . $arow['folder'] . '/' . $arow['name'];
+                $fileUrl = (($arow['storage']) ? ($config['attach_url']) : ($config['files_url'])) . '/' . $arow['folder'] . '/' . $arow['name'];
+            }
             if (file_exists($fname) && ($fsize = @filesize($fname))) {
                 $attachEntry['filesize'] = Formatsize($fsize);
-                $attachEntry['url'] = (($arow['storage']) ? ($config['attach_url']) : ($config['files_url'])) . '/' . $arow['folder'] . '/' . $arow['name'];
+                $attachEntry['url'] = $fileUrl;
             } else {
                 $attachEntry['filesize'] = '<font color="red">n/a</font>';
             }

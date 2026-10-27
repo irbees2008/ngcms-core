@@ -141,6 +141,17 @@ insertext('[color=' + color + ']', '[/color]', area);
 				{{ lang['tags.hide'] }}</a>
 		</div>
 	</div>
+	{% if pluginIsActive('finance') %}
+		<div class="btn-group btn-group-sm mr-2">
+			{% for block_number in 1..finance_lock_block_count %}
+				{% set open_tag = block_number == 1 ? '[fin_lock]' : '[fin_lock' ~ block_number ~ ']' %}
+				{% set close_tag = block_number == 1 ? '[/fin_lock]' : '[/fin_lock' ~ block_number ~ ']' %}
+				<button type="button" class="btn btn-outline-dark" title="{{ lang['tags.finance_lock'] }} {{ block_number }}" aria-label="{{ lang['tags.finance_lock'] }} {{ block_number }}" onclick="insertext('{{ open_tag }}','{{ close_tag }}', {{ area }})">
+					<i class="fa fa-lock"></i>{% if block_number > 1 %} {{ block_number }}{% endif %}
+				</button>
+			{% endfor %}
+		</div>
+	{% endif %}
 	<!-- Ссылки: URL / Email / Image -->
 	<div class="btn-group btn-group-sm mr-2">
 		<button id="tags-link" type="button" class="btn btn-outline-dark dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">

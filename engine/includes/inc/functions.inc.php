@@ -269,6 +269,7 @@ function QuickTags(string $area = '', string $template = '')
         'area'     => empty($area) ? "''" : $area,
         'config'   => $config,
         'lang'     => $lang,
+        'finance_lock_block_count' => function_exists('finance_news_block_count') ? finance_news_block_count() : 1,
     ];
     if (!in_array($template, ['pmmes', 'editcom', 'news', 'static'])) {
         return false;
@@ -603,7 +604,7 @@ function msgSticker($msg, $type = '', $disp = -1)
 }
 // Generate site popup sticker (frontend) with information block, similar to admin notify
 // $msg - text or array like in msgSticker
-// $type - '' | 'error' | 'info'
+// $type - '' | 'error' | 'info' | 'success'
 // $disp - ignored here; kept for signature compatibility
 function msgStickerSite($msg, $type = '', $disp = -1)
 {
@@ -625,10 +626,16 @@ function msgStickerSite($msg, $type = '', $disp = -1)
     }
     // Используем notify.js (showToast) если он подключен. Иначе – безопасный fallback (noscript + простой блок).
     $jsMessage = json_encode($message, JSON_UNESCAPED_UNICODE);
-    $jsType = ($type === 'error') ? 'error' : (($type === 'info') ? 'info' : '');
-    $fallbackHtml = '<div style="background:' . (($type === 'error') ? '#f8d7da' : '#d1ecf1') . ';color:' . (($type === 'error') ? '#721c24' : '#0c5460') . ';border:1px solid ' . (($type === 'error') ? '#f5c6cb' : '#bee5eb') . ';padding:10px;margin:10px;border-radius:4px;">' . $message . '</div>';
+    $toastStyles = [
+        'error' => ['#f8d7da', '#f5c6cb', '#721c24'],
+        'info' => ['#d1ecf1', '#bee5eb', '#0c5460'],
+        'success' => ['#d4edda', '#c3e6cb', '#155724'],
+    ];
+    $colors = $toastStyles[$type] ?? $toastStyles['info'];
+    $jsType = isset($toastStyles[$type]) ? $type : 'info';
+    $fallbackHtml = '<div style="background:' . $colors[0] . ';color:' . $colors[2] . ';border:1px solid ' . $colors[1] . ';padding:10px;margin:10px;border-radius:4px;">' . $message . '</div>';
     $script = "\n<noscript>\n{$fallbackHtml}\n</noscript>\n" .
-        '<script>(function(){function exec(){try{if(window.showToast){window.showToast(' . $jsMessage . ', {type: ' . json_encode($jsType) . '});}else{var d=document.createElement("div");d.style.position="fixed";d.style.top="12px";d.style.right="12px";d.style.zIndex=2147483647;var b=document.createElement("div");b.style.background=' . json_encode(($type === 'error') ? '#f8d7da' : '#d1ecf1') . ';b.style.border="1px solid ' . (($type === 'error') ? '#f5c6cb' : '#bee5eb') . '";b.style.color=' . json_encode(($type === 'error') ? '#721c24' : '#0c5460') . ';b.style.padding="10px 14px";b.style.marginTop="10px";b.style.borderRadius="4px";b.style.boxShadow="0 2px 8px rgba(0,0,0,.1)";b.style.maxWidth="420px";b.style.minWidth="260px";b.style.fontSize="14px";b.style.lineHeight="1.4";b.innerHTML=' . $jsMessage . ';d.appendChild(b);document.body.appendChild(d);setTimeout(function(){if(b&&b.parentNode){b.parentNode.removeChild(b)}},' . (($type === 'error') ? 8000 : 5000) . ');} }catch(e){/* noop */}} function run(){setTimeout(exec,150);} if(document.readyState==="loading"){document.addEventListener("DOMContentLoaded",run);}else{run();}})();</script>';
+        '<script>(function(){function exec(){try{if(window.showToast){window.showToast(' . $jsMessage . ', {type: ' . json_encode($jsType) . '});}else{var d=document.createElement("div");d.style.position="fixed";d.style.top="12px";d.style.right="12px";d.style.zIndex=2147483647;var b=document.createElement("div");b.style.background=' . json_encode($colors[0]) . ';b.style.border="1px solid "+' . json_encode($colors[1]) . ';b.style.color=' . json_encode($colors[2]) . ';b.style.padding="10px 14px";b.style.marginTop="10px";b.style.borderRadius="4px";b.style.boxShadow="0 2px 8px rgba(0,0,0,.1)";b.style.maxWidth="420px";b.style.minWidth="260px";b.style.fontSize="14px";b.style.lineHeight="1.4";b.innerHTML=' . $jsMessage . ';d.appendChild(b);document.body.appendChild(d);setTimeout(function(){if(b&&b.parentNode){b.parentNode.removeChild(b)}},' . (($type === 'error') ? 8000 : 5000) . ');} }catch(e){/* noop */}} function run(){setTimeout(exec,150);} if(document.readyState==="loading"){document.addEventListener("DOMContentLoaded",run);}else{run();}})();</script>';
     $notify .= $script;
     // Продублируем в Twig-переменную, чтобы {{ notify|raw }} отрисовал даже если движок не прокидывает $notify автоматически
     if (!isset($template['vars']['notify'])) {
@@ -2788,18 +2795,71 @@ function ngExceptionHandler($exception)
         function newsUpdateDelayedCounters()
         {
             global $mysql;
-            // Lock tables
-            $mysql->query('lock tables ' . prefix . '_news_view write, ' . prefix . '_news write');
-            // Read data and update counters
-            foreach ($mysql->select('select * from ' . prefix . '_news_view') as $vrec) {
-                $mysql->query('update ' . prefix . '_news set views = views + ' . intval($vrec['cnt']) . ' where id = ' . intval($vrec['id']));
+
+            $newsTable = prefix . '_news';
+            $viewsTable = prefix . '_news_view';
+            $tableStatuses = $mysql->select(
+                "SHOW TABLE STATUS WHERE Name IN ('" . $newsTable . "', '" . $viewsTable . "')"
+            );
+            $tableEngines = [];
+            foreach (is_array($tableStatuses) ? $tableStatuses : [] as $tableStatus) {
+                $tableEngines[$tableStatus['Name']] = strtolower((string) ($tableStatus['Engine'] ?? ''));
             }
-            // Truncate view table
-            //$mysql->query("truncate table ".prefix."_news_view");
-            // DUE TO BUG IN MYSQL - USE DELETE + OPTIMIZE
-            $mysql->query('delete from ' . prefix . '_news_view');
-            $mysql->query('optimize table ' . prefix . '_news_view');
-            // Unlock tables
+
+            if (($tableEngines[$newsTable] ?? '') === 'innodb' && ($tableEngines[$viewsTable] ?? '') === 'innodb') {
+                if ($mysql->query('START TRANSACTION') === null) {
+                    throw new RuntimeException('Failed to start the delayed view counter transaction.');
+                }
+
+                try {
+                    $viewRows = $mysql->select(
+                        'SELECT id, cnt FROM ' . $viewsTable . ' ORDER BY id FOR UPDATE'
+                    );
+                    if ($viewRows === null) {
+                        throw new RuntimeException('Failed to read delayed view counters.');
+                    }
+
+                    $processedIds = [];
+                    foreach ($viewRows as $viewRow) {
+                        $newsId = (int) $viewRow['id'];
+                        $viewCount = (int) $viewRow['cnt'];
+                        if ($newsId < 1 || $viewCount < 0) {
+                            throw new UnexpectedValueException('Invalid delayed view counter row.');
+                        }
+
+                        if ($viewCount > 0 && $mysql->query(
+                            'UPDATE ' . $newsTable . ' SET views = views + ' . $viewCount . ' WHERE id = ' . $newsId
+                        ) === null) {
+                            throw new RuntimeException('Failed to apply a delayed view counter.');
+                        }
+
+                        $processedIds[] = $newsId;
+                    }
+
+                    if ($processedIds && $mysql->query(
+                        'DELETE FROM ' . $viewsTable . ' WHERE id IN (' . implode(',', $processedIds) . ')'
+                    ) === null) {
+                        throw new RuntimeException('Failed to clear processed delayed view counters.');
+                    }
+
+                    if ($mysql->query('COMMIT') === null) {
+                        throw new RuntimeException('Failed to commit delayed view counters.');
+                    }
+                } catch (Throwable $e) {
+                    $mysql->query('ROLLBACK');
+                    throw $e;
+                }
+
+                return true;
+            }
+
+            // Preserve the legacy path for non-InnoDB table engines.
+            $mysql->query('lock tables ' . $viewsTable . ' write, ' . $newsTable . ' write');
+            foreach ($mysql->select('select * from ' . $viewsTable) as $vrec) {
+                $mysql->query('update ' . $newsTable . ' set views = views + ' . intval($vrec['cnt']) . ' where id = ' . intval($vrec['id']));
+            }
+            $mysql->query('delete from ' . $viewsTable);
+            $mysql->query('optimize table ' . $viewsTable);
             $mysql->query('unlock tables');
             return true;
         }
