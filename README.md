@@ -53,24 +53,24 @@ NGCMS распространяется по лицензии [GNU GPL v2](licens
 <p>Фактически установка системы состоит из 7 простых шагов, пройдя которые вы получите полностью рабочую CMS.</p>
 <h3>Шаг 1: Лицензионное соглашение</h2>
 <p>На данном шаге Вам нужно ознакомиться с лицензионным соглашением NGCMS и принять его, поставиь соответствующую галочку внизу страницы. (рис 2.1)</p>
-<p class="img"><img width="839" src="https://ngcmshak.ru/readme/help/images/screenshots/install_1.png" />
+<p class="img"><img width="839" src="https://ngcms.org/docs/images/screenshots/install_1.png" />
 <br />рис 2.1 </p>
 <h3>Шаг 2: Настройка БД</h2>
 <p>На данной странице Вам необходимо ввести параметры подключения к БД. (рис 2.2)</p>
-<p class="img"><img width="839" src="https://ngcmshak.ru/readme/help/images/screenshots/install_2.png" />
+<p class="img"><img width="839" src="https://ngcms.org/docs/images/screenshots/install_2.png" />
 <br />рис 2.2 </p>
 <h3>Шаг 3: Проверка доступов</h2>
 <p>На данном шаге выполняется проверка на соответствие характеристик сервера к минимальные требования скрипта. Также проверяется правильно ли выставлены права доступа (chmod) к директориями. (рис 2.3)</p>
-<p class="img"><img width="839" src="https://ngcmshak.ru/readme/help/images/screenshots/install_3.png" />
+<p class="img"><img width="839" src="https://ngcms.org/docs/images/screenshots/install_3.png" />
 <br />рис 2.3 </p>
 <h3>Шаг 4: Активация плагинов</h2>
 <p>На данной странице отображается список плагинов, входящих в поставку NGCMS. Некоторые из них вы можете активировать прямо здесь. (рис 2.4)</p>
-<p class="img"><img width="839" src="https://ngcmshak.ru/readme/help/images/screenshots/install_4.png" />
+<p class="img"><img width="839" src="https://ngcms.org/docs/images/screenshots/install_4.png" />
 <br />рис 2.4 </p>
 <h3>Шаг 5: Выбор шаблона</h2>
 <p>На данной странице вам предстоит выбрать шаблон для NGCMS. (рис 2.5)</p>
-<p class="img"><img width="839" src="https://ngcmshak.ru/readme/help/images/screenshots/install_5.png" />
+<p class="img"><img width="839" src="https://ngcms.org/docs/images/screenshots/install_5.png" />
 <br />рис 2.5 </p>
 <h3>Шаг 6: Общие параметры</h2>
 <p>На данном шаге требуется ввести общие параметры сайта, такие как URL сайта, заголовок, а также логин и пароль для администратора. (рис 2.6)</p>
-<p class="img"><img width="839" src="https://ngcmshak.ru/readme/help/images/screenshots/install_6.png" />
+<p class="img"><img width="839" src="https://ngcms.org/docs/images/screenshots/install_6.png" />
