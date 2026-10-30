@@ -56,6 +56,7 @@ class NGTwigExtension extends AbstractExtension implements GlobalsInterface
             'skins_url'    => skins_url,
             'admin_url'    => admin_url,
             'home'         => home,
+            'home_title'   => home_title,
             'currentURL'   => $systemAccessURL,
         ];
     }

@@ -2807,60 +2807,77 @@ function ngExceptionHandler($exception)
             }
 
             if (($tableEngines[$newsTable] ?? '') === 'innodb' && ($tableEngines[$viewsTable] ?? '') === 'innodb') {
-                if ($mysql->query('START TRANSACTION') === null) {
-                    throw new RuntimeException('Failed to start the delayed view counter transaction.');
-                }
-
-                try {
-                    $viewRows = $mysql->select(
-                        'SELECT id, cnt FROM ' . $viewsTable . ' ORDER BY id FOR UPDATE'
-                    );
-                    if ($viewRows === null) {
-                        throw new RuntimeException('Failed to read delayed view counters.');
+                $batchSize = 50;
+                do {
+                    if ($mysql->query('START TRANSACTION') === null) {
+                        throw new RuntimeException('Failed to start the delayed view counter transaction.');
                     }
 
-                    $processedIds = [];
-                    foreach ($viewRows as $viewRow) {
-                        $newsId = (int) $viewRow['id'];
-                        $viewCount = (int) $viewRow['cnt'];
-                        if ($newsId < 1 || $viewCount < 0) {
-                            throw new UnexpectedValueException('Invalid delayed view counter row.');
+                    try {
+                        $viewRows = $mysql->select(
+                            'SELECT id, cnt FROM ' . $viewsTable . ' ORDER BY id LIMIT ' . $batchSize . ' FOR UPDATE'
+                        );
+                        if ($viewRows === null) {
+                            throw new RuntimeException('Failed to read delayed view counters.');
                         }
 
-                        if ($viewCount > 0 && $mysql->query(
-                            'UPDATE ' . $newsTable . ' SET views = views + ' . $viewCount . ' WHERE id = ' . $newsId
-                        ) === null) {
-                            throw new RuntimeException('Failed to apply a delayed view counter.');
+                        $processedIds = [];
+                        foreach ($viewRows as $viewRow) {
+                            $newsId = (int) $viewRow['id'];
+                            $viewCount = (int) $viewRow['cnt'];
+                            if ($newsId < 1 || $viewCount < 0) {
+                                throw new UnexpectedValueException('Invalid delayed view counter row.');
+                            }
+                            $processedIds[] = $newsId;
                         }
 
-                        $processedIds[] = $newsId;
-                    }
+                        if ($processedIds) {
+                            $idList = implode(',', $processedIds);
+                            if ($mysql->query(
+                                'UPDATE ' . $newsTable . ' N INNER JOIN ' . $viewsTable . ' V ON V.id = N.id'
+                                    . ' SET N.views = N.views + V.cnt WHERE V.id IN (' . $idList . ')'
+                            ) === null) {
+                                throw new RuntimeException('Failed to apply delayed view counters.');
+                            }
 
-                    if ($processedIds && $mysql->query(
-                        'DELETE FROM ' . $viewsTable . ' WHERE id IN (' . implode(',', $processedIds) . ')'
-                    ) === null) {
-                        throw new RuntimeException('Failed to clear processed delayed view counters.');
-                    }
+                            if ($mysql->query(
+                                'DELETE FROM ' . $viewsTable . ' WHERE id IN (' . $idList . ')'
+                            ) === null) {
+                                throw new RuntimeException('Failed to clear processed delayed view counters.');
+                            }
+                        }
 
-                    if ($mysql->query('COMMIT') === null) {
-                        throw new RuntimeException('Failed to commit delayed view counters.');
+                        if ($mysql->query('COMMIT') === null) {
+                            throw new RuntimeException('Failed to commit delayed view counters.');
+                        }
+                    } catch (Throwable $e) {
+                        $mysql->query('ROLLBACK');
+                        throw $e;
                     }
-                } catch (Throwable $e) {
-                    $mysql->query('ROLLBACK');
-                    throw $e;
-                }
+                } while ($processedIds);
 
                 return true;
             }
 
             // Preserve the legacy path for non-InnoDB table engines.
-            $mysql->query('lock tables ' . $viewsTable . ' write, ' . $newsTable . ' write');
-            foreach ($mysql->select('select * from ' . $viewsTable) as $vrec) {
-                $mysql->query('update ' . $newsTable . ' set views = views + ' . intval($vrec['cnt']) . ' where id = ' . intval($vrec['id']));
+            if ($mysql->query('LOCK TABLES ' . $viewsTable . ' V WRITE, ' . $newsTable . ' N WRITE') === null) {
+                throw new RuntimeException('Failed to lock tables for delayed view counters.');
             }
-            $mysql->query('delete from ' . $viewsTable);
-            $mysql->query('optimize table ' . $viewsTable);
-            $mysql->query('unlock tables');
+            try {
+                if ($mysql->query(
+                    'UPDATE ' . $newsTable . ' N INNER JOIN ' . $viewsTable . ' V ON V.id = N.id'
+                        . ' SET N.views = N.views + V.cnt'
+                ) === null) {
+                    throw new RuntimeException('Failed to apply delayed view counters.');
+                }
+                if ($mysql->query('DELETE V FROM ' . $viewsTable . ' V') === null) {
+                    throw new RuntimeException('Failed to clear delayed view counters.');
+                }
+            } finally {
+                if ($mysql->query('UNLOCK TABLES') === null) {
+                    throw new RuntimeException('Failed to unlock delayed view counter tables.');
+                }
+            }
             return true;
         }
         // Delete old LOAD information, SYSLOG logging

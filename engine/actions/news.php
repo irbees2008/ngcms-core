@@ -462,7 +462,7 @@ function listNewsForm()
             $fSort = 'title desc';
             break;
     }
-    $fSort = ' order by ' . ($fSort ? $fSort : 'id desc');
+    $fSort = ' order by N.' . ($fSort ? $fSort : 'id desc');
     // Check if user selected personal filter
     $fAuthorId = 0;
     if (getIsSet($_REQUEST['aid'])) {
@@ -492,46 +492,122 @@ function listNewsForm()
     }
     $i = $start_from;
     $conditions = [];
+    $categoryPageCondition = null;
+    $categoryCountID = null;
     if (!is_null($fCategoryId)) {
-        array_push($conditions, 'catid ' . ($fCategoryId ? ("regexp '\\\\b(" . intval($fCategoryId) . ")\\\\b'") : (' = ""')));
+        if ($fCategoryId) {
+            $categoryCountID = intval($fCategoryId);
+            $legacyCategoryCondition = "catid regexp '\\\\b(" . $categoryCountID . ")\\\\b'";
+            $newsTable = prefix . '_news';
+            $newsMapTable = prefix . '_news_map';
+            $newsFrom = '(SELECT DISTINCT NM.newsID AS id FROM ' . $newsMapTable . ' NM FORCE INDEX (newsmap_category_news)'
+                . ' INNER JOIN ' . $newsTable . ' NP ON NP.id = NM.newsID AND NP.approve = 1'
+                . ' WHERE NM.categoryID = ' . $categoryCountID
+                . ' UNION ALL SELECT ND.id FROM ' . $newsTable . ' ND'
+                . ' WHERE (ND.approve <> 1 OR ND.approve IS NULL) AND ND.' . $legacyCategoryCondition
+                . ') AS category_news INNER JOIN ' . $newsTable . ' N ON N.id = category_news.id';
+            $categoryPageCondition = '((N.approve = 1 AND EXISTS (SELECT 1 FROM ' . $newsMapTable . ' NM'
+                . ' FORCE INDEX (idx_news_category) WHERE NM.newsID = N.id AND NM.categoryID = ' . $categoryCountID . '))'
+                . ' OR ((N.approve <> 1 OR N.approve IS NULL) AND N.' . $legacyCategoryCondition . '))';
+        } else {
+            array_push($conditions, 'N.catid = ""');
+        }
     }
     if ($fDateStart) {
-        array_push($conditions, 'postdate >= ' . intval($fDateStart));
+        array_push($conditions, 'N.postdate >= ' . intval($fDateStart));
     }
     if ($fDateStop) {
-        array_push($conditions, 'postdate <= ' . intval($fDateStop));
+        array_push($conditions, 'N.postdate <= ' . intval($fDateStop));
     }
     if ($fAuthorId) {
-        array_push($conditions, 'author_id = ' . $fAuthorId);
+        array_push($conditions, 'N.author_id = ' . $fAuthorId);
     } elseif ($fAuthorName) {
-        array_push($conditions, 'author = ' . db_squote($fAuthorName));
+        array_push($conditions, 'N.author = ' . db_squote($fAuthorName));
     }
     if (!$perm['other.list']) {
-        array_push($conditions, 'author_id = ' . intval($userROW['id']));
+        array_push($conditions, 'N.author_id = ' . intval($userROW['id']));
     }
     if (!$perm['personal.list']) {
-        array_push($conditions, 'author_id <> ' . intval($userROW['id']));
+        array_push($conditions, 'N.author_id <> ' . intval($userROW['id']));
     }
     if ($fStatus) {
-        array_push($conditions, 'approve = ' . (intval($fStatus) - 2));
+        array_push($conditions, 'N.approve = ' . (intval($fStatus) - 2));
     }
     // Perform search
     if ($fSearchLine != '') {
-        array_push($conditions, ($fSearchType ? 'content' : 'title') . ' like ' . db_squote('%' . $fSearchLine . '%'));
+        array_push($conditions, ($fSearchType ? 'N.content' : 'N.title') . ' like ' . db_squote('%' . $fSearchLine . '%'));
     }
-    $sqlQPart = 'from ' . prefix . '_news ' . (count($conditions) ? 'where ' . implode(' AND ', $conditions) : '') . ' ' . $fSort;
-    $sqlQCount = 'select count(id) as cid ' . $sqlQPart;
-    $sqlQ = 'select * ' . $sqlQPart;
+    if (!isset($newsFrom)) {
+        $newsFrom = prefix . '_news N';
+    }
+    $sqlQFilter = 'from ' . $newsFrom . ' ' . (count($conditions) ? 'where ' . implode(' AND ', $conditions) : '');
+    $sqlQCount = 'select count(N.id) as cid ' . $sqlQFilter;
+    $pageFrom = 'from ' . $newsFrom;
+    $pageConditions = $conditions;
+    if ($categoryPageCondition !== null) {
+        $pageFrom = 'from ' . prefix . '_news N FORCE INDEX (news_id_pagination)';
+        $pageConditions[] = $categoryPageCondition;
+    } elseif (is_null($fCategoryId) && !$conditions && in_array($fSort, [' order by N.id', ' order by N.id desc'], true)) {
+        $pageFrom = 'from ' . prefix . '_news N FORCE INDEX (news_id_pagination)';
+    }
+    $pageFilter = $pageFrom . (count($pageConditions) ? ' where ' . implode(' AND ', $pageConditions) : '');
+    $sqlQ = 'select N.id ' . $pageFilter . ' ' . $fSort;
+    $useCategoryMapPage = $categoryCountID !== null && !$conditions && $fSort === ' order by N.id desc';
     // print "SQL: $sqlQ";
-    $cnt = $mysql->record($sqlQCount);
-    $countNews = $cnt['cid'];
+    if ($categoryCountID !== null) {
+        if (!$conditions) {
+            $publishedCount = $mysql->record(
+                'select count(distinct NM.newsID) as cid from ' . prefix . '_news_map NM FORCE INDEX (newsmap_category_news)'
+                    . ' where NM.categoryID = ' . $categoryCountID
+            );
+        } else {
+            $publishedConditions = [
+                'NM.categoryID = ' . $categoryCountID,
+                'N.approve = 1',
+            ];
+            $publishedConditions = array_merge($publishedConditions, $conditions);
+            $publishedCount = $mysql->record(
+                'select count(distinct NM.newsID) as cid from ' . prefix . '_news_map NM FORCE INDEX (newsmap_category_news)'
+                    . ' INNER JOIN ' . prefix . '_news N ON N.id = NM.newsID'
+                    . ' where ' . implode(' AND ', $publishedConditions)
+            );
+        }
+        $draftConditions = [
+            '(N.approve <> 1 OR N.approve IS NULL)',
+            'N.' . $legacyCategoryCondition,
+        ];
+        $draftConditions = array_merge($draftConditions, $conditions);
+        $draftCount = $mysql->record(
+            'select count(N.id) as cid from ' . prefix . '_news N FORCE INDEX (idx_news_approved_order)'
+                . ' where ' . implode(' AND ', $draftConditions)
+        );
+        $countNews = intval($publishedCount['cid']) + intval($draftCount['cid']);
+    } else {
+        $cnt = $mysql->record($sqlQCount);
+        $countNews = $cnt['cid'];
+    }
     $countPages = ceil($countNews / $fRPP);
     // If Count of pages is less that pageNo we want to show - show last page
     if (($pageNo > $countPages) && ($pageNo > 1)) {
         $pageNo = $countPages;
     }
+    if ($useCategoryMapPage) {
+        $candidateLimit = (($pageNo - 1) * $fRPP) + $fRPP;
+        $sqlQ = 'select candidates.id from ('
+            . '(select distinct NM.newsID as id from ' . prefix . '_news_map NM FORCE INDEX (newsmap_category_news)'
+            . ' where NM.categoryID = ' . $categoryCountID
+            . ' order by NM.newsID desc limit ' . $candidateLimit . ')'
+            . ' UNION ALL '
+            . '(select N.id as id from ' . prefix . '_news N FORCE INDEX (idx_news_approved_order)'
+            . ' where (N.approve <> 1 OR N.approve IS NULL) AND N.' . $legacyCategoryCondition
+            . ' order by N.id desc limit ' . $candidateLimit . ')'
+            . ') AS candidates order by candidates.id desc';
+    }
     $newsEntries = [];
-    $sqlResult = $sqlQ . ' LIMIT ' . (($pageNo - 1) * $fRPP) . ',' . $fRPP;
+    $sqlPage = $sqlQ . ' LIMIT ' . (($pageNo - 1) * $fRPP) . ',' . $fRPP;
+    $sqlResult = 'select N.* from ' . prefix . '_news N'
+        . ' INNER JOIN (' . $sqlPage . ') AS page ON page.id = N.id'
+        . ' ' . $fSort;
     foreach ($mysql->select($sqlResult) as $row) {
         $cats = explode(',', $row['catid']);
         $newsEntry = [

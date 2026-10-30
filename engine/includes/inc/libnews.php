@@ -576,7 +576,7 @@ function news_showlist($filterConditions = [], $paginationParams = [], $callingP
         intval($filterConditions[3]) === 1 &&
         $orderBy === 'pinned desc, postdate desc'
     ) {
-        $query['result'] = 'SELECT N.* FROM ' . prefix . '_news N FORCE INDEX (idx_news_home_order) WHERE N.approve = 1 AND N.mainpage = 1' . $query['orderby'];
+        $query['result'] = 'SELECT N.* FROM (SELECT N.id, N.pinned, N.postdate FROM ' . prefix . '_news N FORCE INDEX (idx_news_home_order) WHERE N.approve = 1 AND N.mainpage = 1 ORDER BY N.pinned DESC, N.postdate DESC LIMIT ' . $limit_start . ', ' . $limit_count . ') AS NP JOIN ' . prefix . '_news N ON N.id = NP.id ORDER BY NP.pinned DESC, NP.postdate DESC';
     } elseif (
         is_array($filterConditions) &&
         count($filterConditions) === 4 &&
@@ -588,9 +588,14 @@ function news_showlist($filterConditions = [], $paginationParams = [], $callingP
     ) {
         $query['result'] = 'SELECT N.* FROM ' . prefix . '_news N FORCE INDEX (news_mainid) WHERE N.approve = 1 AND N.mainpage = 1' . $query['orderby'];
     } else {
-        // $query['result'] = "SELECT * FROM " . prefix . "_news WHERE " . $query['filter'] . $query['orderby'];
-        // Optimize query
-        $query['result'] = 'SELECT N.* FROM ' . prefix . '_news N JOIN (SELECT id FROM ' . prefix . '_news WHERE ' . $query['filter'] . ') as NT on NT.id=N.id' . $query['orderby'];
+        $newsTable = prefix . '_news';
+        $newsIndex = '';
+        if (!$filterConditions && $orderBy === 'pinned desc, postdate desc') {
+            $newsIndex = ' FORCE INDEX (idx_news_approved_pinned_order)';
+        }
+        $query['result'] = 'SELECT N.* FROM ' . $newsTable . ' N JOIN (SELECT id FROM ' . $newsTable . $newsIndex
+            . ' WHERE ' . $query['filter'] . $query['orderby'] . ') as NT on NT.id=N.id'
+            . ' order by ' . $orderBy;
     }
     $selectResult = $mysql->select($query['result']);
     if (!is_array($selectResult)) {

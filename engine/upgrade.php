@@ -60,6 +60,15 @@ $upgradeMatrix = [
     10 => [
         "UPDATE " . prefix . "_config SET value = 10 WHERE name = 'database.engine.revision'",
     ],
+    11 => [
+        "UPDATE " . prefix . "_config SET value = 11 WHERE name = 'database.engine.revision'",
+    ],
+    12 => [
+        "UPDATE " . prefix . "_config SET value = 12 WHERE name = 'database.engine.revision'",
+    ],
+    13 => [
+        "UPDATE " . prefix . "_config SET value = 13 WHERE name = 'database.engine.revision'",
+    ],
 ];
 function translateUpgradeOutput(string $output): string
 {
@@ -279,6 +288,18 @@ function doUpgrade(int $fromVersion, int $toVersion): void
                 echo "<h4>Индексы для ускорения страниц категорий новостей</h4>";
                 upgradeNewsCategoryIndexes($db);
             }
+            if ($version == 11) {
+                echo "<h4>Индекс для фильтра категорий в админском списке новостей</h4>";
+                upgradeNewsCategoryIndexes($db);
+            }
+            if ($version == 12) {
+                echo "<h4>Индекс для быстрой пагинации списка новостей</h4>";
+                upgradeNewsCategoryIndexes($db);
+            }
+            if ($version == 13) {
+                echo "<h4>Индекс опубликованных новостей для сортировки по закреплению и дате</h4>";
+                upgradeNewsCategoryIndexes($db);
+            }
             // Фиксируем версию только после выполнения специальных изменений схемы.
             if ($version != 6 && !empty($upgradeMatrix[$version])) {
                 foreach ($upgradeMatrix[$version] as $sql) {
@@ -344,9 +365,12 @@ function upgradeNewsCategoryIndexes($db): void
         prefix . '_news' => [
             'idx_news_approved_order' => ['approve', 'catpinned', 'postdate', 'id'],
             'idx_news_home_order' => ['approve', 'mainpage', 'pinned', 'postdate'],
+            'idx_news_approved_pinned_order' => ['approve', 'pinned', 'postdate', 'id'],
+            'news_id_pagination' => ['id'],
         ],
         prefix . '_news_map' => [
             'idx_news_category' => ['newsID', 'categoryID'],
+            'newsmap_category_news' => ['categoryID', 'newsID'],
         ],
     ];
 
@@ -1009,7 +1033,7 @@ function renderSuccessMessage(): string
     <div class="success-message">
         <h2><i class="icon-success"></i> Обновление успешно завершено!</h2>
         <p>База данных была успешно обновлена до последней версии.</p>
-        <a href="/" class="btn">Перейти на сайт</a>
+        <a href="/engine" class="btn">Перейти в панель управления</a>
     </div>
     HTML;
 }
@@ -1051,7 +1075,7 @@ function renderNoUpgradeNeeded(): string
             <div class="success">✓</div>
             <h2>Обновление не требуется</h2>
             <p>Ваша база данных уже актуальна.</p>
-            <a href="/engine" style="display: inline-block; margin-top: 20px; padding: 10px 20px; background: #3498db; color: white; text-decoration: none; border-radius: 5px;">Перейти на сайт</a>
+            <a href="/engine" style="display: inline-block; margin-top: 20px; padding: 10px 20px; background: #3498db; color: white; text-decoration: none; border-radius: 5px;">Перейти в панель управления</a>
         </div>
     </body>
     </html>
