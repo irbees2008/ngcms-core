@@ -1,9 +1,9 @@
 name: Build source code
 on:
   push:
-    branches: [ng-test]
+    branches: [master]
   pull_request:
-    branches: [ng-test]
+    branches: [master]
 
 jobs:
   build:
@@ -21,7 +21,7 @@ jobs:
         run: |
           sudo apt-get update && sudo apt-get install -y git
 
-      - name: Download source code from ng-test branches
+      - name:  Download source code
         run: |
           set -e
           mkdir -p ~/build
@@ -41,9 +41,9 @@ jobs:
           rm -rf .git .github engine/plugins/.git
           
           if [ "${{ github.event_name }}" == "pull_request" ]; then
-            FOLDER_NAME="ngcms-build-pr-${{ github.event.number }}-ng-test"
+            FOLDER_NAME="ngcms-build-pr-${{ github.event.number }}-master"
           else
-            FOLDER_NAME="ngcms-build-$(echo ${{ github.sha }} | cut -c1-7)-ng-test"
+            FOLDER_NAME="ngcms-build-$(echo ${{ github.sha }} | cut -c1-7)-master"
           fi
           
           cd ~
