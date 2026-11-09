@@ -566,7 +566,7 @@ function news_showlist($filterConditions = [], $paginationParams = [], $callingP
         intval($filterConditions[3]) === intval($callingParams['paginationCategoryID'])
     ) {
         $categoryMapID = intval($callingParams['paginationCategoryID']);
-        $query['result'] = 'SELECT N.* FROM (SELECT N.id, N.catpinned, N.postdate FROM ' . prefix . '_news N FORCE INDEX (idx_news_approved_order) WHERE N.approve = 1 AND (SELECT NM.newsID FROM ' . prefix . '_news_map NM FORCE INDEX (idx_news_category) WHERE NM.newsID = N.id AND NM.categoryID = ' . db_squote($categoryMapID) . ' LIMIT 1) IS NOT NULL ORDER BY N.catpinned DESC, N.postdate DESC LIMIT ' . $limit_start . ', ' . $limit_count . ') AS NP JOIN ' . prefix . '_news N ON N.id = NP.id ORDER BY NP.catpinned DESC, NP.postdate DESC';
+        $query['result'] = 'SELECT N.* FROM (SELECT DISTINCT N.id, N.catpinned, N.postdate FROM ' . prefix . '_news_map NM FORCE INDEX (newsmap_category_news) INNER JOIN ' . prefix . '_news N ON N.id = NM.newsID WHERE NM.categoryID = ' . db_squote($categoryMapID) . ' AND N.approve = 1 ORDER BY N.catpinned DESC, N.postdate DESC LIMIT ' . $limit_start . ', ' . $limit_count . ') AS NP JOIN ' . prefix . '_news N ON N.id = NP.id ORDER BY NP.catpinned DESC, NP.postdate DESC';
     } elseif (
         is_array($filterConditions) &&
         count($filterConditions) === 4 &&

@@ -58,6 +58,9 @@ function systemConfigSave()
     }
     $smiliesMode = $save_con['smilies_mode'] ?? ($config['smilies_mode'] ?? 'emoji');
     $save_con['smilies_mode'] = in_array($smiliesMode, ['emoji', 'images'], true) ? $smiliesMode : 'emoji';
+    $contentFormat = $save_con['content_format'] ?? (($config['use_bbcodes'] ?? false) ? 'bbcode' : 'disabled');
+    $save_con['content_format'] = in_array($contentFormat, ['disabled', 'bbcode', 'markdown'], true) ? $contentFormat : 'bbcode';
+    $save_con['use_bbcodes'] = ($save_con['content_format'] === 'disabled') ? '0' : '1';
     // Determine which config to save
     $siteId = trim($_REQUEST['site_id'] ?? '');
     $configFile = confroot . 'config.php';
@@ -213,6 +216,7 @@ function systemConfigEditForm()
     $cfgForTpl = $config;
     $cfgForTpl['auth_module'] = $currentAuthModule;
     $cfgForTpl['auth_db'] = $currentAuthDB;
+    $cfgForTpl['content_format'] = $config['content_format'] ?? (!empty($config['use_bbcodes']) ? 'bbcode' : 'disabled');
     // Format timezone list with UTC offset
     $timezoneList = [];
     foreach (timezone_identifiers_list() as $timezone) {

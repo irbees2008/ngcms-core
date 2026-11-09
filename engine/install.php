@@ -984,6 +984,7 @@ function doInstall()
             'blocks_for_reg'      => '1',
             'use_smilies'         => '1',
             'use_bbcodes'         => '1',
+            'content_format'      => 'bbcode',
             'use_htmlformatter'   => '1',
             'forbid_comments'     => '0',
             'reverse_comments'    => '0',

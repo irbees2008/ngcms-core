@@ -152,8 +152,12 @@ class parse
     public function bbcodes($content)
     {
         global $lang, $config, $userROW, $SYSTEM_FLAGS;
-        if (!$config['use_bbcodes']) {
+        $contentFormat = $config['content_format'] ?? (!empty($config['use_bbcodes']) ? 'bbcode' : 'disabled');
+        if ($contentFormat === 'disabled') {
             return $content;
+        }
+        if ($contentFormat === 'markdown') {
+            return \Michelf\MarkdownExtra::defaultTransform($content);
         }
         // [noparse] .. [/noparse] — показать BBCode как текст (не парсить)
         // Обрабатываем до код-блоков, чтобы литералы вида [/code] внутри не влияли на поиск закрывающих тегов
@@ -172,6 +176,7 @@ class parse
         // Обработка [code] и [code=язык] с поддержкой вложенных/демонстрационных тегов внутри.
         // Используем стек для поиска корректной парной [/code].
         $content = $this->processCodeBlocks($content);
+        $content = $this->processBBCodeTables($content);
         // Не допускаем вставки <br> в код (совместимость со старым поведением)
         $content = str_replace('<br>', "\n", $content);
         // Обработку простого [code] выполнили в processCodeBlocks()
@@ -205,8 +210,14 @@ class parse
         // Process font size
         $content = preg_replace("#\[size=(.+?)\](.*?)\[/size\]#is", '<font size="$1">$2</font>', $content);
         $content = preg_replace("#\[ustyle=(.+?)\](.*?)\[/ustyle\]#is", '<div style="padding:0.5em;background: $1; border:1px solid #000;">$2</div>', $content);
-        // Process h
-        $content    =    preg_replace("#\[h=(.+?)\](.*?)\[/h=(.+?)\]#is", '<h$1>$2</h$1>', $content);
+        // Process headings only when both levels are the same and supported.
+        $content = preg_replace_callback(
+            '#\[h=([1-6])\](.*?)\[/h=\1\]#isu',
+            static function (array $matches): string {
+                return '<h' . $matches[1] . '>' . $matches[2] . '</h' . $matches[1] . '>';
+            },
+            $content
+        );
         // Process bgcolor
         $content    =    preg_replace("#\[bgcolor=(.+?)\](.*?)\[/bgcolor\]#is", '<span style="background-color: $1 ; display:inline;">$2</span>', $content);
         // Process spoilers
@@ -410,6 +421,38 @@ class parse
         }
         return $content;
     }
+    private function processBBCodeTables(string $content): string
+    {
+        return preg_replace_callback(
+            '#\[table\](.*?)\[/table\]#isu',
+            static function (array $tableMatch): string {
+                preg_match_all('#\[tr\](.*?)\[/tr\]#isu', $tableMatch[1], $rowMatches, PREG_SET_ORDER);
+                if (!$rowMatches || trim(preg_replace('#\[tr\].*?\[/tr\]#isu', '', $tableMatch[1])) !== '') {
+                    return $tableMatch[0];
+                }
+
+                $rows = [];
+                foreach ($rowMatches as $rowMatch) {
+                    preg_match_all('#\[(th|td)\](.*?)\[/\1\]#isu', $rowMatch[1], $cellMatches, PREG_SET_ORDER);
+                    if (!$cellMatches || trim(preg_replace('#\[(th|td)\].*?\[/\1\]#isu', '', $rowMatch[1])) !== '') {
+                        return $tableMatch[0];
+                    }
+
+                    $cells = [];
+                    foreach ($cellMatches as $cellMatch) {
+                        $tag = strtolower($cellMatch[1]);
+                        $cells[] = '<' . $tag . '>' . $cellMatch[2] . '</' . $tag . '>';
+                    }
+                    $rows[] = '<tr>' . implode('', $cells) . '</tr>';
+                }
+
+                return $rows
+                    ? '<table><tbody>' . implode('', $rows) . '</tbody></table>'
+                    : $tableMatch[0];
+            },
+            $content
+        );
+    }
     // Стековый парсер для [code] и [code=язык]
     private function processCodeBlocks($content)
     {
@@ -519,7 +562,8 @@ class parse
     public function htmlformatter($content)
     {
         global $config;
-        if (!$config['use_htmlformatter']) {
+        $contentFormat = $config['content_format'] ?? (!empty($config['use_bbcodes']) ? 'bbcode' : 'disabled');
+        if (!$config['use_htmlformatter'] || $contentFormat === 'markdown') {
             return $content;
         }
         $content = preg_replace('|<br />\s*<br />|', "\n\n", $content);

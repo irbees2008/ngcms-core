@@ -261,6 +261,10 @@ function phphighlight($content = '')
 function QuickTags(string $area = '', string $template = '')
 {
     global $twig, $PHP_SELF, $config, $lang;
+    $contentFormat = $config['content_format'] ?? (!empty($config['use_bbcodes']) ? 'bbcode' : 'disabled');
+    if ($contentFormat === 'disabled') {
+        return '';
+    }
     if ($template === 'news') {
         LoadPluginLang('ai_rewriter', 'main', '', '', ':');
     }
@@ -269,10 +273,15 @@ function QuickTags(string $area = '', string $template = '')
         'area'     => empty($area) ? "''" : $area,
         'config'   => $config,
         'lang'     => $lang,
+        'editor_template' => $template,
         'finance_lock_block_count' => function_exists('finance_news_block_count') ? finance_news_block_count() : 1,
     ];
     if (!in_array($template, ['pmmes', 'editcom', 'news', 'static'])) {
         return false;
+    }
+    if ($contentFormat === 'markdown') {
+        $tvars['emoji_picker'] = InsertEmojiPicker($area);
+        return $twig->render(root . 'skins/default/tpl/qt_markdown.tpl', $tvars);
     }
     return $twig->render(
         tpl_actions . "/qt_{$template}.tpl",
@@ -282,7 +291,8 @@ function QuickTags(string $area = '', string $template = '')
 function BBCodes(string $area = '')
 {
     global $config, $lang, $twig, $PHP_SELF;
-    if ($config['use_bbcodes']) {
+    $contentFormat = $config['content_format'] ?? (!empty($config['use_bbcodes']) ? 'bbcode' : 'disabled');
+    if ($contentFormat === 'bbcode') {
         $tvars = [
             'php_self' => $PHP_SELF,
             'area'     => empty($area) ? "''" : $area,
