@@ -1,6 +1,6 @@
 <!-- Оставляем эти скрипты и формы так как ими могут пользоваться плагины -->
- <script type="text/javascript" src="{{ home }}/lib/ajax.js"></script>
- <script type="text/javascript" src="{{ home }}/lib/libsuggest.js"></script>
+<script type="text/javascript" src="{{ home }}/lib/ajax.js"></script>
+<script type="text/javascript" src="{{ home }}/lib/libsuggest.js"></script>
 <!-- Preload JS/CSS for plugins -->
 {{ preloadRAW }}
 <!-- /end preload -->
@@ -9,23 +9,26 @@
 	<table id="suggestBlock" cellspacing="0" cellpadding="0" width="100%"></table>
 	<a href="#" align="right" id="suggestClose">close</a>
 </div> -->
-	 <script>
-			$(function () {
-			$("#newsTitle").on({
-			blur: function () {
-			if ($(this).val().length > 2) {
-			$.post('/engine/actions/news_relates.php', {
-			title: $(this).val()
-			}, function (data) {
-			$('#news_relates').fadeIn(300).html(data);
-			});
-			} else
-			$('#news_relates').fadeOut(300);
-			return false;
-			}
-			});
-			})
-			</script> <form name="DATA_tmp_storage" action=""id="DATA_tmp_storage"> <input type="hidden" name="area" value=""/>
+	<script>
+$(function () {
+$("#newsTitle").on({
+blur: function () {
+if ($(this).val().length > 2) {
+$.post('/engine/actions/news_relates.php', {
+title: $(this).val()
+}, function (data) {
+$('#news_relates').fadeIn(300).html(data);
+});
+} else
+$('#news_relates').fadeOut(300);
+
+return false;
+}
+});
+})
+</script>
+<form name="DATA_tmp_storage" action="" id="DATA_tmp_storage">
+<input type="hidden" name="area" value=""/>
 </form>
 <div class="container-fluid">
 	<div class="row mb-2">
@@ -36,7 +39,7 @@
 		<div class="col-sm-6">
 			<ol class="breadcrumb float-sm-right">
 				<li class="breadcrumb-item">
-					<a href="admin.php">
+					<a href="{{ php_self }}">
 						<i class="fa fa-home"></i>
 					</a>
 				</li>
@@ -113,7 +116,7 @@
 							<div class="modal-dialog">
 								<div class="modal-content">
 									<div class="modal-header">
-										<h5 id="smiles-modal-label" class="modal-title">{{ lang.addnews['insert_smiley'] }}</h5>
+										<h5 id="smiles-modal-label" class="modal-title">Вставить смайл</h5>
 										<button type="button" class="close" data-dismiss="modal" aria-label="Close">
 											<span aria-hidden="true">&times;</span>
 										</button>
@@ -122,7 +125,25 @@
 										{{ smilies }}
 									</div>
 									<div class="modal-footer">
-										<button type="button" class="btn btn-outline-dark" data-dismiss="modal">{{ lang.addnews['cancel'] }}</button>
+										<button type="button" class="btn btn-outline-dark" data-dismiss="modal">Cancel</button>
+									</div>
+								</div>
+							</div>
+						</div>
+						<div id="modal-emoji" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="emoji-modal-label" aria-hidden="true">
+							<div class="modal-dialog modal-lg">
+								<div class="modal-content">
+									<div class="modal-header">
+										<h5 id="emoji-modal-label" class="modal-title">Вставить emoji</h5>
+										<button type="button" class="close" data-dismiss="modal" aria-label="Закрыть"><span aria-hidden="true">&times;</span></button>
+									</div>
+									<div class="modal-body">
+										<style>
+											.emoji-picker-grid { display: flex; flex-wrap: wrap; gap: 4px; }
+											.emoji-picker-item { border: 0; background: transparent; border-radius: 4px; cursor: pointer; font-size: 1.5rem; line-height: 1; padding: 6px; }
+											.emoji-picker-item:hover { background: #f0f0f0; }
+										</style>
+										{{ emoji_picker }}
 									</div>
 								</div>
 							</div>
@@ -355,43 +376,43 @@
 		<!-- /XFields [GENERAL] -->
 	{% endif %}
 </form>
- <script type="text/javascript">
+<script type="text/javascript">
 	// Global variable: ID of current active input area
-var currentInputAreaID = 'ng_news_content{{ flags.edit_split ? '_short' : '' }}';
+var currentInputAreaID = '{{ flags.edit_split ? 'ng_news_content_short' : 'ng_news_content' }}';
 // Toggle editor height function
 function toggleEditorHeight() {
-	var isAutoHeight = document.getElementById('autoHeightToggle').checked;
-	var editors = document.querySelectorAll('textarea[id^="ng_news_content"]');
-	editors.forEach(function(editor) {
-		if (isAutoHeight) {
-			editor.style.height = 'auto';
-			editor.style.minHeight = '200px';
-			editor.style.overflow = 'hidden';
-			// Adjust height to content
-			editor.style.height = (editor.scrollHeight) + 'px';
-			// Add event listener for auto-resize on input
-			editor.addEventListener('input', autoResizeEditor);
-		} else {
-			editor.style.height = '';
-			editor.style.minHeight = '';
-			editor.style.overflow = '';
-			editor.removeEventListener('input', autoResizeEditor);
-		}
-	});
-	// Save preference
-	localStorage.setItem('editorAutoHeight', isAutoHeight);
+var isAutoHeight = document.getElementById('autoHeightToggle').checked;
+var editors = document.querySelectorAll('textarea[id^="ng_news_content"]');
+editors.forEach(function (editor) {
+if (isAutoHeight) {
+editor.style.height = 'auto';
+editor.style.minHeight = '200px';
+editor.style.overflow = 'hidden';
+// Adjust height to content
+editor.style.height = (editor.scrollHeight) + 'px';
+// Add event listener for auto-resize on input
+editor.addEventListener('input', autoResizeEditor);
+} else {
+editor.style.height = '';
+editor.style.minHeight = '';
+editor.style.overflow = '';
+editor.removeEventListener('input', autoResizeEditor);
+}
+});
+// Save preference
+localStorage.setItem('editorAutoHeight', isAutoHeight);
 }
 function autoResizeEditor(e) {
-	e.target.style.height = 'auto';
-	e.target.style.height = (e.target.scrollHeight) + 'px';
+e.target.style.height = 'auto';
+e.target.style.height = (e.target.scrollHeight) + 'px';
 }
 // Restore saved preference on load
-window.addEventListener('DOMContentLoaded', function() {
-	var savedPref = localStorage.getItem('editorAutoHeight');
-	if (savedPref === 'true') {
-		document.getElementById('autoHeightToggle').checked = true;
-		setTimeout(toggleEditorHeight, 100);
-	}
+window.addEventListener('DOMContentLoaded', function () {
+var savedPref = localStorage.getItem('editorAutoHeight');
+if (savedPref === 'true') {
+document.getElementById('autoHeightToggle').checked = true;
+setTimeout(toggleEditorHeight, 100);
+}
 });
 function preview() {
 var form = document.getElementById("postForm");
@@ -418,7 +439,7 @@ currentInputAreaID = 'ng_news_content_short';
 }
 }
 </script>
- <script type="text/javascript">
+<script type="text/javascript">
 	// Restore variables if needed
 var jev = {{ JEV }};
 var form = document.getElementById('postForm');
@@ -442,7 +463,7 @@ form[i].checked = (jev[i] ? true : false);
 }
 }
 </script>
- <script type="text/javascript">
+<script type="text/javascript">
 	function attachAddRow() {
 var tbl = document.getElementById('attachFilelist');
 var lastRow = tbl.rows.length;

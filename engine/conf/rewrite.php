@@ -2,81 +2,6 @@
 $handlerList = array (
   0 => 
   array (
-    'pluginName' => 'uprofile_del',
-    'handlerName' => 'user_id',
-    'flagPrimary' => true,
-    'flagFailContinue' => false,
-    'flagDisabled' => false,
-    'rstyle' => 
-    array (
-      'rcmd' => '/uprofile_del/user_id/{id}/',
-      'regex' => '#^/uprofile_del/user_id/(\\d+)/$#',
-      'regexMap' => 
-      array (
-        1 => 'id',
-      ),
-      'reqCheck' => 
-      array (
-      ),
-      'setVars' => 
-      array (
-      ),
-      'genrMAP' => 
-      array (
-        0 => 
-        array (
-          0 => 0,
-          1 => '/uprofile_del/user_id/',
-          2 => 0,
-        ),
-        1 => 
-        array (
-          0 => 1,
-          1 => 'id',
-          2 => 0,
-        ),
-        2 => 
-        array (
-          0 => 0,
-          1 => '/',
-          2 => 0,
-        ),
-      ),
-    ),
-  ),
-  1 => 
-  array (
-    'pluginName' => 're_stat',
-    'handlerName' => 'dfhfhdfghfg',
-    'flagPrimary' => true,
-    'flagFailContinue' => false,
-    'flagDisabled' => false,
-    'rstyle' => 
-    array (
-      'rcmd' => '/test.html',
-      'regex' => '#^/test.html$#',
-      'regexMap' => 
-      array (
-      ),
-      'reqCheck' => 
-      array (
-      ),
-      'setVars' => 
-      array (
-      ),
-      'genrMAP' => 
-      array (
-        0 => 
-        array (
-          0 => 0,
-          1 => '/test.html',
-          2 => 0,
-        ),
-      ),
-    ),
-  ),
-  2 => 
-  array (
     'pluginName' => 'core',
     'handlerName' => 'login',
     'flagPrimary' => true,
@@ -105,8 +30,9 @@ $handlerList = array (
         ),
       ),
     ),
+    'id' => 0,
   ),
-  3 => 
+  1 => 
   array (
     'pluginName' => 'core',
     'handlerName' => 'logout',
@@ -136,8 +62,9 @@ $handlerList = array (
         ),
       ),
     ),
+    'id' => 1,
   ),
-  4 => 
+  2 => 
   array (
     'pluginName' => 'core',
     'handlerName' => 'registration',
@@ -167,8 +94,9 @@ $handlerList = array (
         ),
       ),
     ),
+    'id' => 2,
   ),
-  5 => 
+  3 => 
   array (
     'pluginName' => 'core',
     'handlerName' => 'activation',
@@ -224,8 +152,9 @@ $handlerList = array (
         ),
       ),
     ),
+    'id' => 3,
   ),
-  6 => 
+  4 => 
   array (
     'pluginName' => 'core',
     'handlerName' => 'lostpassword',
@@ -281,8 +210,9 @@ $handlerList = array (
         ),
       ),
     ),
+    'id' => 4,
   ),
-  7 => 
+  5 => 
   array (
     'pluginName' => 'core',
     'handlerName' => 'plugin',
@@ -338,8 +268,9 @@ $handlerList = array (
         ),
       ),
     ),
+    'id' => 5,
   ),
-  8 => 
+  6 => 
   array (
     'pluginName' => 'news',
     'handlerName' => 'main',
@@ -388,8 +319,9 @@ $handlerList = array (
         ),
       ),
     ),
+    'id' => 6,
   ),
-  9 => 
+  7 => 
   array (
     'pluginName' => 'static',
     'handlerName' => '',
@@ -432,8 +364,9 @@ $handlerList = array (
         ),
       ),
     ),
+    'id' => 7,
   ),
-  10 => 
+  8 => 
   array (
     'pluginName' => 'static',
     'handlerName' => 'print',
@@ -476,8 +409,9 @@ $handlerList = array (
         ),
       ),
     ),
+    'id' => 8,
   ),
-  11 => 
+  9 => 
   array (
     'pluginName' => 'uprofile',
     'handlerName' => 'edit',
@@ -507,8 +441,9 @@ $handlerList = array (
         ),
       ),
     ),
+    'id' => 9,
   ),
-  12 => 
+  10 => 
   array (
     'pluginName' => 'uprofile',
     'handlerName' => 'show',
@@ -551,8 +486,9 @@ $handlerList = array (
         ),
       ),
     ),
+    'id' => 10,
   ),
-  13 => 
+  11 => 
   array (
     'pluginName' => 'uprofile',
     'handlerName' => 'show',
@@ -595,8 +531,9 @@ $handlerList = array (
         ),
       ),
     ),
+    'id' => 11,
   ),
-  14 => 
+  12 => 
   array (
     'pluginName' => 'rss_export',
     'handlerName' => '',
@@ -626,8 +563,9 @@ $handlerList = array (
         ),
       ),
     ),
+    'id' => 12,
   ),
-  15 => 
+  13 => 
   array (
     'pluginName' => 'search',
     'handlerName' => '',
@@ -657,8 +595,9 @@ $handlerList = array (
         ),
       ),
     ),
+    'id' => 13,
   ),
-  16 => 
+  14 => 
   array (
     'pluginName' => 'news',
     'handlerName' => 'by.day',
@@ -740,8 +679,9 @@ $handlerList = array (
         ),
       ),
     ),
+    'id' => 14,
   ),
-  17 => 
+  15 => 
   array (
     'pluginName' => 'news',
     'handlerName' => 'by.month',
@@ -810,8 +750,9 @@ $handlerList = array (
         ),
       ),
     ),
+    'id' => 15,
   ),
-  18 => 
+  16 => 
   array (
     'pluginName' => 'news',
     'handlerName' => 'by.year',
@@ -867,8 +808,9 @@ $handlerList = array (
         ),
       ),
     ),
+    'id' => 16,
   ),
-  19 => 
+  17 => 
   array (
     'pluginName' => 'rss_export',
     'handlerName' => 'category',
@@ -911,8 +853,9 @@ $handlerList = array (
         ),
       ),
     ),
+    'id' => 17,
   ),
-  20 => 
+  18 => 
   array (
     'pluginName' => 'news',
     'handlerName' => 'by.category',
@@ -968,8 +911,9 @@ $handlerList = array (
         ),
       ),
     ),
+    'id' => 18,
   ),
-  21 => 
+  19 => 
   array (
     'pluginName' => 'news',
     'handlerName' => 'news',
@@ -1038,8 +982,9 @@ $handlerList = array (
         ),
       ),
     ),
+    'id' => 19,
   ),
-  22 => 
+  20 => 
   array (
     'pluginName' => 'news',
     'handlerName' => 'print',
@@ -1108,8 +1053,9 @@ $handlerList = array (
         ),
       ),
     ),
+    'id' => 20,
   ),
-  23 => 
+  21 => 
   array (
     'pluginName' => 'news',
     'handlerName' => 'by.category',
@@ -1165,99 +1111,40 @@ $handlerList = array (
         ),
       ),
     ),
-  ),
-  24 => 
-  array (
-    'pluginName' => 'static',
-    'handlerName' => '',
-    'flagPrimary' => true,
-    'flagFailContinue' => false,
-    'flagDisabled' => false,
-    'rstyle' => 
-    array (
-      'rcmd' => '/{altname}.html',
-      'regex' => '#^/(.+?).html$#',
-      'regexMap' => 
-      array (
-        1 => 'altname',
-      ),
-      'reqCheck' => 
-      array (
-      ),
-      'setVars' => 
-      array (
-      ),
-      'genrMAP' => 
-      array (
-        0 => 
-        array (
-          0 => 0,
-          1 => '/',
-          2 => 0,
-        ),
-        1 => 
-        array (
-          0 => 2,
-          1 => 'altname',
-          2 => 0,
-        ),
-        2 => 
-        array (
-          0 => 0,
-          1 => '.html',
-          2 => 0,
-        ),
-      ),
-    ),
+    'id' => 21,
   ),
 );
 $handlerPrimary = array (
-  'uprofile_del' => 
-  array (
-    'user_id' => 
-    array (
-      0 => 0,
-      1 => true,
-    ),
-  ),
-  're_stat' => 
-  array (
-    'dfhfhdfghfg' => 
-    array (
-      0 => 1,
-      1 => true,
-    ),
-  ),
   'core' => 
   array (
     'login' => 
     array (
-      0 => 2,
+      0 => 0,
       1 => true,
     ),
     'logout' => 
     array (
-      0 => 3,
+      0 => 1,
       1 => true,
     ),
     'registration' => 
     array (
-      0 => 4,
+      0 => 2,
       1 => true,
     ),
     'activation' => 
     array (
-      0 => 5,
+      0 => 3,
       1 => true,
     ),
     'lostpassword' => 
     array (
-      0 => 6,
+      0 => 4,
       1 => true,
     ),
     'plugin' => 
     array (
-      0 => 7,
+      0 => 5,
       1 => true,
     ),
   ),
@@ -1265,37 +1152,37 @@ $handlerPrimary = array (
   array (
     'main' => 
     array (
-      0 => 8,
+      0 => 6,
       1 => true,
     ),
     'by.day' => 
     array (
-      0 => 16,
+      0 => 14,
       1 => true,
     ),
     'by.month' => 
     array (
-      0 => 17,
+      0 => 15,
       1 => true,
     ),
     'by.year' => 
     array (
-      0 => 18,
+      0 => 16,
       1 => true,
     ),
     'by.category' => 
     array (
-      0 => 23,
+      0 => 21,
       1 => true,
     ),
     'news' => 
     array (
-      0 => 21,
+      0 => 19,
       1 => true,
     ),
     'print' => 
     array (
-      0 => 22,
+      0 => 20,
       1 => true,
     ),
   ),
@@ -1303,12 +1190,12 @@ $handlerPrimary = array (
   array (
     '' => 
     array (
-      0 => 9,
+      0 => 7,
       1 => true,
     ),
     'print' => 
     array (
-      0 => 10,
+      0 => 8,
       1 => true,
     ),
   ),
@@ -1316,12 +1203,12 @@ $handlerPrimary = array (
   array (
     'edit' => 
     array (
-      0 => 11,
+      0 => 9,
       1 => true,
     ),
     'show' => 
     array (
-      0 => 13,
+      0 => 11,
       1 => true,
     ),
   ),
@@ -1329,12 +1216,12 @@ $handlerPrimary = array (
   array (
     '' => 
     array (
-      0 => 14,
+      0 => 12,
       1 => true,
     ),
     'category' => 
     array (
-      0 => 19,
+      0 => 17,
       1 => true,
     ),
   ),
@@ -1342,7 +1229,7 @@ $handlerPrimary = array (
   array (
     '' => 
     array (
-      0 => 15,
+      0 => 13,
       1 => true,
     ),
   ),

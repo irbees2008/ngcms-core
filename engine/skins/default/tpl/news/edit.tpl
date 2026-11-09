@@ -6,10 +6,9 @@
 <!-- /end preload -->
 <!-- Hidden SUGGEST div -->
 	<!-- <div id="suggestWindow" class="suggestWindow">
-				<table id="suggestBlock" cellspacing="0" cellpadding="0" width="100%"></table>
-				<a href="#" align="right" id="suggestClose">{{ lang.editnews['cancel'] }}</a>
-			</div> -->
-<form name="DATA_tmp_storage" action=""id="DATA_tmp_storage"> <input type="hidden" name="area" value=""/>
+					<table id="suggestBlock" cellspacing="0" cellpadding="0" width="100%"></table>
+					<a href="#" align="right" id="suggestClose">close</a>
+				</div> --> <form name="DATA_tmp_storage" action=""id="DATA_tmp_storage"> <input type="hidden" name="area" value=""/>
 </form>
 <div class="container-fluid">
 	<div class="row mb-2">
@@ -20,7 +19,7 @@
 		<div class="col-sm-6">
 			<ol class="breadcrumb float-sm-right">
 				<li class="breadcrumb-item">
-					<a href="admin.php">
+					<a href="{{ php_self }}">
 						<i class="fa fa-home"></i>
 					</a>
 				</li>
@@ -37,30 +36,30 @@
 <!-- /.container-fluid -->
 {% if (flags['params.lost']) %}
 	<div class="alert alert-warning">
-<p>{{ lang.editnews['err.insufficient_rights'] }}</p>
+		<p>Обратите внимание – у вас недостаточно прав для полноценного редактирования новости.</p>
 		<hr>
-<p>{{ lang.editnews['msgi_changes'] }}</p>
+		<p>При сохранении будут произведены следующие изменения:</p>
 		<ul>
 			{% if flags['publish.lost'] %}
-<li>{{ lang.editnews['msgi_unpublished'] }}</li>
+				<li>Новость будет снята с публикации</li>
 			{% endif %}
 			{% if flags['html.lost'] %}
-<li>{{ lang.editnews['msgi_html_disabled'] }}</li>
+				<li>В новости будет запрещено использование HTML тегов и автоформатирование</li>
 			{% endif %}
 			{% if flags['mainpage.lost'] %}
-<li>{{ lang.editnews['msgi_mainpage_removed'] }}</li>
+				<li>Новость будет убрана с главной страницы</li>
 			{% endif %}
 			{% if flags['pinned.lost'] %}
-<li>{{ lang.editnews['msgi_pinned_removed'] }}</li>
+				<li>С новости будет снято прикрепление на главной</li>
 			{% endif %}
 			{% if flags['catpinned.lost'] %}
-				<li>{{ lang.editnews['msgi_catpinned_removed'] }}</li>
+				<li>С новости будет снято прикрепление в категории</li>
 			{% endif %}
 			{% if flags['favorite.lost'] %}
-<li>{{ lang.editnews['msgi_favorite_removed'] }}</li>
+				<li>Новость будет удалена из закладок администратора</li>
 			{% endif %}
 			{% if flags['multicat.lost'] %}
-<li>{{ lang.editnews['msgi_multicat_removed'] }}</li>
+				<li>Из новости будут удалены все дополнительные категории</li>
 			{% endif %}
 		</ul>
 	</div>
@@ -138,8 +137,7 @@
 							<div class="modal-dialog">
 								<div class="modal-content">
 									<div class="modal-header">
-<h5 id="smiles-modal-label" class="modal-title">
-	{{ lang.editnews['insert_smiley'] }}</h5>
+										<h5 id="smiles-modal-label" class="modal-title">Вставить смайл</h5>
 										<button type="button" class="close" data-dismiss="modal" aria-label="Close">
 											<span aria-hidden="true">&times;</span>
 										</button>
@@ -148,8 +146,25 @@
 										{{ smilies }}
 									</div>
 									<div class="modal-footer">
-<button type="button" class="btn btn-outline-dark" data-dismiss="modal">
-	{{ lang.editnews['cancel'] }}</button>
+										<button type="button" class="btn btn-outline-dark" data-dismiss="modal">Cancel</button>
+									</div>
+								</div>
+							</div>
+						</div>
+						<div id="modal-emoji" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="emoji-modal-label" aria-hidden="true">
+							<div class="modal-dialog modal-lg">
+								<div class="modal-content">
+									<div class="modal-header">
+										<h5 id="emoji-modal-label" class="modal-title">Вставить emoji</h5>
+										<button type="button" class="close" data-dismiss="modal" aria-label="Закрыть"><span aria-hidden="true">&times;</span></button>
+									</div>
+									<div class="modal-body">
+										<style>
+											.emoji-picker-grid { display: flex; flex-wrap: wrap; gap: 4px; }
+											.emoji-picker-item { border: 0; background: transparent; border-radius: 4px; cursor: pointer; font-size: 1.5rem; line-height: 1; padding: 6px; }
+											.emoji-picker-item:hover { background: #f0f0f0; }
+										</style>
+										{{ emoji_picker }}
 									</div>
 								</div>
 							</div>
@@ -412,6 +427,12 @@
 					</div>
 				</div>
 			{% endif %}
+
+			<!-- TRANSLATIONS BLOCK -->
+			{% if currentLang %}
+				{% include localPath(0)~"translations.tpl" %}
+			{% endif %}
+			<!-- /TRANSLATIONS BLOCK -->
 		</div>
 	</div>
 	<div class="row">

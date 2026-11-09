@@ -567,6 +567,7 @@ function doConfig_perm()
 function doConfig_plugins()
 {
     global $tvars, $tpl, $templateDir;
+    include_once root . 'includes/inc/extras.inc.php';
     $tvars['vars']['menu_plugins'] = ' class="hover"';
     printHeader();
     // Now we should scan plugins for preinstall configuration
@@ -577,17 +578,11 @@ function doConfig_plugins()
             if (($dName == '.') || ($dName == '..')) {
                 continue;
             }
-            if (is_dir($pluginsDir . '/' . $dName) && file_exists($vfn = $pluginsDir . '/' . $dName . '/version') && (filesize($vfn)) && ($vf = fopen($vfn, 'r'))) {
-                $pluginRec = [];
-                while (!feof($vf)) {
-                    $line = fgets($vf);
-                    if (preg_match("/^(.+?) *\: *(.+?) *$/i", trim($line), $m)) {
-                        if (in_array(strtolower($m[1]), ['id', 'title', 'information', 'preinstall', 'preinstall_vars', 'install'])) {
-                            $pluginRec[strtolower($m[1])] = $m[2];
-                        }
-                    }
+            if (is_dir($pluginsDir . '/' . $dName) && is_file($pluginMd = $pluginsDir . '/' . $dName . '/plugin.md')) {
+                $pluginRec = plugins_load_markdown_file($pluginMd);
+                if (!is_array($pluginRec)) {
+                    continue;
                 }
-                fclose($vf);
                 if (isset($pluginRec['id']) && isset($pluginRec['title'])) {
                     array_push($pluglist, $pluginRec);
                 }
@@ -935,7 +930,7 @@ function doInstall()
         }
         // 1.6 Сохраняем конфигурационные переменные database.engine.version, database.engine.revision
         $mysql->query('insert into `' . $_POST['reg_dbprefix'] . "_config` (name, value) values ('database.engine.version', '0.9.8 Release')");
-        $mysql->query('insert into `' . $_POST['reg_dbprefix'] . "_config` (name, value) values ('database.engine.revision', '8')");
+        $mysql->query('insert into `' . $_POST['reg_dbprefix'] . "_config` (name, value) values ('database.engine.revision', '13')");
         // Вычищаем лишний перевод строки из 'home_url'
         if (substr($_POST['home_url'], -1, 1) == '/') {
             $_POST['home_url'] = substr($_POST['home_url'], 0, -1);
@@ -985,9 +980,11 @@ function doInstall()
             'timestamp_admin_news' => 'd.m.Y H:i',
             'timestamp_updated'   => 'j.m.Y - H:i',
             'smilies'             => 'smile, biggrin, tongue, wink, cool, angry, sad, cry, upset, tired, blush, surprise, thinking, shhh, kiss, crazy, undecide, confused, down, up',
+            'smilies_mode'        => 'emoji',
             'blocks_for_reg'      => '1',
             'use_smilies'         => '1',
             'use_bbcodes'         => '1',
+            'content_format'      => 'bbcode',
             'use_htmlformatter'   => '1',
             'forbid_comments'     => '0',
             'reverse_comments'    => '0',
@@ -999,13 +996,20 @@ function doInstall()
             'use_avatars'         => '1',
             'avatar_wh'           => '65',
             'avatar_max_size'     => '16',
-            'images_ext'          => 'gif, jpg, jpeg, png',
+            'images_ext'          => 'gif, jpg, jpeg, png, bmp, webp, avif',
             'images_max_size'     => '512',
             'thumb_size_x'        => '150',
             'thumb_size_y'        => '150',
             'thumb_quality'       => '80',
-            'wm_image'            => 'stamp',
-            'wm_image_transition' => '50',
+            'wm_text'             => '',
+            'wm_font'             => 'arial.ttf',
+            'wm_font_size'        => '16',
+            'wm_text_color'       => '#FFFFFF',
+            'wm_text_opacity'     => '80',
+            'wm_bg_color'         => '#000000',
+            'wm_bg_opacity'       => '50',
+            'wm_position'         => 'bottom_right',
+            'wm_tile_spacing'     => '200',
             'files_ext'           => 'zip, rar, gz, tgz, bz2',
             'files_max_size'      => '128',
             'auth_module'         => 'basic',

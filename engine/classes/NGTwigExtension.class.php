@@ -6,6 +6,7 @@ use Twig\Extension\GlobalsInterface;
 use Twig\Node\Expression\FunctionExpression;
 use Twig\TwigFilter;
 use Twig\TwigFunction;
+
 class NGTwigLocalPathFunctionExpression extends FunctionExpression
 {
     protected function compileArguments(Compiler $compiler, $isArray = false): void
@@ -55,6 +56,7 @@ class NGTwigExtension extends AbstractExtension implements GlobalsInterface
             'skins_url'    => skins_url,
             'admin_url'    => admin_url,
             'home'         => home,
+            'home_title'   => home_title,
             'currentURL'   => $systemAccessURL,
         ];
     }

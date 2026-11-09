@@ -9,7 +9,17 @@
 if (!defined('NGCMS')) {
     exit('HAL');
 }
+
+// Load ng-helpers if not loaded
+if (!function_exists('Plugins\\array_get')) {
+    $ngHelpersPath = __DIR__ . '/../plugins/ng-helpers/ng-helpers.php';
+    if (file_exists($ngHelpersPath)) {
+        require_once $ngHelpersPath;
+    }
+}
+
 @include_once root . 'includes/classes/upload.class.php';
+@include_once root . 'includes/multilang.php';
 LoadLang('editnews', 'admin');
 LoadLang('editnews', 'admin', 'editnews');
 LoadLang('addnews', 'admin', 'addnews');
@@ -98,6 +108,7 @@ function editNewsForm()
             generateLink('uprofile', 'show', ['name' => $row['author'], 'id' => $row['author_id']]) :
             generateLink('core', 'plugin', ['plugin' => 'uprofile', 'handler' => 'show'], ['name' => $row['author'], 'id' => $row['author_id']]),
         'smilies'     => $config['use_smilies'] ? InsertSmilies('', 20, 'currentInputAreaID') : '',
+        'emoji_picker' => InsertEmojiPicker('currentInputAreaID'),
         'quicktags'   => $config['use_bbcodes'] ? QuickTags('currentInputAreaID', 'news') : '',
         'approve'     => $row['approve'],
         'token'       => genUToken('admin.news.edit'),
@@ -178,10 +189,18 @@ function editNewsForm()
                 'orig_name' => $arow['orig_name'],
             ];
             // Check if file exists
-            $fname = ($arow['storage'] ? $config['attach_dir'] : $config['files_dir']) . $arow['folder'] . '/' . $arow['name'];
+            if ((int)$arow['storage'] === 2) {
+                $fname = ngcms_private_upload_path((string)$arow['folder'], (string)$arow['name']);
+                $fileUrl = function_exists('finance_private_file_url')
+                    ? finance_private_file_url((int)$arow['id'], (int)$row['id'])
+                    : '';
+            } else {
+                $fname = ($arow['storage'] ? $config['attach_dir'] : $config['files_dir']) . $arow['folder'] . '/' . $arow['name'];
+                $fileUrl = (($arow['storage']) ? ($config['attach_url']) : ($config['files_url'])) . '/' . $arow['folder'] . '/' . $arow['name'];
+            }
             if (file_exists($fname) && ($fsize = @filesize($fname))) {
                 $attachEntry['filesize'] = Formatsize($fsize);
-                $attachEntry['url'] = (($arow['storage']) ? ($config['attach_url']) : ($config['files_url'])) . '/' . $arow['folder'] . '/' . $arow['name'];
+                $attachEntry['url'] = $fileUrl;
             } else {
                 $attachEntry['filesize'] = '<font color="red">n/a</font>';
             }
@@ -199,6 +218,75 @@ function editNewsForm()
             $v->editNewsForm($id, $row, $tVars);
         }
     }
+
+    // Load multilingual translation data
+    if (function_exists('getCurrentSiteLanguage') && function_exists('getActiveLanguageSites')) {
+        // Check if multilang is enabled for current site
+        global $multiDomainName, $multiconfig;
+
+        // Load multiconfig if not loaded
+        if (empty($multiconfig) && is_file(confroot . 'multiconfig.php')) {
+            include confroot . 'multiconfig.php';
+        }
+
+        // Check if multilang is enabled for this site (default: enabled for backward compatibility)
+        $multilangEnabled = true;
+        if (!empty($multiDomainName) && isset($multiconfig[$multiDomainName]['multilang_enabled'])) {
+            $multilangEnabled = (bool)$multiconfig[$multiDomainName]['multilang_enabled'];
+        } elseif (empty($multiDomainName) && isset($multiconfig['main']['multilang_enabled'])) {
+            $multilangEnabled = (bool)$multiconfig['main']['multilang_enabled'];
+        }
+
+        if ($multilangEnabled) {
+            $currentLang = getCurrentSiteLanguage();
+            $allLangSites = getActiveLanguageSites();
+
+            // Get translations for this news
+            $translations = [];
+            $translationGroupId = $row['translation_group_id'] ?? '';
+
+            if ($translationGroupId && function_exists('getNewsTranslations')) {
+                $translations = getNewsTranslations($translationGroupId, $id);
+            }
+
+            // Find available languages (not yet translated)
+            $availableLangs = [];
+            $existingLangs = [$currentLang];
+            foreach ($translations as $trans) {
+                $existingLangs[] = $trans['lang_code'];
+            }
+
+            foreach ($allLangSites as $langSite) {
+                if (!in_array($langSite['lang'], $existingLangs)) {
+                    $availableLangs[] = $langSite;
+                }
+            }
+
+            // Add translation data to template vars
+            $tVars['currentLang'] = [
+                'code' => $currentLang,
+                'label' => getLanguageName($currentLang),
+                'domain' => $_SERVER['HTTP_HOST'] ?? ''
+            ];
+            $tVars['translations'] = $translations;
+            $tVars['availableLangs'] = $availableLangs;
+            $tVars['translationGroupId'] = $translationGroupId;
+
+            // Add language label to each translation
+            foreach ($tVars['translations'] as &$trans) {
+                $trans['lang_label'] = getLanguageName($trans['lang_code']);
+                // Find site info
+                foreach ($allLangSites as $site) {
+                    if ($site['lang'] == $trans['lang_code']) {
+                        $trans['site_label'] = $site['label'];
+                        $trans['site_domain'] = $site['domain'];
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
     $xt = $twig->loadTemplate('skins/' . $config['admin_skin'] . '/tpl/news/edit.tpl');
     return $xt->render($tVars);
 }
@@ -374,7 +462,7 @@ function listNewsForm()
             $fSort = 'title desc';
             break;
     }
-    $fSort = ' order by ' . ($fSort ? $fSort : 'id desc');
+    $fSort = ' order by N.' . ($fSort ? $fSort : 'id desc');
     // Check if user selected personal filter
     $fAuthorId = 0;
     if (getIsSet($_REQUEST['aid'])) {
@@ -404,46 +492,122 @@ function listNewsForm()
     }
     $i = $start_from;
     $conditions = [];
+    $categoryPageCondition = null;
+    $categoryCountID = null;
     if (!is_null($fCategoryId)) {
-        array_push($conditions, 'catid ' . ($fCategoryId ? ("regexp '\\\\b(" . intval($fCategoryId) . ")\\\\b'") : (' = ""')));
+        if ($fCategoryId) {
+            $categoryCountID = intval($fCategoryId);
+            $legacyCategoryCondition = "catid regexp '\\\\b(" . $categoryCountID . ")\\\\b'";
+            $newsTable = prefix . '_news';
+            $newsMapTable = prefix . '_news_map';
+            $newsFrom = '(SELECT DISTINCT NM.newsID AS id FROM ' . $newsMapTable . ' NM FORCE INDEX (newsmap_category_news)'
+                . ' INNER JOIN ' . $newsTable . ' NP ON NP.id = NM.newsID AND NP.approve = 1'
+                . ' WHERE NM.categoryID = ' . $categoryCountID
+                . ' UNION ALL SELECT ND.id FROM ' . $newsTable . ' ND'
+                . ' WHERE (ND.approve <> 1 OR ND.approve IS NULL) AND ND.' . $legacyCategoryCondition
+                . ') AS category_news INNER JOIN ' . $newsTable . ' N ON N.id = category_news.id';
+            $categoryPageCondition = '((N.approve = 1 AND EXISTS (SELECT 1 FROM ' . $newsMapTable . ' NM'
+                . ' FORCE INDEX (idx_news_category) WHERE NM.newsID = N.id AND NM.categoryID = ' . $categoryCountID . '))'
+                . ' OR ((N.approve <> 1 OR N.approve IS NULL) AND N.' . $legacyCategoryCondition . '))';
+        } else {
+            array_push($conditions, 'N.catid = ""');
+        }
     }
     if ($fDateStart) {
-        array_push($conditions, 'postdate >= ' . intval($fDateStart));
+        array_push($conditions, 'N.postdate >= ' . intval($fDateStart));
     }
     if ($fDateStop) {
-        array_push($conditions, 'postdate <= ' . intval($fDateStop));
+        array_push($conditions, 'N.postdate <= ' . intval($fDateStop));
     }
     if ($fAuthorId) {
-        array_push($conditions, 'author_id = ' . $fAuthorId);
+        array_push($conditions, 'N.author_id = ' . $fAuthorId);
     } elseif ($fAuthorName) {
-        array_push($conditions, 'author = ' . db_squote($fAuthorName));
+        array_push($conditions, 'N.author = ' . db_squote($fAuthorName));
     }
     if (!$perm['other.list']) {
-        array_push($conditions, 'author_id = ' . intval($userROW['id']));
+        array_push($conditions, 'N.author_id = ' . intval($userROW['id']));
     }
     if (!$perm['personal.list']) {
-        array_push($conditions, 'author_id <> ' . intval($userROW['id']));
+        array_push($conditions, 'N.author_id <> ' . intval($userROW['id']));
     }
     if ($fStatus) {
-        array_push($conditions, 'approve = ' . (intval($fStatus) - 2));
+        array_push($conditions, 'N.approve = ' . (intval($fStatus) - 2));
     }
     // Perform search
     if ($fSearchLine != '') {
-        array_push($conditions, ($fSearchType ? 'content' : 'title') . ' like ' . db_squote('%' . $fSearchLine . '%'));
+        array_push($conditions, ($fSearchType ? 'N.content' : 'N.title') . ' like ' . db_squote('%' . $fSearchLine . '%'));
     }
-    $sqlQPart = 'from ' . prefix . '_news ' . (count($conditions) ? 'where ' . implode(' AND ', $conditions) : '') . ' ' . $fSort;
-    $sqlQCount = 'select count(id) as cid ' . $sqlQPart;
-    $sqlQ = 'select * ' . $sqlQPart;
+    if (!isset($newsFrom)) {
+        $newsFrom = prefix . '_news N';
+    }
+    $sqlQFilter = 'from ' . $newsFrom . ' ' . (count($conditions) ? 'where ' . implode(' AND ', $conditions) : '');
+    $sqlQCount = 'select count(N.id) as cid ' . $sqlQFilter;
+    $pageFrom = 'from ' . $newsFrom;
+    $pageConditions = $conditions;
+    if ($categoryPageCondition !== null) {
+        $pageFrom = 'from ' . prefix . '_news N FORCE INDEX (news_id_pagination)';
+        $pageConditions[] = $categoryPageCondition;
+    } elseif (is_null($fCategoryId) && !$conditions && in_array($fSort, [' order by N.id', ' order by N.id desc'], true)) {
+        $pageFrom = 'from ' . prefix . '_news N FORCE INDEX (news_id_pagination)';
+    }
+    $pageFilter = $pageFrom . (count($pageConditions) ? ' where ' . implode(' AND ', $pageConditions) : '');
+    $sqlQ = 'select N.id ' . $pageFilter . ' ' . $fSort;
+    $useCategoryMapPage = $categoryCountID !== null && !$conditions && $fSort === ' order by N.id desc';
     // print "SQL: $sqlQ";
-    $cnt = $mysql->record($sqlQCount);
-    $countNews = $cnt['cid'];
+    if ($categoryCountID !== null) {
+        if (!$conditions) {
+            $publishedCount = $mysql->record(
+                'select count(distinct NM.newsID) as cid from ' . prefix . '_news_map NM FORCE INDEX (newsmap_category_news)'
+                    . ' where NM.categoryID = ' . $categoryCountID
+            );
+        } else {
+            $publishedConditions = [
+                'NM.categoryID = ' . $categoryCountID,
+                'N.approve = 1',
+            ];
+            $publishedConditions = array_merge($publishedConditions, $conditions);
+            $publishedCount = $mysql->record(
+                'select count(distinct NM.newsID) as cid from ' . prefix . '_news_map NM FORCE INDEX (newsmap_category_news)'
+                    . ' INNER JOIN ' . prefix . '_news N ON N.id = NM.newsID'
+                    . ' where ' . implode(' AND ', $publishedConditions)
+            );
+        }
+        $draftConditions = [
+            '(N.approve <> 1 OR N.approve IS NULL)',
+            'N.' . $legacyCategoryCondition,
+        ];
+        $draftConditions = array_merge($draftConditions, $conditions);
+        $draftCount = $mysql->record(
+            'select count(N.id) as cid from ' . prefix . '_news N FORCE INDEX (idx_news_approved_order)'
+                . ' where ' . implode(' AND ', $draftConditions)
+        );
+        $countNews = intval($publishedCount['cid']) + intval($draftCount['cid']);
+    } else {
+        $cnt = $mysql->record($sqlQCount);
+        $countNews = $cnt['cid'];
+    }
     $countPages = ceil($countNews / $fRPP);
     // If Count of pages is less that pageNo we want to show - show last page
     if (($pageNo > $countPages) && ($pageNo > 1)) {
         $pageNo = $countPages;
     }
+    if ($useCategoryMapPage) {
+        $candidateLimit = (($pageNo - 1) * $fRPP) + $fRPP;
+        $sqlQ = 'select candidates.id from ('
+            . '(select distinct NM.newsID as id from ' . prefix . '_news_map NM FORCE INDEX (newsmap_category_news)'
+            . ' where NM.categoryID = ' . $categoryCountID
+            . ' order by NM.newsID desc limit ' . $candidateLimit . ')'
+            . ' UNION ALL '
+            . '(select N.id as id from ' . prefix . '_news N FORCE INDEX (idx_news_approved_order)'
+            . ' where (N.approve <> 1 OR N.approve IS NULL) AND N.' . $legacyCategoryCondition
+            . ' order by N.id desc limit ' . $candidateLimit . ')'
+            . ') AS candidates order by candidates.id desc';
+    }
     $newsEntries = [];
-    $sqlResult = $sqlQ . ' LIMIT ' . (($pageNo - 1) * $fRPP) . ',' . $fRPP;
+    $sqlPage = $sqlQ . ' LIMIT ' . (($pageNo - 1) * $fRPP) . ',' . $fRPP;
+    $sqlResult = 'select N.* from ' . prefix . '_news N'
+        . ' INNER JOIN (' . $sqlPage . ') AS page ON page.id = N.id'
+        . ' ' . $fSort;
     foreach ($mysql->select($sqlResult) as $row) {
         $cats = explode(',', $row['catid']);
         $newsEntry = [
@@ -598,6 +762,7 @@ function addNewsForm($retry = '')
         'extcat'     => makeCategoryList(['nameval' => 0, 'checkarea' => 1]),
         'JEV'        => $retry ? $retry : '{}',
         'smilies'    => ($config['use_smilies']) ? InsertSmilies('', 20, 'currentInputAreaID') : '',
+        'emoji_picker' => InsertEmojiPicker('currentInputAreaID'),
         'quicktags'  => ($config['use_bbcodes']) ? QuickTags('currentInputAreaID', 'news') : '',
         'token'      => genUToken('admin.news.add'),
         'flags'      => [

@@ -7,7 +7,7 @@
 		<div class="col-12 col-sm-6">
 			<ol class="breadcrumb float-sm-right">
 				<li class="breadcrumb-item">
-					<a href="admin.php">
+					<a href="{{ php_self }}">
 						<i class="fa fa-home"></i>
 					</a>
 				</li>
@@ -71,7 +71,7 @@
 					</div>
 					<div class="card-body">
 						<div class="card-icon">
-							{{ entry.icons }}
+							{{ entry.icons|raw }}
 						</div>
 						<p class="card-text">{{ entry.description }}</p>
 						<span class="badge badge-{{ entry.flags.isCompatible ? 'success' : 'warning' }}">

@@ -93,8 +93,6 @@ function search_news()
     if ($_REQUEST['page']) {
         $callingParams['page'] = (int) $_REQUEST['page'];
     }
-    // Вызываем news_showlist() с правильными параметрами
-    $founded = news_showlist($filter, $paginationParams, $callingParams);
     // Preload template configuration variables
     templateLoadVariables();
     $tplVars = $TemplateCache['site']['#variables'];

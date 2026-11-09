@@ -51,11 +51,6 @@
 			{% endif %}
 		</ul>
 	</div>
-{% elseif more_comments %}
-	{# Fallback: если по какой-то причине нет структуры, но есть готовый HTML #}
-	<div class="pagination" id="comments_pagination">
-		<ul>{{ more_comments|raw }}</ul>
-	</div>
 {% endif %}
 {{ form|raw }}
 {% if regonly %}
@@ -69,58 +64,60 @@
 	</div>
 {% endif %}
 {% if not is_external %}
-	<script>
-		// Встроенная пагинация комментариев (AJAX подгрузка страниц внутри новости)
-		// Inline версия скрипта (внешний файл дал 403). Повторная инициализация предотвращается.
-		if(!window.__commentsPaginationInit){
-			window.__commentsPaginationInit = true;
-			(function(){
-				var root = document;
-				function findPagination(){ return root.getElementById('comments_pagination'); }
-				function insertComments(html){
-					var list = root.getElementById('comments_list'); if(!list){ return; }
-					var anchorBottom = root.getElementById('new_comments');
-					if(!anchorBottom){ anchorBottom = document.createElement('div'); anchorBottom.id='new_comments'; list.appendChild(anchorBottom); }
-				// ИСПРАВЛЕНИЕ: Очищаем все старые комментарии перед вставкой новых
-				var oldComments = list.querySelectorAll('li[id^="comment"]');
-				oldComments.forEach(function(li){ li.remove(); });
-				var temp = document.createElement('div'); temp.innerHTML = html || '';
-				var items = temp.querySelectorAll('li[id^="comment"]');
-				items.forEach(function(li){
-					if(!li.id){ return; }
-						list.insertBefore(li, anchorBottom);
-					});
-				}
-				function replacePagination(html){
-					var pag = findPagination(); if(!pag){ return; }
-					if(html && /id=["']comments_pagination["']/.test(html)){
-						pag.outerHTML = html;
-					} else {
-						pag.innerHTML = html || '';
+	 <script>
+			// Встроенная пагинация комментариев (AJAX подгрузка страниц внутри новости)
+			// Inline версия скрипта (внешний файл дал 403). Повторная инициализация предотвращается.
+			if(!window.__commentsPaginationInit){
+				window.__commentsPaginationInit = true;
+				(function(){
+					var root = document;
+					function findPagination(){ return root.getElementById('comments_pagination'); }
+					function insertComments(html){
+						var list = root.getElementById('comments_list'); if(!list){ return; }
+						var anchorBottom = root.getElementById('new_comments');
+						if(!anchorBottom){ anchorBottom = document.createElement('div'); anchorBottom.id='new_comments'; list.appendChild(anchorBottom); }
+	
+					// ИСПРАВЛЕНИЕ: Очищаем все старые комментарии перед вставкой новых
+					var oldComments = list.querySelectorAll('li[id^="comment"]');
+					oldComments.forEach(function(li){ li.remove(); });
+	
+					var temp = document.createElement('div'); temp.innerHTML = html || '';
+					var items = temp.querySelectorAll('li[id^="comment"]');
+					items.forEach(function(li){
+						if(!li.id){ return; }
+							list.insertBefore(li, anchorBottom);
+						});
 					}
-				}
-				function onClick(e){
-					var a = e.target.closest ? e.target.closest('#comments_pagination a') : null;
-					if(!a){ return; }
-					// Отключаем обычный переход
-					e.preventDefault();
-					// Если активная или loading - игнор
-					var liParent = a.closest('li');
-					if((liParent && liParent.classList.contains('active')) || a.classList.contains('loading')){ return; }
-					var url = a.getAttribute('href'); if(!url){ return; }
-					var originalHTML = a.innerHTML; a.classList.add('loading'); a.innerHTML='⏳';
-					url += (url.indexOf('?') >= 0 ? '&' : '?') + 'ajax=1&embedded=1';
-					fetch(url, {headers:{'X-Requested-With':'XMLHttpRequest'}})
-						.then(function(r){ return r.json(); })
-						.then(function(data){
-							if(!data || !data.status){ return; }
-							insertComments(data.entries || '');
-							replacePagination(data.pagination || '');
-						})
-						.finally(function(){ a.classList.remove('loading'); a.innerHTML = originalHTML; });
-				}
-				root.addEventListener('click', onClick, false);
-			})();
-		}
-		</script>
-		{% endif %}
+					function replacePagination(html){
+						var pag = findPagination(); if(!pag){ return; }
+						if(html && /id=["']comments_pagination["']/.test(html)){
+							pag.outerHTML = html;
+						} else {
+							pag.innerHTML = html || '';
+						}
+					}
+					function onClick(e){
+						var a = e.target.closest ? e.target.closest('#comments_pagination a') : null;
+						if(!a){ return; }
+						// Отключаем обычный переход
+						e.preventDefault();
+						// Если активная или loading - игнор
+						var liParent = a.closest('li');
+						if((liParent && liParent.classList.contains('active')) || a.classList.contains('loading')){ return; }
+						var url = a.getAttribute('href'); if(!url){ return; }
+						var originalHTML = a.innerHTML; a.classList.add('loading'); a.innerHTML='⏳';
+						url += (url.indexOf('?') >= 0 ? '&' : '?') + 'ajax=1&embedded=1';
+						fetch(url, {headers:{'X-Requested-With':'XMLHttpRequest'}})
+							.then(function(r){ return r.json(); })
+							.then(function(data){
+								if(!data || !data.status){ return; }
+								insertComments(data.entries || '');
+								replacePagination(data.pagination || '');
+							})
+							.finally(function(){ a.classList.remove('loading'); a.innerHTML = originalHTML; });
+					}
+					root.addEventListener('click', onClick, false);
+				})();
+			}
+			</script>
+{% endif %}

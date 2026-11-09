@@ -7,7 +7,7 @@
 		<div class="col-sm-6">
 			<ol class="breadcrumb float-sm-right">
 				<li class="breadcrumb-item">
-					<a href="admin.php">
+					<a href="{{ php_self }}">
 						<i class="fa fa-home"></i>
 					</a>
 				</li>
@@ -39,7 +39,7 @@ f[name].classList.toggle('pChanged', f[name].value != v);
 // AJAX сохранение без перехода на страницу результата
 document.addEventListener('DOMContentLoaded', function () {
 var form = document.getElementById('permSubmit');
-if (! form) 
+if (! form)
 return;
 
 
@@ -67,7 +67,7 @@ if (Array.isArray(data.changes) && data.changes.length) {
 const maxLines = 12; // ограничим подробный вывод
 let lines = [];
 for (let i = 0; i < data.changes.length; i++) {
-if (i >= maxLines) 
+if (i >= maxLines)
 break;
 
 const ch = data.changes[i];
@@ -106,7 +106,7 @@ timeout: 0
 });
 // Навешиваем обработчики на кнопки внутри тоста
 setTimeout(() => {
-if (! toast) 
+if (! toast)
 return;
 
 let copyBtn = toast.querySelector('.perm-copy-btn');

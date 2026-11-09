@@ -19,6 +19,62 @@ function get_item_dir($type)
             return false;
     }
 }
+function ngcms_private_upload_dir($create = false)
+{
+    $documentRoot = realpath((string)($_SERVER['DOCUMENT_ROOT'] ?? ''));
+    if ($documentRoot === false) {
+        $documentRoot = realpath(dirname(__DIR__, 3));
+    }
+    if ($documentRoot === false) {
+        throw new RuntimeException('Unable to resolve the site document root for private uploads.');
+    }
+
+    $directory = dirname($documentRoot) . DIRECTORY_SEPARATOR . basename($documentRoot) . '-finance-private';
+    if ($create && !is_dir($directory) && !@mkdir($directory, 0750, true) && !is_dir($directory)) {
+        throw new RuntimeException('Unable to create private upload storage outside the document root: ' . $directory);
+    }
+    if ($create && !is_writable($directory)) {
+        throw new RuntimeException('Private upload storage is not writable: ' . $directory);
+    }
+
+    $resolvedDirectory = realpath($directory);
+    $resolvedDirectory = $resolvedDirectory === false ? $directory : $resolvedDirectory;
+    $rootPrefix = rtrim($documentRoot, '/\\') . DIRECTORY_SEPARATOR;
+    $pathPrefix = rtrim($resolvedDirectory, '/\\') . DIRECTORY_SEPARATOR;
+    $isWindows = DIRECTORY_SEPARATOR === '\\';
+    if (strpos($isWindows ? strtolower($pathPrefix) : $pathPrefix, $isWindows ? strtolower($rootPrefix) : $rootPrefix) === 0) {
+        throw new RuntimeException('Private upload storage must be outside the site document root.');
+    }
+    return rtrim($resolvedDirectory, '/\\');
+}
+
+function ngcms_private_upload_path($folder, $name)
+{
+    if (!preg_match('#^[a-f0-9]{2}/[a-f0-9]{2}/[0-9]{3}$#i', (string)$folder)
+        || !preg_match('/^[a-zA-Z0-9._-]+$/', (string)$name)
+        || $name === '.' || $name === '..') {
+        throw new RuntimeException('Invalid private upload location in database.');
+    }
+    $parts = explode('/', $folder);
+    $storageRoot = ngcms_private_upload_dir();
+    $path = $storageRoot . DIRECTORY_SEPARATOR .
+        implode(DIRECTORY_SEPARATOR, $parts) . DIRECTORY_SEPARATOR . $name;
+    $resolvedParent = realpath(dirname($path));
+    $resolvedFile = realpath($path);
+    $resolvedLocation = $resolvedFile !== false ? $resolvedFile : $resolvedParent;
+    if ($resolvedLocation !== false) {
+        $rootPrefix = rtrim($storageRoot, '/\\') . DIRECTORY_SEPARATOR;
+        $pathPrefix = rtrim($resolvedLocation, '/\\') . DIRECTORY_SEPARATOR;
+        $isWindows = DIRECTORY_SEPARATOR === '\\';
+        $rootPrefix = $isWindows ? strtolower($rootPrefix) : $rootPrefix;
+        $pathPrefix = $isWindows ? strtolower($pathPrefix) : $pathPrefix;
+        if (strpos($pathPrefix, $rootPrefix) !== 0) {
+            throw new RuntimeException('Private upload path escapes its storage directory.');
+        }
+    }
+    return $path;
+}
+
 class file_managment
 {
     // CONSTRUCTOR
@@ -108,6 +164,13 @@ class file_managment
     {
         global $config, $lang, $mysql, $userROW;
         $lang = loadLang('files');
+        $privateStorage = !empty($param['private_storage']);
+        if ($privateStorage) {
+            if (!function_exists('ngcms_private_upload_dir')) {
+                throw new RuntimeException('The core private upload storage helper is unavailable.');
+            }
+            $param['dsn'] = true;
+        }
         // Normalize category (to make it possible to have empty category)
         $wCategory = ($param['category'] != '') ? ($param['category'] . '/') : '';
         //print "CALL file_upload -> upload(".$param['http_var']."//".$param['http_varnum'].")<br>\n<pre>"; var_dump($param); print "</pre><br>\n";
@@ -240,7 +303,8 @@ class file_managment
         // DSN - Data Storage Network. Store data in BTREE if requested
         if ($param['dsn']) {
             // Check if directory for DSN exists
-            $wDir = $config['attach_dir'];
+            $storage = $privateStorage ? 2 : 1;
+            $wDir = $privateStorage ? ngcms_private_upload_dir(true) : $config['attach_dir'];
             if (!is_dir($wDir)) {
                 if ($param['rpc']) {
                     return ['status' => 0, 'errorCode' => 305, 'errorText' => str_replace('{dir}', $wDir, $lang['upload.error.dsn'])];
@@ -254,7 +318,8 @@ class file_managment
             $dir1 = mb_substr($fn_md5, 0, 2);
             $dir2 = mb_substr($fn_md5, 2, 2);
             $wDir .= '/' . $dir1;
-            if (!is_dir($wDir) && !@mkdir($wDir, 0777)) {
+            $directoryMode = $privateStorage ? 0750 : 0777;
+            if (!is_dir($wDir) && !@mkdir($wDir, $directoryMode)) {
                 if ($param['rpc']) {
                     return ['status' => 0, 'errorCode' => 306, 'errorText' => str_replace('{dir}', $wDir, $lang['upload.error.dircreate'])];
                 } else {
@@ -263,7 +328,7 @@ class file_managment
                 }
             }
             $wDir .= '/' . $dir2;
-            if (!is_dir($wDir) && !@mkdir($wDir, 0777)) {
+            if (!is_dir($wDir) && !@mkdir($wDir, $directoryMode)) {
                 if ($param['rpc']) {
                     return ['status' => 0, 'errorCode' => 307, 'errorText' => str_replace('{dir}', $wDir, $lang['upload.error.dircreate'])];
                 } else {
@@ -282,7 +347,7 @@ class file_managment
                     continue;
                 }
                 // Fine. Create this dir ... but check for simultaneous run
-                if (!@mkdir($wDir . '/' . $xDir, 0777)) {
+                if (!@mkdir($wDir . '/' . $xDir, $directoryMode)) {
                     if (is_dir($wDir . '/' . $xDir)) {
                         continue;
                     }
@@ -337,7 +402,7 @@ class file_managment
             // Create record in SQL DB (or replace old)
             $mysql->query('insert into ' . prefix . '_' . $this->tname . ' ' .
                 '(name, storage, orig_name, folder, date, user, owner_id, category, linked_ds, linked_id, plugin, pidentity, description) ' .
-                'values (' . db_squote($fname) . ', 1,' . db_squote($origFname) . ',' . db_squote($dir1 . '/' . $dir2 . '/' . $xDir) . ', unix_timestamp(now()), ' . db_squote($userROW['name']) . ',' . db_squote($userROW['id']) . ', ' . $this->tcat . ', ' . db_squote($param['linked_ds']) . ', ' . db_squote($param['linked_id']) . ', ' . db_squote($param['plugin']) . ', ' . db_squote($param['pidentity']) . ', ' . db_squote($param['description']) . ')');
+                'values (' . db_squote($fname) . ', ' . db_squote($storage) . ',' . db_squote($origFname) . ',' . db_squote($dir1 . '/' . $dir2 . '/' . $xDir) . ', unix_timestamp(now()), ' . db_squote($userROW['name']) . ',' . db_squote($userROW['id']) . ', ' . $this->tcat . ', ' . db_squote($param['linked_ds']) . ', ' . db_squote($param['linked_id']) . ', ' . db_squote($param['plugin']) . ', ' . db_squote($param['pidentity']) . ', ' . db_squote($param['description']) . ')');
             $rowID = $mysql->record('select LAST_INSERT_ID() as id');
             // SQL error
             if (!is_array($rowID)) {
@@ -506,15 +571,22 @@ class file_managment
                 msg(['type' => 'error', 'text' => $lang['upload.error.perm.delete']]);
                 return 0;
             }
-            $storageDir = ($row['storage'] ? $config['attach_dir'] : $this->dname) . $row['folder'];
+            if ((int)$row['storage'] === 2) {
+                if (!function_exists('ngcms_private_upload_path')) {
+                    throw new RuntimeException('The core private upload path helper is unavailable for file deletion.');
+                }
+                $storageDir = dirname(ngcms_private_upload_path((string)$row['folder'], (string)$row['name']));
+            } else {
+                $storageDir = ($row['storage'] ? $config['attach_dir'] : $this->dname) . $row['folder'];
+            }
             // Check if thumb file exists & delete it
-            if ($row['preview'] && file_exists($storageDir . '/thumb/' . $row['name'])) {
+            if (empty($param['keep_file']) && $row['preview'] && file_exists($storageDir . '/thumb/' . $row['name'])) {
                 if (!@unlink($storageDir . '/thumb/' . $row['name'])) {
                     msg(['type' => 'error', 'text' => str_replace('{file}', $row['folder'] . '/thumb/' . $row['name'], $lang['upload.error.delete'])]);
                 }
             }
             // Check if file file exists & delete it
-            if (file_exists($storageDir . '/' . $row['name'])) {
+            if (empty($param['keep_file']) && file_exists($storageDir . '/' . $row['name'])) {
                 if (!@unlink($storageDir . '/' . $row['name'])) {
                     msg(['type' => 'error', 'text' => str_replace('{file}', $row['folder'] . '/' . $row['name'], $lang['upload.error.delete'])]);
                     return 0;
@@ -567,6 +639,10 @@ class file_managment
             $limit = 'name = ' . db_squote($param['name']) . ' and folder=' . db_squote($param['category']);
         }
         if (is_array($row = $mysql->record('select * from ' . prefix . '_' . $this->tname . ' where ' . $limit))) {
+            if ((int)$row['storage'] === 2 && $param['move']) {
+                msg(['type' => 'error', 'text' => $lang['upload.error.rename']]);
+                return 0;
+            }
             if ($param['move']) {
                 if ($param['newcategory']) {
                     $param['newcategory'] = trim(str_replace([' ', '\\', '/', chr(0)], ['_', ''], $param['newcategory']));
@@ -591,22 +667,35 @@ class file_managment
                 return 0;
             }
             // Check if we have enough access and all required directories are created
-            if (!is_writable($this->dname . $row['folder'] . '/' . $row['name'])) {
+            if ((int)$row['storage'] === 2) {
+                if (!function_exists('ngcms_private_upload_path')) {
+                    throw new RuntimeException('The core private upload path helper is unavailable for file rename.');
+                }
+                $sourcePath = ngcms_private_upload_path((string)$row['folder'], (string)$row['name']);
+                $storageDirectory = dirname($sourcePath);
+                $storageRoot = ngcms_private_upload_dir();
+            } else {
+                $storageRoot = $row['storage'] ? $config['attach_dir'] : $this->dname;
+                $storageDirectory = rtrim($storageRoot, '/\\') . DIRECTORY_SEPARATOR . $row['folder'];
+                $sourcePath = $storageDirectory . DIRECTORY_SEPARATOR . $row['name'];
+            }
+            if (!is_writable($sourcePath)) {
                 msg(['type' => 'error', 'text' => $lang['upload.error.sysperm.access']]);
                 return 0;
             }
-            if ($param['move'] && !is_dir($this->dname . $param['newcategory'])) {
+            if ($param['move'] && !is_dir(rtrim($storageRoot, '/\\') . DIRECTORY_SEPARATOR . $param['newcategory'])) {
                 msg(['type' => 'error', 'text' => str_replace('{category}', $param['newcategory'], $lang['upload.error.catnexists'])]);
                 return 0;
             }
             if ($param['move']) {
                 // MOVE action
-                if (copy($this->dname . $row['folder'] . '/' . $row['name'], $this->dname . $param['newcategory'] . '/' . $newname)) {
-                    unlink($this->dname . $row['folder'] . '/' . $row['name']);
+                $targetDirectory = rtrim($storageRoot, '/\\') . DIRECTORY_SEPARATOR . $param['newcategory'];
+                if (copy($sourcePath, $targetDirectory . '/' . $newname)) {
+                    unlink($sourcePath);
                     $mysql->query('update ' . prefix . '_' . $this->tname . ' set name=' . db_squote($newname) . ', orig_name=' . db_squote($newname) . ', folder=' . db_squote($param['newcategory']) . ' where id = ' . $row['id']);
-                    if (file_exists($this->dname . $row['folder'] . '/thumb/' . $row['name'])) {
-                        copy($this->dname . $row['folder'] . '/thumb/' . $row['name'], $this->dname . $param['newcategory'] . '/thumb/' . $newname);
-                        unlink($this->dname . $row['folder'] . '/thumb/' . $row['name']);
+                    if (file_exists($storageDirectory . '/thumb/' . $row['name'])) {
+                        copy($storageDirectory . '/thumb/' . $row['name'], $targetDirectory . '/thumb/' . $newname);
+                        unlink($storageDirectory . '/thumb/' . $row['name']);
                     }
                     return 1;
                 } else {
@@ -615,11 +704,11 @@ class file_managment
                 }
             } else {
                 // RENAME action
-                if (rename($this->dname . $row['folder'] . '/' . $row['name'], $this->dname . $row['folder'] . '/' . $newname)) {
+                if (rename($sourcePath, $storageDirectory . '/' . $newname)) {
                     msg(['text' => $lang['upload.renamed']]);
                     $mysql->query('update ' . prefix . '_' . $this->tname . ' set name=' . db_squote($newname) . ', orig_name=' . db_squote($newname) . ' where id = ' . $row['id']);
-                    if (file_exists($this->dname . $row['folder'] . '/thumb/' . $row['name'])) {
-                        rename($this->dname . $row['folder'] . '/thumb/' . $row['name'], $this->dname . $row['folder'] . '/thumb/' . $newname);
+                    if (file_exists($storageDirectory . '/thumb/' . $row['name'])) {
+                        rename($storageDirectory . '/thumb/' . $row['name'], $storageDirectory . '/thumb/' . $newname);
                     }
                     return 1;
                 }
@@ -762,6 +851,12 @@ class image_managment
             case 6:
                 $cmd .= 'bmp';
                 break;
+            case 18:
+                $cmd .= 'webp';
+                break;
+            case 19:
+                $cmd .= 'avif';
+                break;
         }
         if (!$cmd || !function_exists($cmd)) {
             if ($param['rpc']) {
@@ -783,6 +878,12 @@ class image_managment
             case 6:
                 $img = @imagecreatefrombmp($fname);
                 break;
+            case 18:
+                $img = @imagecreatefromwebp($fname);
+                break;
+            case 19:
+                $img = @imagecreatefromavif($fname);
+                break;
         }
         if (!$img) {
             if ($param['rpc']) {
@@ -803,8 +904,8 @@ class image_managment
             imagefill($newimg, 0, 0, $nTColor);
             imagecolortransparent($newimg, $nTColor);
         } else {
-            // Check for ALPHA transparency in PNG
-            if ($origType == 3) {
+            // Check for ALPHA transparency in PNG, WebP and AVIF
+            if ($origType == 3 || $origType == 18 || $origType == 19) {
                 imagealphablending($newimg, false);
                 $nTColor = imagecolorallocatealpha($newimg, 0, 0, 0, 127);
                 imagefill($newimg, 0, 0, $nTColor);
@@ -826,6 +927,12 @@ class image_managment
                 break;
             case 6:
                 $res = @imagebmp($newimg, $dir . '/thumb/' . $file);
+                break;
+            case 18:
+                $res = @imagewebp($newimg, $dir . '/thumb/' . $file, ($quality >= 10 && $quality <= 100) ? $quality : 80);
+                break;
+            case 19:
+                $res = @imageavif($newimg, $dir . '/thumb/' . $file, ($quality >= 10 && $quality <= 100) ? $quality : 80);
                 break;
         }
         // Set correct permissions to file
@@ -886,6 +993,12 @@ class image_managment
             case 6:
                 $cmd .= 'bmp';
                 break;
+            case 18:
+                $cmd .= 'webp';
+                break;
+            case 19:
+                $cmd .= 'avif';
+                break;
         }
         if (!$cmd || !function_exists($cmd)) {
             if ($param['rpc']) {
@@ -907,6 +1020,12 @@ class image_managment
             case 6:
                 $img = @imagecreatefrombmp($param['image']);
                 break;
+            case 18:
+                $img = @imagecreatefromwebp($param['image']);
+                break;
+            case 19:
+                $img = @imagecreatefromavif($param['image']);
+                break;
         }
         if (!$img) {
             if ($param['rpc']) {
@@ -924,7 +1043,7 @@ class image_managment
             // Create image area
             $newImg = imagecreatetruecolor($newX, $newY);
             // Preserver transparency
-            if (($origType == 1) || ($origType == 3)) {
+            if (($origType == 1) || ($origType == 3) || ($origType == 18) || ($origType == 19)) {
                 imagecolortransparent($newImg, imagecolorallocatealpha($newImg, 0, 0, 0, 127));
                 imagealphablending($newImg, false);
                 imagesavealpha($newImg, true);
@@ -937,84 +1056,110 @@ class image_managment
             $origY = $newY;
         }
         if ($param['stamp']) {
-            // LOAD STAMP IMAGE
-            if (!file_exists($param['stampfile']) || !is_array($sz = @getimagesize($param['stampfile']))) {
-                if (!$param['stamp_noerror']) {
-                    if ($param['rpc']) {
-                        return ['status' => 0, 'errorCode' => 404, 'errorText' => $lang['upload.error.openstamp']];
-                    }
-                    msg(['type' => 'error', 'text' => $lang['upload.error.openstamp']]);
+            // ========== TEXT WATERMARK ==========
+            $text = !empty($param['stamp_text']) ? $param['stamp_text'] : ($_SERVER['HTTP_HOST'] ?? 'watermark');
+            $fontSize = isset($param['stamp_font_size']) ? intval($param['stamp_font_size']) : 16;
+            $textColor = $this->hexToRgb($param['stamp_font_color'] ?? '#FFFFFF');
+            $textOpacity = isset($param['stamp_text_opacity']) ? intval($param['stamp_text_opacity']) : 80;
+            $bgColor = $this->hexToRgb($param['stamp_bg_color'] ?? '#000000');
+            $bgOpacity = isset($param['stamp_bg_opacity']) ? intval($param['stamp_bg_opacity']) : 50;
+            $position = $param['stamp_position'] ?? 'bottom_right';
+            $tileSpacing = isset($param['stamp_tile_spacing']) ? intval($param['stamp_tile_spacing']) : 200;
+            $fontFile = $param['stamp_font'] ?? 'arial.ttf';
+            // Add .ttf extension if not present
+            if (!preg_match('/\.(ttf|otf)$/i', $fontFile)) {
+                $fontFile .= '.ttf';
+            }
+            // Find font file (try common paths)
+            $fontPath = '';
+            $fontSearchPaths = [
+                dirname(__FILE__) . '/../../trash/' . $fontFile,
+                dirname(__FILE__) . '/../../fonts/' . $fontFile,
+                dirname(__FILE__) . '/../fonts/' . $fontFile,
+                '/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf',
+                'C:/Windows/Fonts/' . $fontFile,
+                'C:/Windows/Fonts/arial.ttf',
+            ];
+            foreach ($fontSearchPaths as $path) {
+                if (file_exists($path)) {
+                    $fontPath = $path;
+                    break;
                 }
-                return 0;
             }
-            $stampX = $sz[0];
-            $stampY = $sz[1];
-            $stampType = $sz[2];
-            // Check if we can open this type of image and open it
-            $cmd = 'imagecreatefrom';
-            switch ($origType) {
-                case 1:
-                    $cmd .= 'gif';
-                    break;
-                case 2:
-                    $cmd .= 'jpeg';
-                    break;
-                case 3:
-                    $cmd .= 'png';
-                    break;
-                case 6:
-                    $cmd .= 'bmp';
-                    break;
-            }
-            if (!$cmd || !function_exists($cmd)) {
-                if ($param['rpc']) {
-                    return ['status' => 0, 'errorCode' => 402, 'errorText' => str_replace('{func}', $cmd, $lang['upload.error.libformat'])];
-                }
-                msg(['type' => 'error', 'text' => str_replace('{func}', $cmd, $lang['upload.error.libformat'])]);
-                return;
-            }
-            switch ($stampType) {
-                case 1:
-                    $stamp = @imagecreatefromgif($param['stampfile']);
-                    break;
-                case 2:
-                    $stamp = @imagecreatefromjpeg($param['stampfile']);
-                    break;
-                case 3:
-                    $stamp = @imagecreatefrompng($param['stampfile']);
-                    break;
-                case 6:
-                    $stamp = @imagecreatefrombmp($param['stampfile']);
-                    break;
-            }
-            if (!$stamp) {
-                if (!$param['stamp_noerror']) {
-                    if ($param['rpc']) {
-                        return ['status' => 0, 'errorCode' => 405, 'errorText' => $lang['upload.error.openstamp']];
-                    }
-                    msg(['type' => 'error', 'text' => $lang['upload.error.openstamp']]);
-                }
-                return;
-            }
-            // BOTH FILES ARE LOADED
-            $destX = $origX - $stampX - 10;
-            $destY = $origY - $stampY - 10;
-            if (($destX < 0) || ($destY < 0)) {
-                if (!$param['stamp_noerror']) {
-                    if ($param['rpc']) {
-                        return ['status' => 0, 'errorCode' => 406, 'errorText' => $lang['upload.error.stampsize']];
-                    }
-                    msg(['type' => 'error', 'text' => $lang['upload.error.stampsize']]);
-                }
-                return;
-            }
-            if (($param['stamp_transparency'] < 1) || ($param['stamp_transparency'] > 100)) {
-                $param['stamp_transparency'] = 40;
-            }
-            if ($stampType == 3) {
-                $this->imagecopymerge_alpha($img, $stamp, $destX, $destY, 0, 0, $stampX, $stampY, $param['stamp_transparency']);
+            // Fallback to GD built-in font if TTF not found
+            $useTTF = !empty($fontPath);
+            // Calculate text dimensions
+            if ($useTTF) {
+                $textBox = imagettfbbox($fontSize, 0, $fontPath, $text);
+                $textWidth = abs($textBox[4] - $textBox[0]);
+                $textHeight = abs($textBox[5] - $textBox[1]);
             } else {
-                imagecopymerge($img, $stamp, $destX, $destY, 0, 0, $stampX, $stampY, $param['stamp_transparency']);
+                $textWidth = strlen($text) * 8;
+                $textHeight = 16;
+                $fontSize = 3; // GD font size
+            }
+            $padding = 10;
+            $stampWidth = $textWidth + ($padding * 2);
+            $stampHeight = $textHeight + ($padding * 2);
+            // Convert opacity to alpha (0-127 for GD, where 0 = opaque, 127 = transparent)
+            $textAlpha = intval(127 - ($textOpacity * 1.27));
+            $bgAlpha = intval(127 - ($bgOpacity * 1.27));
+            // Function to draw single watermark
+            $drawWatermark = function ($destX, $destY) use (
+                $img,
+                $text,
+                $fontSize,
+                $textColor,
+                $textAlpha,
+                $bgColor,
+                $bgAlpha,
+                $stampWidth,
+                $stampHeight,
+                $padding,
+                $textHeight,
+                $useTTF,
+                $fontPath
+            ) {
+                // Draw background
+                $bgColorAlloc = imagecolorallocatealpha($img, $bgColor['r'], $bgColor['g'], $bgColor['b'], $bgAlpha);
+                imagefilledrectangle($img, $destX, $destY, $destX + $stampWidth, $destY + $stampHeight, $bgColorAlloc);
+                // Draw text
+                $textColorAlloc = imagecolorallocatealpha($img, $textColor['r'], $textColor['g'], $textColor['b'], $textAlpha);
+                if ($useTTF) {
+                    imagettftext($img, $fontSize, 0, $destX + $padding, $destY + $stampHeight - $padding, $textColorAlloc, $fontPath, $text);
+                } else {
+                    imagestring($img, $fontSize, $destX + $padding, $destY + $padding, $text, $textColorAlloc);
+                }
+            };
+            // Apply watermark based on position
+            if ($position === 'tile') {
+                // Multiple watermarks across entire image
+                $spacingX = $stampWidth + $tileSpacing;
+                $spacingY = $stampHeight + $tileSpacing;
+                for ($y = 0; $y < $origY; $y += $spacingY) {
+                    for ($x = 0; $x < $origX; $x += $spacingX) {
+                        if ($x + $stampWidth <= $origX && $y + $stampHeight <= $origY) {
+                            $drawWatermark($x, $y);
+                        }
+                    }
+                }
+            } else {
+                // Single watermark at specified position
+                $positions = [
+                    'bottom_right' => [$origX - $stampWidth - 10, $origY - $stampHeight - 10],
+                    'bottom_left' => [10, $origY - $stampHeight - 10],
+                    'bottom_center' => [($origX - $stampWidth) / 2, $origY - $stampHeight - 10],
+                    'top_right' => [$origX - $stampWidth - 10, 10],
+                    'top_left' => [10, 10],
+                    'top_center' => [($origX - $stampWidth) / 2, 10],
+                    'center' => [($origX - $stampWidth) / 2, ($origY - $stampHeight) / 2],
+                    'center_left' => [10, ($origY - $stampHeight) / 2],
+                    'center_right' => [$origX - $stampWidth - 10, ($origY - $stampHeight) / 2],
+                ];
+                if (isset($positions[$position])) {
+                    list($destX, $destY) = $positions[$position];
+                    $drawWatermark(intval($destX), intval($destY));
+                }
             }
         }
         $newX = $origX;
@@ -1058,6 +1203,12 @@ class image_managment
                 break;
             case 6:
                 $res = @imagebmp($img, $param['outfile']);
+                break;
+            case 18:
+                $res = @imagewebp($img, $param['outfile'], $param['outquality']);
+                break;
+            case 19:
+                $res = @imageavif($img, $param['outfile'], $param['outquality']);
                 break;
         }
         if (!$res) {
@@ -1115,5 +1266,32 @@ class image_managment
         }
         // The image copy
         imagecopy($dst_im, $src_im, $dst_x, $dst_y, $src_x, $src_y, $src_w, $src_h);
+    }
+    /**
+     * Convert HEX color to RGB array
+     * @param string $hex - HEX color string (#FFFFFF or FFFFFF)
+     * @return array - ['r' => 255, 'g' => 255, 'b' => 255]
+     */
+    public function hexToRgb($hex)
+    {
+        // Remove # if present
+        $hex = ltrim($hex, '#');
+        // Convert to RGB
+        if (strlen($hex) == 6) {
+            list($r, $g, $b) = [
+                hexdec(substr($hex, 0, 2)),
+                hexdec(substr($hex, 2, 2)),
+                hexdec(substr($hex, 4, 2))
+            ];
+        } elseif (strlen($hex) == 3) {
+            list($r, $g, $b) = [
+                hexdec(str_repeat(substr($hex, 0, 1), 2)),
+                hexdec(str_repeat(substr($hex, 1, 1), 2)),
+                hexdec(str_repeat(substr($hex, 2, 1), 2))
+            ];
+        } else {
+            return ['r' => 0, 'g' => 0, 'b' => 0];
+        }
+        return ['r' => $r, 'g' => $g, 'b' => $b];
     }
 }

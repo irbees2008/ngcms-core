@@ -62,9 +62,10 @@ function news_showone($newsID, $alt_name, $callingParams = [])
             return false;
         }
         // Check if canonical link should be added
-        if ($callingParams['addCanonicalLink']) {
-            $EXTRA_HTML_VARS[] = ['type' => 'plain', 'data' => '<link rel="canonical" href="' . newsGenerateLink($row, false, 0, true) . '"/>'];
-        }
+        // ОТКЛЮЧЕНО: canonical выводится через {{ canonical }}, дублирование убрано
+        // if ($callingParams['addCanonicalLink']) {
+        //     $EXTRA_HTML_VARS[] = ['type' => 'plain', 'data' => '<link rel="canonical" href="' . newsGenerateLink($row, false, 0, true) . '"/>'];
+        // }
         // Check if correct categories were specified [ only for SINGLE category display
         if ((isset($callingParams['validateCategoryID']) || isset($callingParams['validateCategoryAlt']) || 1) && $config['news_multicat_url']) {
             if (getIsSet($row['catid'])) {
@@ -141,13 +142,24 @@ function news_showone($newsID, $alt_name, $callingParams = [])
             $callingParams['linkedFiles']['ids'][] = $v['id'];
             $callingParams['linkedFiles']['data'][] = $v;
             // Calculate file size
-            $fname = ($v['storage'] ? $config['attach_dir'] : $config['files_dir']) . $v['folder'] . '/' . $v['name'];
+            if ((int)$v['storage'] === 2) {
+                if (function_exists('finance_private_file_path') && function_exists('finance_private_file_url')) {
+                    $fname = finance_private_file_path((string)$v['folder'], (string)$v['name']);
+                    $fileUrl = finance_private_file_url((int)$v['id'], (int)$row['id']);
+                } else {
+                    $fname = '';
+                    $fileUrl = '';
+                }
+            } else {
+                $fname = ($v['storage'] ? $config['attach_dir'] : $config['files_dir']) . $v['folder'] . '/' . $v['name'];
+                $fileUrl = ($v['storage'] ? $config['attach_url'] : $config['files_url']) . '/' . $v['folder'] . '/' . $v['name'];
+            }
             $sizeBytes = (is_readable($fname) && ($fs = @filesize($fname))) ? $fs : 0;
             $sizeHuman = $sizeBytes ? Formatsize($sizeBytes) : '';
             $tvars['vars']['_files'][] = [
                 'plugin'      => $v['plugin'],
                 'pidentity'   => $v['pidentity'],
-                'url'         => ($v['storage'] ? $config['attach_url'] : $config['files_url']) . '/' . $v['folder'] . '/' . $v['name'],
+                'url'         => $fileUrl,
                 'name'        => $v['name'],
                 'origName'    => secure_html($v['orig_name']),
                 'description' => secure_html($v['description']),
@@ -339,10 +351,18 @@ function news_showone($newsID, $alt_name, $callingParams = [])
     if (is_array(getIsSet($callingParams['emulate'])) || ($callingParams['style'] == 'export')) {
         return $tpl->show($templateName);
     }
-    // Set meta tags for news page
-    $SYSTEM_FLAGS['meta']['description'] = (getIsSet($row['description']) != '') ? $row['description'] : ((getIsSet($catmap[$masterCatID]) && is_array($catz[$catmap[$masterCatID]])) ? $catz[$catmap[$masterCatID]]['description'] : $config['description']);
+    // Set meta tags for news page (обрезаем для SEO оптимизации)
+    $metaDescription = (getIsSet($row['description']) != '') ? $row['description'] : ((getIsSet($catmap[$masterCatID]) && is_array($catz[$catmap[$masterCatID]])) ? $catz[$catmap[$masterCatID]]['description'] : $config['description']);
+    // Обрезаем description до 150-160 символов (рекомендация Google)
+    if (function_exists('mb_strlen') && mb_strlen($metaDescription, 'UTF-8') > 155) {
+        $metaDescription = mb_substr($metaDescription, 0, 155, 'UTF-8') . '...';
+    } elseif (strlen($metaDescription) > 155) {
+        $metaDescription = substr($metaDescription, 0, 155) . '...';
+    }
+    $SYSTEM_FLAGS['meta']['description'] = $metaDescription;
+
     $SYSTEM_FLAGS['meta']['keywords'] = (getIsSet($row['keywords']) != '') ? $row['keywords'] : ((getIsSet($catmap[$masterCatID]) && is_array($catz[$catmap[$masterCatID]])) ? $catz[$catmap[$masterCatID]]['keywords'] : $config['keywords']);
-    // Prepare title
+
     //$SYSTEM_FLAGS['info']['title']['group']	= $config["category_link"]?GetCategories($row['catid'], true):LangDate(timestamp, $row['postdate']);
     $SYSTEM_FLAGS['info']['title']['group'] = GetCategories($row['catid'], true);
     $SYSTEM_FLAGS['info']['title']['item'] = secure_html($row['title']);
@@ -528,23 +548,66 @@ function news_showlist($filterConditions = [], $paginationParams = [], $callingP
     $nCount = 0;
     $output = '';
     $outputList = [];
+    $categoryMapID = null;
     // Call `SELECT` query
     // * Check if we need to override query
     if (isset($callingParams['overrideSQLquery']) && ($callingParams['overrideSQLquery'] != '')) {
         $query['result'] = $callingParams['overrideSQLquery'];
         // ** FORCE TO DISABLE PAGINATION !!
         $callingParams['disablePagination'] = true;
+    } elseif (
+        isset($callingParams['paginationCategoryID']) &&
+        intval($callingParams['paginationCategoryID']) > 0 &&
+        is_array($filterConditions) &&
+        count($filterConditions) === 4 &&
+        mb_strtoupper($filterConditions[0]) === 'DATA' &&
+        $filterConditions[1] === 'category' &&
+        $filterConditions[2] === '=' &&
+        intval($filterConditions[3]) === intval($callingParams['paginationCategoryID'])
+    ) {
+        $categoryMapID = intval($callingParams['paginationCategoryID']);
+        $query['result'] = 'SELECT N.* FROM (SELECT DISTINCT N.id, N.catpinned, N.postdate FROM ' . prefix . '_news_map NM FORCE INDEX (newsmap_category_news) INNER JOIN ' . prefix . '_news N ON N.id = NM.newsID WHERE NM.categoryID = ' . db_squote($categoryMapID) . ' AND N.approve = 1 ORDER BY N.catpinned DESC, N.postdate DESC LIMIT ' . $limit_start . ', ' . $limit_count . ') AS NP JOIN ' . prefix . '_news N ON N.id = NP.id ORDER BY NP.catpinned DESC, NP.postdate DESC';
+    } elseif (
+        is_array($filterConditions) &&
+        count($filterConditions) === 4 &&
+        mb_strtoupper($filterConditions[0]) === 'DATA' &&
+        $filterConditions[1] === 'mainpage' &&
+        $filterConditions[2] === '=' &&
+        intval($filterConditions[3]) === 1 &&
+        $orderBy === 'pinned desc, postdate desc'
+    ) {
+        $query['result'] = 'SELECT N.* FROM (SELECT N.id, N.pinned, N.postdate FROM ' . prefix . '_news N FORCE INDEX (idx_news_home_order) WHERE N.approve = 1 AND N.mainpage = 1 ORDER BY N.pinned DESC, N.postdate DESC LIMIT ' . $limit_start . ', ' . $limit_count . ') AS NP JOIN ' . prefix . '_news N ON N.id = NP.id ORDER BY NP.pinned DESC, NP.postdate DESC';
+    } elseif (
+        is_array($filterConditions) &&
+        count($filterConditions) === 4 &&
+        mb_strtoupper($filterConditions[0]) === 'DATA' &&
+        $filterConditions[1] === 'mainpage' &&
+        $filterConditions[2] === '=' &&
+        intval($filterConditions[3]) === 1 &&
+        $orderBy === 'pinned desc, id desc'
+    ) {
+        $query['result'] = 'SELECT N.* FROM ' . prefix . '_news N FORCE INDEX (news_mainid) WHERE N.approve = 1 AND N.mainpage = 1' . $query['orderby'];
     } else {
-        // $query['result'] = "SELECT * FROM " . prefix . "_news WHERE " . $query['filter'] . $query['orderby'];
-        // Optimize query
-        $query['result'] = 'SELECT N.* FROM ' . prefix . '_news N JOIN (SELECT id FROM ' . prefix . '_news WHERE ' . $query['filter'] . ') as NT on NT.id=N.id' . $query['orderby'];
+        $newsTable = prefix . '_news';
+        $newsIndex = '';
+        if (!$filterConditions && $orderBy === 'pinned desc, postdate desc') {
+            $newsIndex = ' FORCE INDEX (idx_news_approved_pinned_order)';
+        }
+        $query['result'] = 'SELECT N.* FROM ' . $newsTable . ' N JOIN (SELECT id FROM ' . $newsTable . $newsIndex
+            . ' WHERE ' . $query['filter'] . $query['orderby'] . ') as NT on NT.id=N.id'
+            . ' order by ' . $orderBy;
     }
     $selectResult = $mysql->select($query['result']);
+    if (!is_array($selectResult)) {
+        throw new \RuntimeException('Failed to load news list from the database.');
+    }
     if (isset($callingParams['disablePagination']) && ($callingParams['disablePagination'])) {
         $newsCount = count($selectResult);
         $pages_count = 1;
     } else {
-        if (isset($callingParams['paginationCategoryID']) && ($callingParams['paginationCategoryID'] > 0)) {
+        if ($categoryMapID !== null) {
+            $query['count'] = 'SELECT COUNT(DISTINCT newsID) FROM ' . prefix . '_news_map WHERE categoryID = ' . db_squote($categoryMapID);
+        } elseif (isset($callingParams['paginationCategoryID']) && ($callingParams['paginationCategoryID'] > 0)) {
             $query['count'] = 'SELECT count(*) FROM ' . prefix . '_news_map NM JOIN ' . prefix . '_news N ON NM.newsID = N.id WHERE NM.categoryID = ' . db_squote($callingParams['paginationCategoryID']) . ' AND N.approve = 1';
         } else {
             $query['count'] = 'SELECT count(*) as count FROM ' . prefix . '_news WHERE ' . $query['filter'];
@@ -657,13 +720,24 @@ function news_showlist($filterConditions = [], $paginationParams = [], $callingP
                     $callingParams['linkedFiles']['ids'][] = $v['id'];
                     $callingParams['linkedFiles']['data'][] = $v;
                     // Calculate file size
-                    $fname = ($v['storage'] ? $config['attach_dir'] : $config['files_dir']) . $v['folder'] . '/' . $v['name'];
+                    if ((int)$v['storage'] === 2) {
+                        if (function_exists('finance_private_file_path') && function_exists('finance_private_file_url')) {
+                            $fname = finance_private_file_path((string)$v['folder'], (string)$v['name']);
+                            $fileUrl = finance_private_file_url((int)$v['id'], (int)$row['id']);
+                        } else {
+                            $fname = '';
+                            $fileUrl = '';
+                        }
+                    } else {
+                        $fname = ($v['storage'] ? $config['attach_dir'] : $config['files_dir']) . $v['folder'] . '/' . $v['name'];
+                        $fileUrl = ($v['storage'] ? $config['attach_url'] : $config['files_url']) . '/' . $v['folder'] . '/' . $v['name'];
+                    }
                     $sizeBytes = (is_readable($fname) && ($fs = @filesize($fname))) ? $fs : 0;
                     $sizeHuman = $sizeBytes ? Formatsize($sizeBytes) : '';
                     $tvars['vars']['_files'][] = [
                         'plugin'      => $v['plugin'],
                         'pidentity'   => $v['pidentity'],
-                        'url'         => ($v['storage'] ? $config['attach_url'] : $config['files_url']) . '/' . $v['folder'] . '/' . $v['name'],
+                        'url'         => $fileUrl,
                         'name'        => $v['name'],
                         'origName'    => secure_html($v['orig_name']),
                         'description' => secure_html($v['description']),
@@ -723,7 +797,7 @@ function news_showlist($filterConditions = [], $paginationParams = [], $callingP
         $tvars['vars']['news']['embed']['imgCount'] = count($tvars['vars']['news']['embed']['images']);
         // Print icon if only one parent category
         if (isset($row['catid']) && $row['catid'] && !mb_stristr(',', $row['catid']) && isset($catmap[$row['catid']]) && ($catalt = $catmap[$row['catid']]) && isset($catz[$catalt]['icon']) && $catz[$catalt]['icon']) {
-            // [TWIG] news.flags.hasCategoryIcon
+            //  news.flags.hasCategoryIcon
             $tvars['news']['flags']['hasCategoryIcon'] = true;
             $tvars['vars']['icon'] = $catz[$catalt]['icon'];
             $tvars['vars']['[icon]'] = '';
@@ -741,7 +815,7 @@ function news_showlist($filterConditions = [], $paginationParams = [], $callingP
             }
         }
         if ($showModifyButtons) {
-            // [TWIG] news.flags.canEdit, news.flags.canDelete, news.url.edit, news.url.delete
+            //  news.flags.canEdit, news.flags.canDelete, news.url.edit, news.url.delete
             $tvars['vars']['news']['flags']['canEdit'] = true;
             $tvars['vars']['news']['flags']['canDelete'] = true;
             $tvars['vars']['news']['url']['edit'] = admin_url . '/admin.php?mod=news&amp;action=edit&amp;id=' . $row['id'];

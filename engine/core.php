@@ -299,11 +299,13 @@ if (!isset($config['uprefix'])) {
 $config['date_adjust'] = (isset($config['date_adjust']) && is_numeric($config['date_adjust'])) ? intval($config['date_adjust']) : 0;
 // Set up default timezone [ default: Europe/Moscow ]
 date_default_timezone_set($config['timezone'] ?? 'Europe/Moscow');
+
 // Call multisites processor again with loaded config (полноценный мультисайт)
 multi_multisites();
 // Call multidomains processor (базовая мультидоменность + замена переменных {domain})
 multi_multidomains();
 //print "siteDomainName [".$siteDomainName."]<br/>\n";
+
 // Define template paths early so they're available for plugins
 // ВАЖНО: делаем это ПОСЛЕ замены {domain}, чтобы в константах были правильные пути
 if (!defined('tpl_site')) {
@@ -338,6 +340,7 @@ session_set_cookie_params([
     'samesite' => $isHttps ? 'None' : 'Lax',
 ]);
 session_start();
+$timer->registerEvent('PHP session started');
 // Базовая привязка сессии к User-Agent (мягкая защита)
 if (!isset($_SESSION['ua_fingerprint'])) {
     $_SESSION['ua_fingerprint'] = substr(hash('sha256', ($_SERVER['HTTP_USER_AGENT'] ?? 'na')), 0, 16);
@@ -352,11 +355,13 @@ if (!isset($_SESSION['ua_fingerprint'])) {
 include_once root . 'includes/inc/consts.inc.php';
 include_once root . 'includes/inc/functions.inc.php';
 include_once root . 'includes/inc/extras.inc.php';
+
 // Early load ng-helpers to make functions available for all plugins
 $ngHelpersFile = root . 'engine/plugins/ng-helpers/src/helpers.php';
 if (file_exists($ngHelpersFile)) {
     require_once $ngHelpersFile;
 }
+
 include_once 'includes/classes/templates.class.php';
 include_once 'includes/classes/parse.class.php';
 include_once 'includes/classes/uhandler.class.php';
@@ -377,9 +382,15 @@ set_error_handler('ngErrorHandler');
 register_shutdown_function('ngShutdownHandler');
 // Initialize TWIG engine
 $twigLoader = new NGTwigLoader(root);
+// Configure cache path for multisite (separate cache for each domain)
+$twigCachePath = root . 'cache/twig/' . ($multiDomainName ?: 'main') . '/';
+// Create cache directory if not exists
+if (!is_dir($twigCachePath)) {
+    @mkdir($twigCachePath, 0755, true);
+}
 // Configure environment and general parameters
 $twig = new NGTwigEnvironment($twigLoader, [
-    'cache'       => root . 'cache/twig/',
+    'cache'       => $twigCachePath,
     'auto_reload' => true,
     'autoescape'  => false,
     'charset'     => 'UTF-8',
@@ -405,17 +416,15 @@ if (!isset($template['vars']['what']) || $template['vars']['what'] === '') {
 if (!isset($template['vars']['version']) || $template['vars']['version'] === '') {
     $template['vars']['version'] = defined('engineVersion') ? engineVersion : '';
 }
-// Some scanners read only headers/HEAD, add X-Generator when enabled in config
-if (!empty($config['x_ng_headers'])) {
-    $gen = (defined('engineName') ? engineName : 'NGCMS');
-    if (defined('engineVersion')) {
-        $gen .= ' ' . engineVersion;
-    }
-    if (defined('engineVersionType') && defined('engineVersionBuild')) {
-        $gen .= ' (' . engineVersionType . ' ' . engineVersionBuild . ')';
-    }
-    header('X-Generator: ' . $gen);
+// Advertise the engine name and version in every HTTP response.
+$gen = (defined('engineName') ? engineName : 'NGCMS');
+if (defined('engineVersion')) {
+    $gen .= ' ' . engineVersion;
 }
+if (defined('engineVersionType') && defined('engineVersionBuild')) {
+    $gen .= ' (' . engineVersionType . ' ' . engineVersionBuild . ')';
+}
+header('X-Generator: ' . $gen);
 // Give domainName to URL handler engine for generating absolute links
 $UHANDLER->setOptions(['domainPrefix' => $config['home_url']]);
 // Check if engine is installed in subdirectory
@@ -511,19 +520,28 @@ $timer->registerEvent('ALL core-related plugins are loaded');
 // Execute 'core' action handler
 executeActionHandler('core');
 $timer->registerEvent('ALL core-related plugins are executed');
+// After plugins (e.g. template_switch) $config['theme'] may have changed — recalculate paths
+$activeTplSite = site_root . 'templates/' . $config['theme'] . '/';
+$activeTplUrl  = $config['home_url'] . '/templates/' . $config['theme'];
 // Update global variables in TWIG after plugins execution (if runtime was initialized by plugins)
 try {
-    $twig->addGlobal('tpl_url', tpl_url);
+    $twig->addGlobal('tpl_url', $activeTplUrl);
     $twig->addGlobal('scriptLibrary', scriptLibrary);
 } catch (LogicException $e) {
     // Runtime already initialized by plugins, use mergeGlobals instead
     $twig->env->mergeGlobals([
-        'tpl_url' => tpl_url,
+        'tpl_url' => $activeTplUrl,
         'scriptLibrary' => scriptLibrary,
     ]);
 }
-// Reconfigure allowed template paths in TWIG - site template is also available
-$twigLoader->setPaths([tpl_site, root]);
+// Reconfigure allowed template paths in TWIG - use active theme (may differ from tpl_site constant)
+// If theme was switched (e.g. by template_switch plugin), keep tpl_site as fallback so templates
+// missing in the switched theme (slider.tpl, etc.) are found in the default theme.
+if ($activeTplSite !== tpl_site) {
+    $twigLoader->setPaths([$activeTplSite, tpl_site, root]);
+} else {
+    $twigLoader->setPaths([$activeTplSite, root]);
+}
 // Load lang files after executing core scripts. This is done for the switcher plugin.
 $lang = LoadLang('common');
 $lang = LoadLangTheme();

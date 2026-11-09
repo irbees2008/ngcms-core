@@ -19,7 +19,7 @@ if (!defined('engineName')) define('engineName', 'NGCMS');
 if (!defined('engineVersion')) define('engineVersion', '1.0.0');
 if (!defined('engineVersionType')) define('engineVersionType', 'GIT');
 if (!defined('engineVersionBuild')) define('engineVersionBuild', '996871b');
-if (!defined('minDBVersion')) define('minDBVersion', 8);
+if (!defined('minDBVersion')) define('minDBVersion', 13);
 if (!defined('prefix')) define('prefix', $config['prefix']);
 if (!defined('uprefix')) define('uprefix', $config['uprefix']);
 if (!defined('home')) define('home', $config['home_url']);

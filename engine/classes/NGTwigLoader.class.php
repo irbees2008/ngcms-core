@@ -52,7 +52,7 @@ class NGTwigLoader implements LoaderInterface
         if ((substr($name, 0, 1) == '/') || preg_match('#^[a-z]\:\/#', $name)) {
             $this->defaultContent[$name] = $content;
         } else {
-            $this->defaultContent[$this->paths[0].'/'.$name] = $content;
+            $this->defaultContent[$this->paths[0] . '/' . $name] = $content;
         }
     }
 
@@ -140,8 +140,10 @@ class NGTwigLoader implements LoaderInterface
             $content = preg_replace(
                 [
                     "#\{l_([0-9a-zA-Z\-\_\.\#]+)}#",
+                    "#\{\{\s*l_([0-9a-zA-Z\-\_\.\#]+)\s*\}\}#",
                 ],
                 [
+                    "{{ lang['$1'] }}",
                     "{{ lang['$1'] }}",
                 ],
                 $content
@@ -176,12 +178,12 @@ class NGTwigLoader implements LoaderInterface
 
     public function isPluginHandlerCallback($m)
     {
-        return '{% if ('.(($m[1] == 'n') ? 'not ' : '')."pluginIsActive(\'".htmlspecialchars($m[2])."\')) %}".$m[3].'{% endif %}';
+        return '{% if (' . (($m[1] == 'n') ? 'not ' : '') . "pluginIsActive(\'" . htmlspecialchars($m[2]) . "\')) %}" . $m[3] . '{% endif %}';
     }
 
     public function isHandlerCallback($m)
     {
-        return '{% if ('.(($m[1] == 'n') ? 'not ' : '')."pluginIsActive(\'".htmlspecialchars($m[2])."\')) %}".$m[3].'{% endif %}';
+        return '{% if (' . (($m[1] == 'n') ? 'not ' : '') . "pluginIsActive(\'" . htmlspecialchars($m[2]) . "\')) %}" . $m[3] . '{% endif %}';
     }
 
     public function setConversion($name, $variables, $regexp = [], $options = [])
@@ -230,18 +232,18 @@ class NGTwigLoader implements LoaderInterface
         // that specified path is within $this->paths
         if ((substr($name, 0, 1) == '/') || preg_match('#^[a-z]\:\/#', $name)) {
             foreach ($this->paths as $path) {
-                if (substr($name, 0, strlen($path) + 1) == ($path.'/')) {
+                if (substr($name, 0, strlen($path) + 1) == ($path . '/')) {
                     // Path found. Check for file
                     $xname = substr($name, strlen($path) + 1);
                     $this->validateName($xname);
-                    if (is_file($path.'/'.$xname)) {
-                        $this->cache[$name] = $path.'/'.$xname;
+                    if (is_file($path . '/' . $xname)) {
+                        $this->cache[$name] = $path . '/' . $xname;
 
                         return $this->cache[$name];
                     }
                     // Check for default content
                     if ($this->defaultContent[$xname]) {
-                        $this->cache[$name] = $path.'/'.$xname;
+                        $this->cache[$name] = $path . '/' . $xname;
 
                         return $this->cache[$name];
                     }
@@ -254,14 +256,14 @@ class NGTwigLoader implements LoaderInterface
         }
 
         foreach ($this->paths as $path) {
-            if (is_file($path.'/'.$name)) {
-                $this->cache[$name] = $path.'/'.$name;
+            if (is_file($path . '/' . $name)) {
+                $this->cache[$name] = $path . '/' . $name;
 
                 return $this->cache[$name];
             }
             // Check for default content
-            if (isset($this->defaultContent[$path.'/'.$name]) && $this->defaultContent[$path.'/'.$name]) {
-                $this->cache[$name] = $path.'/'.$name;
+            if (isset($this->defaultContent[$path . '/' . $name]) && $this->defaultContent[$path . '/' . $name]) {
+                $this->cache[$name] = $path . '/' . $name;
 
                 return $this->cache[$name];
             }

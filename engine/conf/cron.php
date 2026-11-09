@@ -40,4 +40,14 @@ return array (
     'plugin' => 'nsched',
     'handler' => 'run',
   ),
+  4 => 
+  array (
+    'min' => '15',
+    'hour' => '0',
+    'day' => '*',
+    'month' => '*',
+    'dow' => '*',
+    'plugin' => 'filecleaner',
+    'handler' => 'scan',
+  ),
 );

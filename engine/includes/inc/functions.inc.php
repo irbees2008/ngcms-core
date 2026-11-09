@@ -11,6 +11,47 @@ use PHPMailer\PHPMailer\PHPMailer;
 if (!defined('NGCMS')) {
     exit('HAL');
 }
+
+/**
+ * Проверка, является ли текущий визитор ботом соцсети
+ * Боты соцсетей не должны получать сессии для правильного кэширования OG-тегов
+ * @return bool
+ */
+function isSocialBot()
+{
+    $userAgent = $_SERVER['HTTP_USER_AGENT'] ?? '';
+    return (
+        stripos($userAgent, 'TelegramBot') !== false ||
+        stripos($userAgent, 'facebookexternalhit') !== false ||
+        stripos($userAgent, 'facebookcatalog') !== false ||
+        stripos($userAgent, 'vkShare') !== false ||
+        stripos($userAgent, 'TwitterBot') !== false ||
+        stripos($userAgent, 'Twitterbot') !== false ||
+        stripos($userAgent, 'LinkedInBot') !== false ||
+        stripos($userAgent, 'WhatsApp') !== false ||
+        stripos($userAgent, 'Discordbot') !== false ||
+        stripos($userAgent, 'Slackbot') !== false
+    );
+}
+
+/**
+ * Безопасный запуск сессии (только если не бот и сессия еще не запущена)
+ * @return bool true если сессия запущена, false если это бот
+ */
+function ensureSessionStarted()
+{
+    if (session_status() === PHP_SESSION_ACTIVE) {
+        return true; // Сессия уже запущена
+    }
+
+    if (isSocialBot()) {
+        return false; // Не запускаем сессию для ботов
+    }
+
+    @session_start();
+    return true;
+}
+
 //
 // SQL security string escape
 //
@@ -69,8 +110,9 @@ function initGZipHandler()
 function AutoBackup($delayed = false, $force = false)
 {
     global $config;
-    $backupFlagFile = root . 'cache/last_backup.tmp';
-    $backupMarkerFile = root . 'cache/last_backup_marker.tmp';
+    $backupSuffix = defined('prefix') ? '_' . prefix : '';
+    $backupFlagFile = root . 'cache/last_backup' . $backupSuffix . '.tmp';
+    $backupMarkerFile = root . 'cache/last_backup_marker' . $backupSuffix . '.tmp';
     $last_backup = is_file($backupFlagFile) ? intval(file_get_contents($backupFlagFile)) : 0;
     $time_now = time();
     if ($force) {
@@ -113,9 +155,9 @@ function AutoBackup($delayed = false, $force = false)
             ftruncate($fx, ftell($fx));
             fclose($fx);
         }
-
         // Always perform backup when time threshold is met
-        $filename = root . 'backups/backup_' . date('Y_m_d_H_i', $time_now) . '.gz';
+        $backupName = 'backup' . $backupSuffix . '_' . date('Y_m_d_H_i', $time_now);
+        $filename = root . 'backups/' . $backupName . '.gz';
         require_once root . '/includes/inc/lib_admin.php';
         dbBackup($filename, 1);
         // Delete marker
@@ -125,12 +167,10 @@ function AutoBackup($delayed = false, $force = false)
 function LangDate($format, $timestamp)
 {
     global $lang;
-
     // Проверка на корректность $lang
     if (!is_array($lang)) {
         return date($format, $timestamp);
     }
-
     $weekdays = explode(',', isset($lang['weekdays']) ? $lang['weekdays'] : '');
     $short_weekdays = explode(',', isset($lang['short_weekdays']) ? $lang['short_weekdays'] : '');
     $months = explode(',', isset($lang['months']) ? $lang['months'] : '');
@@ -162,7 +202,7 @@ function LangDate($format, $timestamp)
 // Generate a list of smilies to show
 function InsertSmilies(string $insert_location, int $break_location = 0, string $area = '')
 {
-    global $config, $twig;
+    global $config, $twig, $parse;
     if ($config['use_smilies']) {
         $smilies = explode(',', $config['smilies']);
         // For smilies in comments, try to use 'smilies.tpl' from site template
@@ -186,6 +226,30 @@ function InsertSmilies(string $insert_location, int $break_location = 0, string 
         return $output;
     }
 }
+
+// Generate a separate Unicode emoji picker for editors.
+function InsertEmojiPicker(string $area = '')
+{
+    $categories = [
+        'Лица' => '😀 😃 😄 😁 😆 😅 😂 🤣 😊 😇 🙂 🙃 😉 😌 😍 🥰 😘 😗 😙 😚 😋 😛 😝 😜 🤪 🤨 🧐 🤓 😎 🤩 🥳 😏 😒 😞 😔 😟 😕 🙁 ☹️ 😣 😖 😫 😩 🥺 😢 😭 😤 😠 😡 🤬 🤯 😳 🥵 🥶 😱 😨 😰 😥 😓 🤗 🤔 🫡 🤭 🤫 🤥 😶 😐 😑 😬 🙄 😯 😦 😧 😮 😲 🥱 😴 🤤 😪 😵 🤐 🤑 🤠 😈 👿 👹 👺 🤡 💩 👻 💀 ☠️ 👽 👾 🤖 🎃 😺 😸 😹 😻 😼 😽 🙀 😿 😾',
+        'Жесты' => '👋 🤚 🖐️ ✋ 🖖 👌 🤏 ✌️ 🤞 🤟 🤘 🤙 👈 👉 👆 👇 ☝️ ✍️ 👏 🙌 👐 🤲 🙏 💪 🖕 👍 👎 ✊ 👊 🤝 👏 💅 👂 👃 👀 👁️ 🧠 👄 💋',
+        'Символы' => '❤️ 🧡 💛 💚 💙 💜 🖤 🤍 🤎 💔 ❣️ 💕 💞 💓 💗 💖 💘 💝 💟 ✨ ⭐ 🌟 💫 🔥 💥 💯 ✅ ❌ ❗ ❓ ⁉️ ⚠️ 🚫 💬 💤 🎵 🎶 ☀️ 🌙 🌈 ⚡ ❄️ ☁️ ☔ ☕',
+        'Еда' => '🍏 🍎 🍐 🍊 🍋 🍌 🍉 🍇 🍓 🫐 🍒 🍑 🥭 🍍 🥥 🥝 🍅 🥑 🍕 🍔 🍟 🌭 🌮 🌯 🥗 🍿 🍩 🍪 🎂 🍰 🧁 🍫 🍭 🍬 🍺 🍻 🍷 🥂 🍸 ☕',
+        'Животные' => '🐶 🐱 🐭 🐹 🐰 🦊 🐻 🐼 🐨 🐯 🦁 🐮 🐷 🐸 🐵 🙈 🙉 🙊 🐔 🐧 🐦 🐣 🦄 🐝 🦋 🐌 🐞 🐢 🐍 🐙 🐠 🐟 🐬 🐳 🦈 🐊 🐘 🦒 🦓 🦧 🐘',
+        'Предметы' => '⚽ 🏀 🏈 ⚾ 🎾 🏆 🎮 🎲 🎯 🎸 🎹 🎺 📱 💻 ⌚ 📷 💡 🔑 🔒 🔓 🔔 📌 📎 ✏️ 📝 📚 📖 ✉️ 📧 📅 🛒 🎁 🚗 ✈️ 🚀 🏠 💰 💎 🔍 🔧 🛠️',
+    ];
+    $target = empty($area) ? "''" : $area;
+    $output = '';
+    foreach ($categories as $name => $emojiList) {
+        $output .= '<div class="emoji-picker-category"><h6>' . htmlspecialchars($name, ENT_QUOTES, 'UTF-8') . '</h6><div class="emoji-picker-grid">';
+        foreach (preg_split('/\s+/u', trim($emojiList), -1, PREG_SPLIT_NO_EMPTY) as $emoji) {
+            $insert = htmlspecialchars(json_encode($emoji . ' ', JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT), ENT_QUOTES, 'UTF-8');
+            $output .= '<button type="button" class="emoji-picker-item" onclick="insertext(' . $insert . ', \'\', ' . $target . '); return false;" aria-label="' . htmlspecialchars($emoji, ENT_QUOTES, 'UTF-8') . '">' . $emoji . '</button>';
+        }
+        $output .= '</div></div>';
+    }
+    return $output;
+}
 function phphighlight($content = '')
 {
     $f = ['<br>', '<br />', '<p>', '&lt;', '&gt;', '&amp;', '&#124;', '&quot;', '&#036;', '&#092;', '&#039;', '&nbsp;', '\"'];
@@ -196,13 +260,28 @@ function phphighlight($content = '')
 }
 function QuickTags(string $area = '', string $template = '')
 {
-    global $twig, $PHP_SELF;
+    global $twig, $PHP_SELF, $config, $lang;
+    $contentFormat = $config['content_format'] ?? (!empty($config['use_bbcodes']) ? 'bbcode' : 'disabled');
+    if ($contentFormat === 'disabled') {
+        return '';
+    }
+    if ($template === 'news') {
+        LoadPluginLang('ai_rewriter', 'main', '', '', ':');
+    }
     $tvars = [
         'php_self' => $PHP_SELF,
         'area'     => empty($area) ? "''" : $area,
+        'config'   => $config,
+        'lang'     => $lang,
+        'editor_template' => $template,
+        'finance_lock_block_count' => function_exists('finance_news_block_count') ? finance_news_block_count() : 1,
     ];
     if (!in_array($template, ['pmmes', 'editcom', 'news', 'static'])) {
         return false;
+    }
+    if ($contentFormat === 'markdown') {
+        $tvars['emoji_picker'] = InsertEmojiPicker($area);
+        return $twig->render(root . 'skins/default/tpl/qt_markdown.tpl', $tvars);
     }
     return $twig->render(
         tpl_actions . "/qt_{$template}.tpl",
@@ -212,7 +291,8 @@ function QuickTags(string $area = '', string $template = '')
 function BBCodes(string $area = '')
 {
     global $config, $lang, $twig, $PHP_SELF;
-    if ($config['use_bbcodes']) {
+    $contentFormat = $config['content_format'] ?? (!empty($config['use_bbcodes']) ? 'bbcode' : 'disabled');
+    if ($contentFormat === 'bbcode') {
         $tvars = [
             'php_self' => $PHP_SELF,
             'area'     => empty($area) ? "''" : $area,
@@ -361,11 +441,18 @@ function sendEmailMessage($to, $subject, $message, $filename = false, $mail_from
 //			1 - use ADMIN PANEL template
 function templateLoadVariables($die = false, $loadMode = 0)
 {
-    global $TemplateCache;
+    global $TemplateCache, $config;
     if (isset($TemplateCache[$loadMode ? 'admin' : 'site']['#variables'])) {
         return true;
     }
-    $filename = ($loadMode ? tpl_actions : tpl_site) . 'variables.ini';
+    if ($loadMode) {
+        $tplPath = tpl_actions;
+    } else {
+        // Use $config['theme'] instead of tpl_site constant so that template_switch plugin
+        // (which changes $config['theme'] at runtime) gets its variables.ini loaded correctly.
+        $tplPath = site_root . 'templates/' . ($config['theme'] ?? 'default') . '/';
+    }
+    $filename = $tplPath . 'variables.ini';
     if (!is_file($filename)) {
         if ($die) {
             exit('Internal error: cannot locate Template Variables file');
@@ -527,7 +614,7 @@ function msgSticker($msg, $type = '', $disp = -1)
 }
 // Generate site popup sticker (frontend) with information block, similar to admin notify
 // $msg - text or array like in msgSticker
-// $type - '' | 'error' | 'info'
+// $type - '' | 'error' | 'info' | 'success'
 // $disp - ignored here; kept for signature compatibility
 function msgStickerSite($msg, $type = '', $disp = -1)
 {
@@ -549,10 +636,16 @@ function msgStickerSite($msg, $type = '', $disp = -1)
     }
     // Используем notify.js (showToast) если он подключен. Иначе – безопасный fallback (noscript + простой блок).
     $jsMessage = json_encode($message, JSON_UNESCAPED_UNICODE);
-    $jsType = ($type === 'error') ? 'error' : (($type === 'info') ? 'info' : '');
-    $fallbackHtml = '<div style="background:' . (($type === 'error') ? '#f8d7da' : '#d1ecf1') . ';color:' . (($type === 'error') ? '#721c24' : '#0c5460') . ';border:1px solid ' . (($type === 'error') ? '#f5c6cb' : '#bee5eb') . ';padding:10px;margin:10px;border-radius:4px;">' . $message . '</div>';
+    $toastStyles = [
+        'error' => ['#f8d7da', '#f5c6cb', '#721c24'],
+        'info' => ['#d1ecf1', '#bee5eb', '#0c5460'],
+        'success' => ['#d4edda', '#c3e6cb', '#155724'],
+    ];
+    $colors = $toastStyles[$type] ?? $toastStyles['info'];
+    $jsType = isset($toastStyles[$type]) ? $type : 'info';
+    $fallbackHtml = '<div style="background:' . $colors[0] . ';color:' . $colors[2] . ';border:1px solid ' . $colors[1] . ';padding:10px;margin:10px;border-radius:4px;">' . $message . '</div>';
     $script = "\n<noscript>\n{$fallbackHtml}\n</noscript>\n" .
-        '<script>(function(){function exec(){try{if(window.showToast){window.showToast(' . $jsMessage . ', {type: ' . json_encode($jsType) . '});}else{var d=document.createElement("div");d.style.position="fixed";d.style.top="12px";d.style.right="12px";d.style.zIndex=2147483647;var b=document.createElement("div");b.style.background=' . json_encode(($type === 'error') ? '#f8d7da' : '#d1ecf1') . ';b.style.border="1px solid ' . (($type === 'error') ? '#f5c6cb' : '#bee5eb') . '";b.style.color=' . json_encode(($type === 'error') ? '#721c24' : '#0c5460') . ';b.style.padding="10px 14px";b.style.marginTop="10px";b.style.borderRadius="4px";b.style.boxShadow="0 2px 8px rgba(0,0,0,.1)";b.style.maxWidth="420px";b.style.minWidth="260px";b.style.fontSize="14px";b.style.lineHeight="1.4";b.innerHTML=' . $jsMessage . ';d.appendChild(b);document.body.appendChild(d);setTimeout(function(){if(b&&b.parentNode){b.parentNode.removeChild(b)}},' . (($type === 'error') ? 8000 : 5000) . ');} }catch(e){/* noop */}} function run(){setTimeout(exec,150);} if(document.readyState==="loading"){document.addEventListener("DOMContentLoaded",run);}else{run();}})();</script>';
+        '<script>(function(){function exec(){try{if(window.showToast){window.showToast(' . $jsMessage . ', {type: ' . json_encode($jsType) . '});}else{var d=document.createElement("div");d.style.position="fixed";d.style.top="12px";d.style.right="12px";d.style.zIndex=2147483647;var b=document.createElement("div");b.style.background=' . json_encode($colors[0]) . ';b.style.border="1px solid "+' . json_encode($colors[1]) . ';b.style.color=' . json_encode($colors[2]) . ';b.style.padding="10px 14px";b.style.marginTop="10px";b.style.borderRadius="4px";b.style.boxShadow="0 2px 8px rgba(0,0,0,.1)";b.style.maxWidth="420px";b.style.minWidth="260px";b.style.fontSize="14px";b.style.lineHeight="1.4";b.innerHTML=' . $jsMessage . ';d.appendChild(b);document.body.appendChild(d);setTimeout(function(){if(b&&b.parentNode){b.parentNode.removeChild(b)}},' . (($type === 'error') ? 8000 : 5000) . ');} }catch(e){/* noop */}} function run(){setTimeout(exec,150);} if(document.readyState==="loading"){document.addEventListener("DOMContentLoaded",run);}else{run();}})();</script>';
     $notify .= $script;
     // Продублируем в Twig-переменную, чтобы {{ notify|raw }} отрисовал даже если движок не прокидывает $notify автоматически
     if (!isset($template['vars']['notify'])) {
@@ -1438,18 +1531,18 @@ function newsFillVariables($row, $fullMode, $page = 0, $disablePagination = 0, $
     $alink = checkLinkAvailable('uprofile', 'show') ?
         generateLink('uprofile', 'show', ['name' => $row['author'], 'id' => $row['author_id']]) :
         generateLink('core', 'plugin', ['plugin' => 'uprofile', 'handler' => 'show'], ['name' => $row['author'], 'id' => $row['author_id']]);
-    // [TWIG] news.author.*
+    //  news.author.*
     $tvars['vars']['news']['author']['name'] = $row['author'];
     $tvars['vars']['news']['author']['id'] = $row['author_id'];
     $tvars['vars']['news']['author']['url'] = $alink;
-    // [TWIG] number of comments
+    //  number of comments
     if (getPluginStatusActive('comments')) {
         $tvars['vars']['p']['comments']['count'] = $row['com'];
     }
     $tvars['vars']['author'] = '<a href="' . $alink . '" target="_blank">' . $row['author'] . '</a>';
     $tvars['vars']['author_link'] = $alink;
     $tvars['vars']['author_name'] = $row['author'];
-    // [TWIG] news.flags.fullMode: if we're in full mode
+    //  news.flags.fullMode: if we're in full mode
     $tvars['vars']['news']['flags']['isFullMode'] = $fullMode ? true : false;
     $nlink = newsGenerateLink($row);
     // Divide into short and full content
@@ -1478,7 +1571,7 @@ function newsFillVariables($row, $fullMode, $page = 0, $disablePagination = 0, $
         $pagination = '';
         $pages = explode('<!--nextpage-->', $full);
         $pcount = count($pages);
-        // [TWIG] news.pageCount, pageNumber
+        //  news.pageCount, pageNumber
         $tvars['vars']['news']['pageCount'] = count($pages);
         $tvars['vars']['news']['pageNumber'] = $page;
         $tvars['vars']['pageCount'] = count($pages);
@@ -1498,7 +1591,7 @@ function newsFillVariables($row, $fullMode, $page = 0, $disablePagination = 0, $
             $navigations = $TemplateCache['site']['#variables']['navigation'];
             // Show pagination bar
             $tvars['vars']['pagination'] = generatePagination($page, 1, $pcount, 10, $paginationParams, $navigations);
-            // [TWIG] news.pagination
+            //  news.pagination
             $tvars['vars']['news']['pagination'] = $tvars['vars']['pagination'];
             if ($page > 1) {
                 $tvars['vars']['short-story'] = '';
@@ -1529,7 +1622,7 @@ function newsFillVariables($row, $fullMode, $page = 0, $disablePagination = 0, $
         $title = secure_html($title);
     }
     $tvars['vars']['title'] = $title;
-    // [TWIG] news.title
+    //  news.title
     $tvars['vars']['news']['title'] = $row['title'];
     // Make conversion
     if ($config['blocks_for_reg']) {
@@ -1567,7 +1660,7 @@ function newsFillVariables($row, $fullMode, $page = 0, $disablePagination = 0, $
     }
     $tvars['vars']['short-story'] = $short;
     $tvars['vars']['full-story'] = $full;
-    // [TWIG] news.short, news.full
+    //  news.short, news.full
     $tvars['vars']['news']['short'] = $short;
     $tvars['vars']['news']['full'] = $full;
     // Activities for short mode
@@ -1598,7 +1691,7 @@ function newsFillVariables($row, $fullMode, $page = 0, $disablePagination = 0, $
     $tvars['vars']['pinned'] = ($row['pinned']) ? 'news_pinned' : '';
     $tvars['vars']['category'] = GetCategories($row['catid']);
     $tvars['vars']['masterCategory'] = GetCategories($row['catid'], false, true);
-    // [TWIG] news.categories.*
+    //  news.categories.*
     $tCList = makeCategoryInfo($row['catid']);
     $tvars['vars']['news']['categories']['count'] = count($tCList);
     $tvars['vars']['news']['categories']['list'] = $tCList;
@@ -1613,24 +1706,24 @@ function newsFillVariables($row, $fullMode, $page = 0, $disablePagination = 0, $
     $tvars['vars']['print_link'] = newsGenerateLink($row, true, $page);
     $tvars['vars']['[/print-link]'] = '</a>';
     $tvars['vars']['news_link'] = $nlink;
-    // [TWIG] news.url
+    //  news.url
     $tvars['vars']['news']['url'] = [
         'full'  => $nlink,
         'print' => newsGenerateLink($row, true, $page),
     ];
-    // [TWIG] news.flags.isPinned
+    //  news.flags.isPinned
     $tvars['vars']['news']['flags']['isPinned'] = ($row['pinned']) ? true : false;
     $tvars['vars']['news-id'] = $row['id'];
     $tvars['vars']['news_id'] = $row['id'];
     $tvars['vars']['php-self'] = $PHP_SELF;
     $tvars['vars']['date'] = LangDate(timestamp, $row['postdate']);
     $tvars['vars']['views'] = $row['views'];
-    // [TWIG] news.date, news.dateStamp, news.views
+    //  news.date, news.dateStamp, news.views
     $tvars['vars']['news']['date'] = LangDate(timestamp, $row['postdate']);
     $tvars['vars']['news']['dateStamp'] = $row['postdate'];
     $tvars['vars']['news']['views'] = $row['views'];
     if ($row['editdate'] > $row['postdate']) {
-        // [TWIG] news.flags.isUpdated, news.update, news.updateStamp
+        //  news.flags.isUpdated, news.update, news.updateStamp
         $tvars['vars']['news']['flags']['isUpdated'] = true;
         $tvars['vars']['news']['update'] = LangDate($config['timestamp_updated'], $row['editdate']);
         $tvars['vars']['news']['updateStamp'] = $row['editdate'];
@@ -1638,18 +1731,18 @@ function newsFillVariables($row, $fullMode, $page = 0, $disablePagination = 0, $
         $tvars['vars']['update'] = LangDate($config['timestamp_updated'], $row['editdate']);
         $tvars['vars']['updateStamp'] = $row['editdate'];
     } else {
-        // [TWIG] news.flags.isUpdated, news.update, news.updateStamp
+        //  news.flags.isUpdated, news.update, news.updateStamp
         $tvars['vars']['news']['flags']['isUpdated'] = false;
         $tvars['regx']['[\[update\](.*)\[/update\]]'] = '';
         $tvars['vars']['update'] = '';
     }
     if ($more == '') {
-        // [TWIG] news.flags.hasPersonalMore
+        //  news.flags.hasPersonalMore
         $tvars['vars']['news']['flags']['hasPersonalMore'] = false;
         $tvars['vars']['[more]'] = '';
         $tvars['vars']['[/more]'] = '';
     } else {
-        // [TWIG] news.flags.hasPersonalMore, news.personalMore
+        //  news.flags.hasPersonalMore, news.personalMore
         $tvars['vars']['news']['flags']['hasPersonalMore'] = true;
         $tvars['vars']['news']['personalMore'] = $more;
         $tvars['vars']['personalMore'] = $more;
@@ -2643,7 +2736,26 @@ function ngExceptionHandler($exception)
         // Check if current user has specified permissions
         // RULE is: <ENTRY1>[|<ENTRY2>[|<ENTRY3>...]]
         // ENTRY1,2,.. is: <PLUGIN>[:<HANDLER>]
-        function twigIsPerm($rules) {}
+        // Проверка прав доступа для использования в Twig шаблонах
+        // Примеры:
+        //   isPerm() - проверка доступа к админ-панели (по умолчанию)
+        //   isPerm('#admin:news:add') - проверка прав на добавление новостей
+        //   isPerm('comments:moderate') - проверка прав плагина comments
+        function twigIsPerm($rules = '')
+        {
+            // Если правила не заданы - проверяем доступ к админ-панели по умолчанию
+            if (empty($rules)) {
+                return checkPermission(['plugin' => '#admin', 'item' => 'system'], null, 'admpanel.view');
+            }
+
+            // Разбираем правила формата: plugin:item:mode
+            $parts = explode(':', $rules);
+            $plugin = isset($parts[0]) && $parts[0] !== '' ? $parts[0] : '#admin';
+            $item = isset($parts[1]) && $parts[1] !== '' ? $parts[1] : 'system';
+            $mode = isset($parts[2]) && $parts[2] !== '' ? $parts[2] : 'view';
+
+            return checkPermission(['plugin' => $plugin, 'item' => $item], null, $mode);
+        }
         function twigIsSet($context, $val)
         {
             //print "call TWIG::isSet(".var_export($context, true)." || ".var_export($val, true).");<br/>";
@@ -2693,19 +2805,89 @@ function ngExceptionHandler($exception)
         function newsUpdateDelayedCounters()
         {
             global $mysql;
-            // Lock tables
-            $mysql->query('lock tables ' . prefix . '_news_view write, ' . prefix . '_news write');
-            // Read data and update counters
-            foreach ($mysql->select('select * from ' . prefix . '_news_view') as $vrec) {
-                $mysql->query('update ' . prefix . '_news set views = views + ' . intval($vrec['cnt']) . ' where id = ' . intval($vrec['id']));
+
+            $newsTable = prefix . '_news';
+            $viewsTable = prefix . '_news_view';
+            $tableStatuses = $mysql->select(
+                "SHOW TABLE STATUS WHERE Name IN ('" . $newsTable . "', '" . $viewsTable . "')"
+            );
+            $tableEngines = [];
+            foreach (is_array($tableStatuses) ? $tableStatuses : [] as $tableStatus) {
+                $tableEngines[$tableStatus['Name']] = strtolower((string) ($tableStatus['Engine'] ?? ''));
             }
-            // Truncate view table
-            //$mysql->query("truncate table ".prefix."_news_view");
-            // DUE TO BUG IN MYSQL - USE DELETE + OPTIMIZE
-            $mysql->query('delete from ' . prefix . '_news_view');
-            $mysql->query('optimize table ' . prefix . '_news_view');
-            // Unlock tables
-            $mysql->query('unlock tables');
+
+            if (($tableEngines[$newsTable] ?? '') === 'innodb' && ($tableEngines[$viewsTable] ?? '') === 'innodb') {
+                $batchSize = 50;
+                do {
+                    if ($mysql->query('START TRANSACTION') === null) {
+                        throw new RuntimeException('Failed to start the delayed view counter transaction.');
+                    }
+
+                    try {
+                        $viewRows = $mysql->select(
+                            'SELECT id, cnt FROM ' . $viewsTable . ' ORDER BY id LIMIT ' . $batchSize . ' FOR UPDATE'
+                        );
+                        if ($viewRows === null) {
+                            throw new RuntimeException('Failed to read delayed view counters.');
+                        }
+
+                        $processedIds = [];
+                        foreach ($viewRows as $viewRow) {
+                            $newsId = (int) $viewRow['id'];
+                            $viewCount = (int) $viewRow['cnt'];
+                            if ($newsId < 1 || $viewCount < 0) {
+                                throw new UnexpectedValueException('Invalid delayed view counter row.');
+                            }
+                            $processedIds[] = $newsId;
+                        }
+
+                        if ($processedIds) {
+                            $idList = implode(',', $processedIds);
+                            if ($mysql->query(
+                                'UPDATE ' . $newsTable . ' N INNER JOIN ' . $viewsTable . ' V ON V.id = N.id'
+                                    . ' SET N.views = N.views + V.cnt WHERE V.id IN (' . $idList . ')'
+                            ) === null) {
+                                throw new RuntimeException('Failed to apply delayed view counters.');
+                            }
+
+                            if ($mysql->query(
+                                'DELETE FROM ' . $viewsTable . ' WHERE id IN (' . $idList . ')'
+                            ) === null) {
+                                throw new RuntimeException('Failed to clear processed delayed view counters.');
+                            }
+                        }
+
+                        if ($mysql->query('COMMIT') === null) {
+                            throw new RuntimeException('Failed to commit delayed view counters.');
+                        }
+                    } catch (Throwable $e) {
+                        $mysql->query('ROLLBACK');
+                        throw $e;
+                    }
+                } while ($processedIds);
+
+                return true;
+            }
+
+            // Preserve the legacy path for non-InnoDB table engines.
+            if ($mysql->query('LOCK TABLES ' . $viewsTable . ' V WRITE, ' . $newsTable . ' N WRITE') === null) {
+                throw new RuntimeException('Failed to lock tables for delayed view counters.');
+            }
+            try {
+                if ($mysql->query(
+                    'UPDATE ' . $newsTable . ' N INNER JOIN ' . $viewsTable . ' V ON V.id = N.id'
+                        . ' SET N.views = N.views + V.cnt'
+                ) === null) {
+                    throw new RuntimeException('Failed to apply delayed view counters.');
+                }
+                if ($mysql->query('DELETE V FROM ' . $viewsTable . ' V') === null) {
+                    throw new RuntimeException('Failed to clear delayed view counters.');
+                }
+            } finally {
+                if ($mysql->query('UNLOCK TABLES') === null) {
+                    throw new RuntimeException('Failed to unlock delayed view counter tables.');
+                }
+            }
             return true;
         }
         // Delete old LOAD information, SYSLOG logging
@@ -2742,7 +2924,8 @@ function ngExceptionHandler($exception)
             // Use default <noavatar> file
             // - Check if noavatar is defined on template level
             $tplVars = $TemplateCache['site']['#variables'];
-            $noAvatarURL = (isset($tplVars['configuration']) && is_array($tplVars['configuration']) && isset($tplVars['configuration']['noAvatarImage']) && $tplVars['configuration']['noAvatarImage']) ? (tpl_url . '/' . $tplVars['configuration']['noAvatarImage']) : (avatars_url . '/noavatar.gif');
+            $_activeTplUrl = $config['home_url'] . '/templates/' . ($config['theme'] ?? 'default');
+            $noAvatarURL = (isset($tplVars['configuration']) && is_array($tplVars['configuration']) && isset($tplVars['configuration']['noAvatarImage']) && $tplVars['configuration']['noAvatarImage']) ? ($_activeTplUrl . '/' . $tplVars['configuration']['noAvatarImage']) : (avatars_url . '/noavatar.gif');
             // Preload plugins for usermenu
             loadActionHandlers('usermenu');
             // Execute action handlers for 'usermenu' so plugins (e.g., pm) can expose globals like `newpm`
@@ -2760,7 +2943,7 @@ function ngExceptionHandler($exception)
                 "#\[isnt-logged\](.*?)\[/isnt-logged\]#si"   => '{% if (not flags.isLogged) %}$1{% endif %}',
                 "#\[is-logged\](.*?)\[/is-logged\]#si"       => '{% if (flags.isLogged) %}$1{% endif %}',
                 "#\[login-err\](.*?)\[/login-err\]#si"       => '{% if (flags.loginError) %}$1{% endif %}',
-                "#\[if-have-perm\](.*?)\[/if-have-perm\]#si" => "{% if (global.flags.isLogged and (global.user['status'] <= 3)) %}$1{% endif %}",
+                "#\[if-have-perm\](.*?)\[/if-have-perm\]#si" => "{% if isPerm() %}$1{% endif %}",
                 //		"#\{l_([0-9a-zA-Z\-\_\.\#]+)}#"					=> "{{ lang['$1'] }}",
             ];
             // Prepare conversion table
@@ -2808,10 +2991,14 @@ function ngExceptionHandler($exception)
                     } else {
                         // If gravatar integration is active, show avatar from GRAVATAR.COM
                         if ($config['avatars_gravatar']) {
-                            $userAvatar = 'http://www.gravatar.com/avatar/' . md5(mb_strtolower($userROW['mail'])) . '.jpg?s=' . $config['avatar_wh'] . '&d=' . urlencode($noAvatarURL);
+                            $userAvatar = 'https://www.gravatar.com/avatar/' . md5(mb_strtolower($userROW['mail'])) . '.jpg?s=' . $config['avatar_wh'] . '&d=' . urlencode($noAvatarURL);
                         } else {
                             $userAvatar = $noAvatarURL;
                         }
+                    }
+                    // Исправление протокола на HTTPS если страница загружена через HTTPS
+                    if (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') {
+                        $userAvatar = preg_replace('/^http:\/\//i', 'https://', $userAvatar);
                     }
                 }
                 $tVars['avatar_url'] = $userAvatar;
@@ -2866,6 +3053,9 @@ function ngExceptionHandler($exception)
                 // если мэппинг действия 'twig' ещё не попал в конфиг активных плагинов.
                 if (preg_match("#^(.+?)\.(.+?)$#", $funcName, $m)) {
                     $pluginId = $m[1];
+                    if (!getPluginStatusActive($pluginId)) {
+                        return null;
+                    }
                     // Пройдёмся по version-файлам, найдём нужный плагин и подключим его основной файл
                     $plist = function_exists('pluginsGetList') ? pluginsGetList() : [];
                     if (isset($plist[$pluginId]) && is_array($plist[$pluginId])) {

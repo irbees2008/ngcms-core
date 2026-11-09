@@ -278,7 +278,7 @@ if (is_array($userROW)) {
             $unapproved3 = '<a class="dropdown-item" href="' . $PHP_SELF . '?mod=static"><i class="fa fa-times"></i> ' . $unapp3 . ' ' . Padeg($unapp3, $lang['head_stat_pending_skl']) . '</a>';
     }
     $unnAppCount = (int)$newpm + (int)$unapp1 + (int)$unapp2 + (int)$unapp3;
-    $unnAppLabel = ($unnAppCount != "0") ? '<span class="label label-danger">' . $unnAppCount . '</span>' : '';
+    $unnAppLabel = $unnAppCount;
     $unnAppText = $lang['head_notify'] . (($unnAppCount != "0") ? $unnAppCount . ' ' . Padeg($unnAppCount, $lang['head_notify_skl']) : $lang['head_notify_no']);
 }
 $datetimepicker_lang_default = "
@@ -315,6 +315,7 @@ $tVars = [
     'unnAppLabel'           => $unnAppLabel,
     // Глобальный токен для RPC admin.statistics.* (нужен для кнопки очистки кэша в топбаре)
     'token_statistics'      => genUToken('admin.statistics'),
+    'token_quicklinks'      => genUToken('admin.quicklinks'),
     // Унифицированный профиль пользователя для шаблонов
     'user' => array(
         'id'     => $userROW['id'],

@@ -118,6 +118,8 @@ CREATE TABLE `XPREFIX_ipban` (
 --
 CREATE TABLE `XPREFIX_news` (
   `id` int(11) NOT NULL auto_increment,
+  `translation_group_id` varchar(36) default NULL,
+  `lang_code` varchar(5) default NULL,
   `postdate` int(10) NOT NULL default '0',
   `author` varchar(100) NOT NULL default '',
   `author_id` int(11) NOT NULL default '0',
@@ -140,6 +142,7 @@ CREATE TABLE `XPREFIX_news` (
   `rating` int(10) NOT NULL default '0',
   `votes` int(10) NOT NULL default '0',
   PRIMARY KEY  (`id`),
+  KEY `news_id_pagination` (`id`),
   KEY `alt_name` (`alt_name`),
   KEY `news_title` (`title`),
   KEY `news_postdate` (`postdate`),
@@ -149,9 +152,13 @@ CREATE TABLE `XPREFIX_news` (
   KEY `news_main` (`pinned`,`postdate`,`approve`,`mainpage`),
   KEY `news_mainid` (`approve`,`mainpage`,`pinned`,`id`),
   KEY `news_catid` (`approve`,`catpinned`,`id`),
+  KEY `idx_news_approved_order` (`approve`,`catpinned`,`postdate`,`id`),
+  KEY `idx_news_approved_pinned_order` (`approve`,`pinned`,`postdate`,`id`),
   KEY `news_altname` (`alt_name`),
   KEY `news_mainpage` (`approve`,`pinned`,`id`),
-  KEY `news_mcount` (`mainpage`,`approve`)
+  KEY `news_mcount` (`mainpage`,`approve`),
+  KEY `idx_translation_group` (`translation_group_id`),
+  KEY `idx_lang_code` (`lang_code`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 -- --------------------------------------------------------
 --
@@ -162,6 +169,7 @@ CREATE TABLE `XPREFIX_news_map` (
   `categoryID` int(11) default NULL,
   `dt` datetime default NULL,
   KEY `newsID` (`newsID`),
+  KEY `idx_news_category` (`newsID`,`categoryID`),
   KEY `categoryID` (`categoryID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 -- --------------------------------------------------------

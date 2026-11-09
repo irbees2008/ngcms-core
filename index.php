@@ -344,6 +344,8 @@ if ($__flash) {
     }
     unset($_SESSION['flash_notify']);
 }
+// Release the PHP session lock before template rendering and output.
+session_write_close();
 // Привязываем (повторно) переменные шаблона после возможного изменения mainblock
 $tpl->vars($mainTemplateName, $template);
 if (!$SUPRESS_TEMPLATE_SHOW) {
@@ -356,8 +358,6 @@ if (!$SUPRESS_TEMPLATE_SHOW) {
 // ===================================================================
 // Maintanance activities
 // ===================================================================
-// Close opened sessions to avoid blocks
-session_write_close();
 // Run CRON
 $cron->run();
 // Terminate execution of script

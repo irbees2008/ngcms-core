@@ -8,16 +8,39 @@
 function multi_multisites()
 {
     global $config, $siteDomainName, $multiDomainName, $multiconfig, $multimaster;
+
+    // Save values resolved by the first call (before config was loaded).
+    // On the second call (after subsite config is loaded), if use_multisite=0
+    // we must NOT discard the domain resolution already done by the first call.
+    $prevSiteDomain  = $siteDomainName;
+    $prevMultiDomain = $multiDomainName;
+
     $siteDomainName = '';
     $multiDomainName = '';
-    // Анализируем мультидоменную конфигурацию
-    if (!is_file(root . 'conf/multiconfig.php')) {
+
+    // Проверяем, включен ли мультисайт в настройках
+    // ВАЖНО: на первом вызове (до загрузки config.php) пропускаем эту проверку
+    if (isset($config['use_multisite']) && empty($config['use_multisite'])) {
+        // Restore values resolved by the first call so the rest of the engine
+        // (cache dirs, twig paths, etc.) still uses the correct subdomain context.
+        $siteDomainName  = $prevSiteDomain;
+        $multiDomainName = $prevMultiDomain;
         return;
     }
-    @include root . 'conf/multiconfig.php';
+
+    // Определяем путь к конфигу multiconfig.php
+    // ВАЖНО: root уже указывает на корень движка, conf/ находится напрямую там
+    $multiconfigPath = root . 'conf/multiconfig.php';
+
+    // Анализируем мультидоменную конфигурацию
+    if (!is_file($multiconfigPath)) {
+        return;
+    }
+    @include $multiconfigPath;
     if (!is_array($multiconfig)) {
         return;
     }
+
     // Если не выбран МультиМастер - не обрабатываем мультиконфиг
     if (
         !$multimaster || (!is_array($multiconfig[$multimaster])) ||
@@ -54,6 +77,7 @@ function multi_multisites()
             }
         }
     } while (0);
+
     // Если нет ни одного совпадения, то выбираем первый домен у мастера
     if (!$siteDomainName) {
         $siteDomainName = $multiconfig[$multimaster]['domains'][0];
@@ -68,6 +92,10 @@ function multi_multidomains()
     global $config, $siteDomainName, $multiDomainName, $multimaster, $multiconfig, $multimaster, $SYSTEM_FLAGS;
     $newdomain = '';
     $SYSTEM_FLAGS['mydomains'] = [];
+
+    // Базовая мультидоменность работает всегда (для переменной {domain})
+    // Полный мультисайт требует включения через use_multisite
+
     // Анализируем параметр конфига mydomains
     $domlist = null;
     if (isset($config['mydomains'])) {

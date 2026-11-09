@@ -2,7 +2,7 @@
 	<div class="col-12">
 		<ol class="breadcrumb m-0">
 			<li class="breadcrumb-item">
-				<a href="admin.php">
+				<a href="{{ php_self }}">
 					<i class="fa fa-home"></i>
 				</a>
 			</li>
@@ -56,7 +56,7 @@
 					class="x_content">
 					<!-- Блок с иконкой -->
 					<div class="card-icon">
-						{{ entry.icons }}
+						{{ entry.icons|raw }}
 					</div>
 					<p class="card-text">{{ entry.description }}</p>
 					<span class="badge badge-{{ entry.flags.isCompatible ? 'success' : 'warning' }}">

@@ -42,6 +42,21 @@
 				<td>{{ lang.uprofile['about'] }}:</td>
 				<td class="second">{{ user.info }}</td>
 			</tr>
+			<tr>
+				<td class="active">{{ lang.uprofile['del_profile'] }}:</td>
+				<td>{{ user.del_profile }}</td>
+			</tr>
+			{% if user.deletion.is_pending %}
+				<tr>
+					<td colspan="2" style="background-color: #ffe6e6; padding: 10px; border: 1px solid #cc0000;">
+						<strong style="color: #cc0000;">⚠️ Внимание!</strong><br>
+						Ваш профиль будет удален через
+						{{ user.deletion.days_remaining }}
+						{{ user.deletion.days_remaining == 1 ? 'день' : (user.deletion.days_remaining < 5 ? 'дня' : 'дней') }}.<br>
+						<a href="{{ user.deletion.cancel_link }}" style="color: #0066cc; font-weight: bold;">Отменить удаление профиля</a>
+					</td>
+				</tr>
+			{% endif %}
 		</table>
 	</div>
 </div>

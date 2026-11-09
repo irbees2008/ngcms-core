@@ -628,38 +628,4 @@ $urlLibrary = array (
       ),
     ),
   ),
-  're_stat' => 
-  array (
-    'dfhfhdfghfg' => 
-    array (
-      'vars' => 
-      array (
-      ),
-      'descr' => 
-      array (
-        'english' => 'А, нет! — отвечал Чичиков.',
-      ),
-    ),
-  ),
-  'uprofile_del' => 
-  array (
-    'user_id' => 
-    array (
-      'vars' => 
-      array (
-        'id' => 
-        array (
-          'matchRegex' => '\\d+',
-          'descr' => 
-          array (
-            'russian' => 'ИД пользователя',
-          ),
-        ),
-      ),
-      'descr' => 
-      array (
-        'russian' => 'Удалить свой аккаунт',
-      ),
-    ),
-  ),
 );

@@ -5,6 +5,6 @@
 <div>
 	{% if (flags.canEdit) %}
 		<a href="{{ edit_static_url }}">{{ lang['editstatic'] }}</a>
-	{% endif %}
+	{% endif %} | 
 	<a href="{{ print_static_url }}">{{ lang['printstatic'] }}</a>
 </div>

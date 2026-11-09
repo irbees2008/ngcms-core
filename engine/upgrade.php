@@ -1,11 +1,26 @@
 <?php
+
 /**
  * Инструмент обновления базы данных NGCMS
  *
  * @copyright Copyright (C) 2008-2025 Next Generation CMS (http://ngcms.org/)
  * @license MIT
  */
-@include_once 'core.php';
+if (PHP_SAPI === 'cli') {
+    set_time_limit(0);
+
+    $upgradeHost = getenv('NGCMS_UPGRADE_HOST');
+    $_SERVER['HTTP_HOST'] = $upgradeHost ? $upgradeHost : 'localhost';
+    $_SERVER['SERVER_NAME'] = $_SERVER['HTTP_HOST'];
+    $_SERVER['REQUEST_URI'] = '/engine/upgrade.php';
+    $_SERVER['PHP_SELF'] = '/engine/upgrade.php';
+    $_SERVER['SERVER_PROTOCOL'] = 'HTTP/1.1';
+    $_SERVER['REMOTE_ADDR'] = '127.0.0.1';
+    $_SERVER['HTTP_USER_AGENT'] = 'NGCMS database upgrade CLI';
+}
+require_once __DIR__ . '/core.php';
+LoadLang('upgrade', 'admin', 'upgrade');
+ob_start('translateUpgradeOutput');
 // Матрица обновлений
 $upgradeMatrix = [
     1 => [
@@ -29,12 +44,7 @@ $upgradeMatrix = [
         "UPDATE " . prefix . "_config SET value = 5 WHERE name = 'database.engine.revision'",
     ],
     6 => [
-        // Меняем тип поля обратно на MEDIUMTEXT (оптимальный вариант)
-        "ALTER TABLE " . prefix . "_news MODIFY xfields MEDIUMTEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci",
-        // Восстанавливаем поврежденные данные
-        "UPDATE " . prefix . "_news SET xfields = REPLACE(xfields, 'SER[a:', 'SER|a:') WHERE xfields LIKE 'SER[a:%'",
-        "UPDATE " . prefix . "_news SET xfields = '' WHERE xfields LIKE 'SER|a:%' AND xfields NOT LIKE '%}'",
-        "UPDATE " . prefix . "_config SET value = 6 WHERE name = 'database.engine.revision'",
+        // Выполняется отдельно в doUpgrade(), чтобы проверять наличие таблицы и поля.
     ],
     7 => [
         "UPDATE " . prefix . "_config SET value = 7 WHERE name = 'database.engine.revision'",
@@ -43,7 +53,47 @@ $upgradeMatrix = [
         // Проверка и добавление поля cat_show выполняется в doUpgrade()
         "UPDATE " . prefix . "_config SET value = 8 WHERE name = 'database.engine.revision'",
     ],
+    9 => [
+        // Обновление схемы ads_pro выполняется до фиксации новой ревизии.
+        "UPDATE " . prefix . "_config SET value = 9 WHERE name = 'database.engine.revision'",
+    ],
+    10 => [
+        "UPDATE " . prefix . "_config SET value = 10 WHERE name = 'database.engine.revision'",
+    ],
+    11 => [
+        "UPDATE " . prefix . "_config SET value = 11 WHERE name = 'database.engine.revision'",
+    ],
+    12 => [
+        "UPDATE " . prefix . "_config SET value = 12 WHERE name = 'database.engine.revision'",
+    ],
+    13 => [
+        "UPDATE " . prefix . "_config SET value = 13 WHERE name = 'database.engine.revision'",
+    ],
 ];
+function translateUpgradeOutput(string $output): string
+{
+    global $config, $lang;
+    if (($config['default_lang'] ?? 'russian') === 'russian') {
+        return $output;
+    }
+
+    $sourceFile = root . 'lang/russian/admin/upgrade.ini';
+    $sourceMessages = is_file($sourceFile)
+        ? parse_ini_file($sourceFile, false, INI_SCANNER_RAW)
+        : false;
+    $targetMessages = $lang['upgrade'] ?? [];
+    if (is_array($sourceMessages)) {
+        $translations = [];
+        foreach ($sourceMessages as $key => $sourceText) {
+            if (isset($targetMessages[$key]) && $sourceText !== $targetMessages[$key]) {
+                $translations[$sourceText] = $targetMessages[$key];
+            }
+        }
+        $output = strtr($output, $translations);
+    }
+
+    return str_replace('<html lang="ru">', '<html lang="en">', $output);
+}
 // Получаем текущую версию БД
 $currentVersion = getCurrentDBVersion();
 // Проверяем необходимость обновления
@@ -126,6 +176,7 @@ function doUpgrade(int $fromVersion, int $toVersion): void
 {
     global $upgradeMatrix;
     $db = NGEngine::getInstance()->getDB();
+    $db->setQueryLogging(false);
     // Временное разрешение проблемных дат
     $db->exec("SET SQL_MODE='ALLOW_INVALID_DATES'");
     for ($version = $fromVersion; $version <= $toVersion; $version++) {
@@ -136,8 +187,6 @@ function doUpgrade(int $fromVersion, int $toVersion): void
             // Выполняем конвертацию кодировки
             echo "<h4>Конвертация базы данных в UTF-8 (utf8mb4)</h4>";
             convertDatabaseEncodingToUtf8mb4($db);
-            // Проверяем, что все таблицы и база используют utf8mb4
-            checkAndConvertAllTablesToUtf8mb4($db);
         } else {
             // Специальная логика для определенных версий
             if ($version == 6) {
@@ -186,6 +235,7 @@ function doUpgrade(int $fromVersion, int $toVersion): void
                 } catch (Exception $e) {
                     echo "<div class='action'><div class='status error'>Ошибка при обновлении плагина комментариев: " . htmlspecialchars($e->getMessage()) . "</div></div>";
                 }
+
                 // Создание таблицы сессий пользователей
                 echo "<h4>Проверка таблицы сессий пользователей</h4>";
                 $sessionsTable = prefix . '_users_sessions';
@@ -197,6 +247,7 @@ function doUpgrade(int $fromVersion, int $toVersion): void
                     } elseif ($tableExistsResult) {
                         $tableExists = $tableExistsResult->rowCount() > 0;
                     }
+
                     if (!$tableExists) {
                         echo "<div class='action'><div class='status'>Таблица `{$sessionsTable}` не найдена, создаем...</div></div>";
                         $createTableSql = "CREATE TABLE `{$sessionsTable}` (
@@ -216,12 +267,6 @@ function doUpgrade(int $fromVersion, int $toVersion): void
                     echo "<div class='action'><div class='status error'>Ошибка при создании таблицы сессий: " . htmlspecialchars($e->getMessage()) . "</div></div>";
                 }
             }
-            // Стандартная обработка для других версий (кроме 6, который обрабатывается отдельно)
-            if ($version != 6 && !empty($upgradeMatrix[$version])) {
-                foreach ($upgradeMatrix[$version] as $sql) {
-                    executeSqlWithReporting($db, $sql);
-                }
-            }
             // Специальная обработка для версии 8
             if ($version == 8) {
                 echo "<h4>Обновление таблицы категорий</h4>";
@@ -235,59 +280,129 @@ function doUpgrade(int $fromVersion, int $toVersion): void
                     echo "<div class='action'><div class='skipped'>Поле 'cat_show' уже существует, пропускаем</div></div>";
                 }
             }
-            // Конвертация таблиц плагина jchat в utf8mb4 + исправление типов столбцов
-            if ($version == 7) {
-                echo "<h4>Обновление таблиц плагина jChat</h4>";
-                $jchatTable       = prefix . '_jchat';
-                $jchatEventsTable = prefix . '_jchat_events';
-                try {
-                    $jchatExists = false;
-                    $r = $db->query("SHOW TABLES LIKE '{$jchatTable}'");
-                    if (is_array($r)) {
-                        $jchatExists = !empty($r);
-                    } elseif ($r) {
-                        $jchatExists = $r->rowCount() > 0;
-                    }
-                    if ($jchatExists) {
-                        echo "<div class='action'><div class='status'>Таблица `{$jchatTable}` найдена, выполняем обновление...</div></div>";
-                        executeSqlWithReporting($db, "ALTER TABLE `{$jchatTable}` CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
-                        executeSqlWithReporting($db, "ALTER TABLE `{$jchatTable}` MODIFY COLUMN `author` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT ''");
-                        executeSqlWithReporting($db, "ALTER TABLE `{$jchatTable}` MODIFY COLUMN `text`   text         CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL");
-                        executeSqlWithReporting($db, "ALTER TABLE `{$jchatTable}` MODIFY COLUMN `ip`     varchar(45)  NOT NULL DEFAULT ''");
-                        echo "<div class='action'><div class='success'>Таблица `{$jchatTable}` успешно конвертирована в utf8mb4</div></div>";
-                    } else {
-                        echo "<div class='action'><div class='skipped'>Плагин jChat не установлен (таблица `{$jchatTable}` не найдена). Пропускаем.</div></div>";
-                    }
-                    $jchatEventsExists = false;
-                    $r2 = $db->query("SHOW TABLES LIKE '{$jchatEventsTable}'");
-                    if (is_array($r2)) {
-                        $jchatEventsExists = !empty($r2);
-                    } elseif ($r2) {
-                        $jchatEventsExists = $r2->rowCount() > 0;
-                    }
-                    if ($jchatEventsExists) {
-                        executeSqlWithReporting($db, "ALTER TABLE `{$jchatEventsTable}` CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
-                        echo "<div class='action'><div class='success'>Таблица `{$jchatEventsTable}` успешно конвертирована в utf8mb4</div></div>";
-                    }
-                } catch (Exception $e) {
-                    echo "<div class='action'><div class='error'>Ошибка при обновлении таблиц jChat: " . htmlspecialchars($e->getMessage()) . "</div></div>";
+            if ($version == 9) {
+                echo "<h4>Обновление схемы плагина ads_pro</h4>";
+                upgradeAdsProSchema($db);
+            }
+            if ($version == 10) {
+                echo "<h4>Индексы для ускорения страниц категорий новостей</h4>";
+                upgradeNewsCategoryIndexes($db);
+            }
+            if ($version == 11) {
+                echo "<h4>Индекс для фильтра категорий в админском списке новостей</h4>";
+                upgradeNewsCategoryIndexes($db);
+            }
+            if ($version == 12) {
+                echo "<h4>Индекс для быстрой пагинации списка новостей</h4>";
+                upgradeNewsCategoryIndexes($db);
+            }
+            if ($version == 13) {
+                echo "<h4>Индекс опубликованных новостей для сортировки по закреплению и дате</h4>";
+                upgradeNewsCategoryIndexes($db);
+            }
+            // Фиксируем версию только после выполнения специальных изменений схемы.
+            if ($version != 6 && !empty($upgradeMatrix[$version])) {
+                foreach ($upgradeMatrix[$version] as $sql) {
+                    executeSqlWithReporting($db, $sql);
                 }
             }
-            // В функции doUpgrade, внутри блока версии 7, после repairPlugdataFile():
-            if ($version == 7) {
-                echo "<h4>Восстановление файла настроек плагинов</h4>";
-                repairPlugdataFile();
-                // ДОБАВЛЯЕМ НОВЫЙ КОД ЗДЕСЬ:
-                echo "<h4>Обновление конфигурационного файла</h4>";
-                updateConfigFile();
-            }
         }
+        echo "</div></div>";
+    }
+    if ($toVersion >= 7) {
+        echo "<div class='upgrade-step'><h3>Файлы конфигурации и настройки плагинов</h3><div class='step-actions'>";
+        checkAndRepairPlugdataFile($toVersion);
+        echo "<h4>Обновление конфигурационного файла</h4>";
+        updateConfigFile();
         echo "</div></div>";
     }
     // Восстановление стандартного режима SQL
     $db->exec("SET SQL_MODE=''");
     echo renderSuccessMessage();
     renderFooter();
+}
+/**
+ * Добавляет только отсутствующие поля в существующую таблицу ads_pro.
+ */
+function upgradeAdsProSchema($db): void
+{
+    $tableName = prefix . '_ads_pro';
+    $tableResult = $db->record(
+        "SELECT COUNT(*) AS cnt FROM information_schema.tables "
+            . "WHERE table_schema = DATABASE() AND table_name = '{$tableName}'"
+    );
+    if (!$tableResult || (int)$tableResult['cnt'] === 0) {
+        echo "<div class='action'><div class='skipped'>Таблица ads_pro не найдена; плагин не установлен, пропускаем.</div></div>";
+        return;
+    }
+    $fields = [
+        'block_name' => "varchar(190) NOT NULL DEFAULT ''",
+        'description' => 'text NULL',
+        'type' => 'tinyint(1) NOT NULL DEFAULT 0',
+        'state' => 'tinyint(1) NOT NULL DEFAULT 0',
+        'start_view' => 'int(11) NOT NULL DEFAULT 0',
+        'end_view' => 'int(11) NOT NULL DEFAULT 0',
+        'location' => 'mediumtext NULL',
+        'sort_order' => 'int(11) NOT NULL DEFAULT 0',
+    ];
+    $quotedTable = '`' . str_replace('`', '``', $tableName) . '`';
+    foreach ($fields as $field => $definition) {
+        if (!columnExists($db, $tableName, $field)) {
+            executeSqlWithReporting(
+                $db,
+                "ALTER TABLE {$quotedTable} ADD COLUMN `{$field}` {$definition}"
+            );
+        }
+    }
+    echo "<div class='action'><div class='success'>Схема ads_pro проверена</div></div>";
+}
+/**
+ * Создает индексы, используемые оптимизированной выборкой новостей.
+ */
+function upgradeNewsCategoryIndexes($db): void
+{
+    $indexes = [
+        prefix . '_news' => [
+            'idx_news_approved_order' => ['approve', 'catpinned', 'postdate', 'id'],
+            'idx_news_home_order' => ['approve', 'mainpage', 'pinned', 'postdate'],
+            'idx_news_approved_pinned_order' => ['approve', 'pinned', 'postdate', 'id'],
+            'news_id_pagination' => ['id'],
+        ],
+        prefix . '_news_map' => [
+            'idx_news_category' => ['newsID', 'categoryID'],
+            'newsmap_category_news' => ['categoryID', 'newsID'],
+        ],
+    ];
+
+    foreach ($indexes as $table => $tableIndexes) {
+        foreach ($tableIndexes as $index => $columns) {
+            $quotedTable = '`' . str_replace('`', '``', $table) . '`';
+            $quotedIndex = '`' . str_replace('`', '``', $index) . '`';
+            $columnList = implode(',', $columns);
+            $existing = $db->record(
+                "SELECT GROUP_CONCAT(column_name ORDER BY seq_in_index SEPARATOR ',') AS columns "
+                    . "FROM information_schema.statistics "
+                    . "WHERE table_schema = DATABASE() "
+                    . "AND table_name = '{$table}' "
+                    . "AND index_name = '{$index}'"
+            );
+            if (is_array($existing) && $existing['columns'] !== null) {
+                if ($existing['columns'] !== $columnList) {
+                    throw new RuntimeException("Индекс {$index} таблицы {$table} существует с несовместимыми полями.");
+                }
+                echo "<div class='action'><div class='skipped'>Индекс {$index} уже существует.</div></div>";
+                continue;
+            }
+
+            executeSqlWithReporting(
+                $db,
+                "ALTER TABLE {$quotedTable} ADD INDEX {$quotedIndex} (" . implode(', ', array_map(
+                    static fn($column) => '`' . str_replace('`', '``', $column) . '`',
+                    $columns
+                )) . ')'
+            );
+        }
+    }
 }
 /**
  * Обновляет конфигурационный файл, добавляя параметр admin_skin если его нет
@@ -662,60 +777,37 @@ function convertDatabaseEncodingToUtf8mb4($db): void
                 echo "<div class='status'>Обнаружено поле xfields - особая обработка</div>";
                 // Шаг 1: Определяем текущий тип поля
                 $currentType = getColumnType($db, $tableName, 'xfields');
-                // Шаг 2: Сохраняем данные во временную таблицию
+                // Сохраняем исходные байты сериализованных значений до смены кодировки.
                 $backupTable = "backup_{$tableName}_xfields";
                 executeSqlWithReporting($db, "CREATE TEMPORARY TABLE `{$backupTable}` AS SELECT id, xfields FROM `{$tableName}` WHERE xfields != ''");
-                // Шаг 3: Конвертируем таблицу
-                executeSqlWithReporting($db, "ALTER TABLE `{$tableName}` CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
-                // Шаг 4: Восстанавливаем MEDIUMTEXT тип для xfields (не LONGTEXT!)
+                $createResult = $db->query("SHOW CREATE TABLE `{$tableName}`");
+                $createTable = is_array($createResult)
+                    ? ($createResult[0]['Create Table'] ?? $createResult[0][1] ?? '')
+                    : ($createResult->fetch(PDO::FETCH_NUM)[1] ?? '');
+                if (strpos($createTable, 'CHARSET=utf8mb4') === false) {
+                    executeSqlWithReporting($db, "ALTER TABLE `{$tableName}` CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
+                } else {
+                    echo "<div class='skipped'>Таблица уже в utf8mb4, пропускаем конвертацию кодировки</div>";
+                }
+                // Восстанавливаем MEDIUMTEXT тип для xfields (не LONGTEXT!)
                 if (stripos($currentType, 'longtext') === false) {
                     executeSqlWithReporting($db, "ALTER TABLE `{$tableName}` MODIFY `xfields` MEDIUMTEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
                 }
-                // Шаг 5: Восстанавливаем данные (скрываем детали обработки)
-                $result = $db->query("SELECT COUNT(*) as total FROM `{$backupTable}`");
-                $totalCount = 0;
-                if (is_array($result)) {
-                    $totalCount = $result[0]['total'] ?? 0;
-                } else {
-                    $row = $result->fetch(PDO::FETCH_ASSOC);
-                    $totalCount = $row['total'] ?? 0;
-                }
-                echo "<div class='status'>Обработка {$totalCount} записей с полем xfields...</div>";
-                $processed = 0;
-                $errors = 0;
-                $result = $db->query("SELECT id, xfields FROM `{$backupTable}`");
-                $data = is_array($result) ? $result : $result->fetchAll(PDO::FETCH_ASSOC);
-                foreach ($data as $row) {
-                    $processed++;
-                    if (!empty($row['xfields'])) {
-                        $xfields = $row['xfields'];
-                        // Проверяем целостность сериализованных данных
-                        if (strpos($xfields, 'SER|a:') === 0) {
-                            if (substr($xfields, -1) !== '}' || !preg_match('/^SER\|a:\d+:\{/', $xfields)) {
-                                $xfields = ''; // Очищаем поврежденные данные
-                            }
-                        }
-                        try {
-                            $escapedXfields = addslashes($xfields);
-                            $id = (int)$row['id'];
-                            $sql = "UPDATE `{$tableName}` SET xfields = '{$escapedXfields}' WHERE id = {$id}";
-                            $db->exec($sql);
-                        } catch (Exception $e) {
-                            $errors++;
-                            // Выводим ошибку только если она произошла
-                            echo "<div class='error'>Ошибка при обработке записи ID {$id}: " . htmlspecialchars($e->getMessage()) . "</div>";
-                        }
-                    }
-                }
-                // Показываем итоги обработки
-                if ($errors > 0) {
-                    echo "<div class='error'>Обработано записей: {$processed}, ошибок: {$errors}</div>";
-                } else {
-                    echo "<div class='success'>Успешно обработано {$processed} записей</div>";
-                }
-                // Шаг 6: Удаляем временную таблицу
+                executeSqlWithReporting($db, "ALTER TABLE `{$backupTable}` ADD INDEX (`id`)");
+                executeSqlWithReporting(
+                    $db,
+                    "UPDATE `{$tableName}` AS target INNER JOIN `{$backupTable}` AS backup ON target.id = backup.id "
+                        . "SET target.xfields = backup.xfields "
+                        . "WHERE NOT (BINARY target.xfields <=> BINARY backup.xfields)"
+                );
+                // Очищаем поврежденные значения только после восстановления исходных данных.
+                executeSqlWithReporting(
+                    $db,
+                    "UPDATE `{$tableName}` SET xfields = '' WHERE BINARY xfields LIKE 'SER|a:%' "
+                        . "AND (RIGHT(xfields, 1) <> '}' OR BINARY xfields NOT REGEXP '^SER[|]a:[0-9]+:[{]')"
+                );
                 executeSqlWithReporting($db, "DROP TEMPORARY TABLE `{$backupTable}`");
-                echo "<div class='success'>Данные xfields восстановлены (MEDIUMTEXT)</div>";
+                echo "<div class='success'>Проверка данных xfields завершена (MEDIUMTEXT)</div>";
             } else {
                 // 7. Проверяем текущую кодировку таблицы
                 $createResult = $db->query("SHOW CREATE TABLE `{$tableName}`");
@@ -783,40 +875,6 @@ function convertDatabaseEncodingToUtf8mb4($db): void
     } catch (Exception $e) {
         echo "<div class='action'><div class='status error'>Ошибка: " . htmlspecialchars($e->getMessage()) . "</div></div>";
         throw $e;
-    }
-}
-/**
- * Проверяет и конвертирует все таблицы в utf8mb4, если требуется
- */
-function checkAndConvertAllTablesToUtf8mb4($db): void
-{
-    try {
-        $result = $db->query("SHOW TABLES");
-        $tables = [];
-        if (is_array($result)) {
-            foreach ($result as $row) {
-                $tables[] = reset($row);
-            }
-        } else {
-            while ($row = $result->fetch(PDO::FETCH_NUM)) {
-                $tables[] = $row[0];
-            }
-        }
-        foreach ($tables as $tableName) {
-            $createResult = $db->query("SHOW CREATE TABLE `{$tableName}`");
-            $createTable = '';
-            if (is_array($createResult)) {
-                $createTable = $createResult[0]['Create Table'] ?? $createResult[0][1] ?? '';
-            } else {
-                $createRow = $createResult->fetch(PDO::FETCH_NUM);
-                $createTable = $createRow[1] ?? '';
-            }
-            if (strpos($createTable, 'CHARSET=utf8mb4') === false) {
-                executeSqlWithReporting($db, "ALTER TABLE `{$tableName}` CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
-            }
-        }
-    } catch (Exception $e) {
-        echo "<div class='error'>Ошибка при конвертации таблиц: " . htmlspecialchars($e->getMessage()) . "</div>";
     }
 }
 /**
@@ -962,6 +1020,7 @@ function renderUpgradeHeader(int $current, int $target): string
         <div class="header">
             <h1>Обновление базы данных NGCMS</h1>
             <p>Текущая версия: {$current} → Новая версия: {$target}</p>
+            <p>Для больших баз данных запускайте обновление через PHP CLI из корня сайта: <code>php -d max_execution_time=0 engine/upgrade.php</code>. Для мультисайта перед запуском задайте переменную окружения <code>NGCMS_UPGRADE_HOST</code> с доменом сайта. Не запускайте CLI, пока предыдущий процесс обновления еще выполняется.</p>
         </div>
     HTML;
 }
@@ -974,7 +1033,7 @@ function renderSuccessMessage(): string
     <div class="success-message">
         <h2><i class="icon-success"></i> Обновление успешно завершено!</h2>
         <p>База данных была успешно обновлена до последней версии.</p>
-        <a href="/" class="btn">Перейти на сайт</a>
+        <a href="/engine" class="btn">Перейти в панель управления</a>
     </div>
     HTML;
 }
@@ -1016,7 +1075,7 @@ function renderNoUpgradeNeeded(): string
             <div class="success">✓</div>
             <h2>Обновление не требуется</h2>
             <p>Ваша база данных уже актуальна.</p>
-            <a href="/" style="display: inline-block; margin-top: 20px; padding: 10px 20px; background: #3498db; color: white; text-decoration: none; border-radius: 5px;">Перейти на сайт</a>
+            <a href="/engine" style="display: inline-block; margin-top: 20px; padding: 10px 20px; background: #3498db; color: white; text-decoration: none; border-radius: 5px;">Перейти в панель управления</a>
         </div>
     </body>
     </html>

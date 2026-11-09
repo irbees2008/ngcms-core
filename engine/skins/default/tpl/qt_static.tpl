@@ -442,4 +442,9 @@
 		</div>
 	</div>
 {% endif %}
-<script src="/lib/news_editor.js"></script>
+ <script>
+if (!window.NGCMS) window.NGCMS = {};
+NGCMS.images_url = "{{ config['images_url']|default('/uploads/images') }}";
+NGCMS.files_url  = "{{ config['files_url']|default('/uploads/files') }}";
+</script>
+ <script src="/lib/news_editor.js"></script>

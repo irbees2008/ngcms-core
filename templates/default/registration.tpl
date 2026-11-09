@@ -1,4 +1,4 @@
-<script type="text/javascript">
+ <script type="text/javascript">
 
 	$(document).ready(function () {
 var registrationValidator = (function () {
@@ -144,14 +144,9 @@ registrationValidator.validateFields();
 			<div class="label-desc" id="{{ entry.id }}">{{ entry.descr }}</div>
 		</div>
 	{% endfor %}
-	{% if flags.hasCaptcha %}
-		<div class="label label-table captcha pull-left">
-			<label for="reg_capcha">{{ lang.captcha }}:</label>
-			<input id="reg_capcha" type="text" name="vcode" class="input">
-			<img src="{{ admin_url }}/captcha.php?id=registration&force=1&rand={{ random() }}" onclick="reload_captcha();" id="img_captcha" alt="{{ lang.captcha }}" style="cursor: pointer;">
-			<div class="label-desc">{{ lang.captcha_desc }}</div>
-		</div>
-	{% endif %}
+
+	{{ captcha_widget|raw }}
+
 	<div class="clearfix"></div>
 	<div class="label">
 		<label class="pull-left"><input type="checkbox" name="agree">
@@ -159,19 +154,12 @@ registrationValidator.validateFields();
 		<input type="submit" value="{{ lang.register }}" class="button pull-right">
 	</div>
 </form>
-<script type="text/javascript">
+ <script type="text/javascript">
 	function validate() {
 if (document.register.agree.checked == false) {
 window.alert('{{ lang.theme['registration.check_rules'] }}');
 return false;
 }
 return true;
-}
-var ADMIN_URL = "{{ admin_url }}";
-function reload_captcha() {
-let img = document.getElementById('img_captcha');
-if (img) {
-img.src = ADMIN_URL + '/captcha.php?id=registration&force=1&rand=' + Math.random();
-}
 }
 </script>

@@ -74,8 +74,11 @@ if (function_exists('gd_info')) {
     }
 }
 $mysql_size = 0;
-foreach ($mysql->select('SHOW TABLE STATUS FROM `' . $config['dbname'] . '`') as $result) {
-    $mysql_size += $result['Data_length'] + $result['Index_length'];
+$tableStatus = $mysql->select('SHOW TABLE STATUS FROM `' . $config['dbname'] . '`');
+if (is_array($tableStatus)) {
+    foreach ($tableStatus as $result) {
+        $mysql_size += $result['Data_length'] + $result['Index_length'];
+    }
 }
 $mysql_size = Formatsize($mysql_size);
 $backup = @decoct(@fileperms(root . 'backups')) % 1000;
@@ -111,13 +114,16 @@ $df_size = function_exists('disk_free_space') ? @disk_free_space(root) : false;
 $df = ($df_size && $df_size > 1) ? Formatsize($df_size) : 'n/a';
 // Calculate number of news
 $nCount = [];
-foreach ($mysql->select('select approve, count(*) as cnt from ' . prefix . '_news group by approve') as $rec) {
-    $nCount['v_' . $rec['approve']] = $rec['cnt'];
+$newsSelect = $mysql->select('select approve, count(*) as cnt from ' . prefix . '_news group by approve');
+if (is_array($newsSelect)) {
+    foreach ($newsSelect as $rec) {
+        $nCount['v_' . $rec['approve']] = $rec['cnt'];
+    }
 }
 $news_unapp = $mysql->result('SELECT count(id) FROM ' . prefix . "_news WHERE approve = '0'");
-$news_unapp = ($news_unapp == '0') ? $news_unapp : '<font color="#ff6600">' . $news_unapp . '</font>';
+$news_unapp = ($news_unapp === null) ? 0 : (($news_unapp == '0') ? $news_unapp : '<font color="#ff6600">' . $news_unapp . '</font>');
 $users_unact = $mysql->result('SELECT count(id) FROM ' . uprefix . "_users WHERE activation != ''");
-$users_unact = ($users_unact == '0') ? $users_unact : '<font color="#ff6600">' . $users_unact . '</font>';
+$users_unact = ($users_unact === null) ? 0 : (($users_unact == '0') ? $users_unact : '<font color="#ff6600">' . $users_unact . '</font>');
 // Display GIT guild version if versionType == GIT
 $displayEngineVersion = (engineVersionType == 'GIT') ?
     engineVersion . ' + GIT ' . engineVersionBuild :
@@ -138,12 +144,12 @@ $tVars = [
     'news_draft'       => empty($nCount['v_-1']) ? 0 : intval($nCount['v_-1']),
     'news_unapp'       => empty($nCount['v_0']) ? 0 : intval($nCount['v_0']),
     'news'             => empty($nCount['v_1']) ? 0 : intval($nCount['v_1']),
-    'comments'         => getPluginStatusInstalled('comments') ? $mysql->result('SELECT count(id) FROM ' . prefix . '_comments') : '-',
-    'users'            => $mysql->result('SELECT count(id) FROM ' . uprefix . '_users'),
+    'comments'         => getPluginStatusInstalled('comments') ? ($mysql->result('SELECT count(id) FROM ' . prefix . '_comments') ?? 0) : '-',
+    'users'            => $mysql->result('SELECT count(id) FROM ' . uprefix . '_users') ?? 0,
     'users_unact'      => $users_unact,
-    'images'           => $mysql->result('SELECT count(id) FROM ' . prefix . '_images'),
-    'files'            => $mysql->result('SELECT count(id) FROM ' . prefix . '_files'),
-    'categories'       => $mysql->result('SELECT count(id) FROM ' . prefix . '_category'),
+    'images'           => $mysql->result('SELECT count(id) FROM ' . prefix . '_images') ?? 0,
+    'files'            => $mysql->result('SELECT count(id) FROM ' . prefix . '_files') ?? 0,
+    'categories'       => $mysql->result('SELECT count(id) FROM ' . prefix . '_category') ?? 0,
     'admin_note'       => $note,
     'pdo_support'      => (extension_loaded('PDO') && extension_loaded('pdo_mysql') && class_exists('PDO')) ? $lang['yesa'] : ('<font color="red">' . $lang['noa'] . '</font>'),
     'token'            => genUToken('admin.statistics'),

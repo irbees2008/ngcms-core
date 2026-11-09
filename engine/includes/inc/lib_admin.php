@@ -264,12 +264,15 @@ function massDeleteNews($list, $permCheck = true)
 
         // Update counters only if news is published
         if ($nrow['approve'] == 1) {
-            if ($nrow['catid']) {
-                $oldcatsql = [];
-                foreach (explode(',', $nrow['catid']) as $key) {
-                    $oldcatsql[] = 'id = ' . db_squote($key);
+            $categoryIDs = [];
+            foreach (explode(',', (string)$nrow['catid']) as $categoryID) {
+                $categoryID = trim($categoryID);
+                if ($categoryID !== '' && ctype_digit($categoryID) && (int)$categoryID > 0) {
+                    $categoryIDs[(int)$categoryID] = (int)$categoryID;
                 }
-                $mysql->query('update ' . prefix . '_category set posts=posts-1 where ' . implode(' or ', $oldcatsql));
+            }
+            if ($categoryIDs) {
+                $mysql->query('update ' . prefix . '_category set posts=posts-1 where id in (' . implode(',', array_keys($categoryIDs)) . ')');
             }
 
             // Update user's posts counter
@@ -301,7 +304,7 @@ function massDeleteNews($list, $permCheck = true)
         // Delete attached news/files if any
         $fmanager = new file_managment();
         // ** Files
-        foreach ($mysql->select('select * from ' . prefix . '_files where (storage=1) and (linked_ds=1) and (linked_id=' . db_squote($nrow['id']) . ')') as $frec) {
+        foreach ($mysql->select('select * from ' . prefix . '_files where (storage in (1,2)) and (linked_ds=1) and (linked_id=' . db_squote($nrow['id']) . ')') as $frec) {
             $fmanager->file_delete(['type' => 'file', 'id' => $frec['id']]);
         }
 
@@ -691,7 +694,11 @@ function addNews($mode = [])
 
                 $flagUpdateAttachCount = true;
                 //
-                $up = $fmanager->file_upload(['dsn' => true, 'linked_ds' => 1, 'linked_id' => $id, 'type' => 'file', 'http_var' => 'userfile', 'http_varnum' => $i]);
+                $uploadParams = ['dsn' => true, 'linked_ds' => 1, 'linked_id' => $id, 'type' => 'file', 'http_var' => 'userfile', 'http_varnum' => $i];
+                if (function_exists('finance_news_requires_private_files') && finance_news_requires_private_files((int)$id)) {
+                    $uploadParams['private_storage'] = true;
+                }
+                $up = $fmanager->file_upload($uploadParams);
                 //print "OUT: <pre>".var_export($up, true)."</pre>";
                 if (!is_array($up)) {
                     // Error uploading file
@@ -709,7 +716,7 @@ function addNews($mode = [])
     }
 
     // Update attach count if we need this
-    $numFiles = $mysql->result('select count(*) as cnt from ' . prefix . '_files where (storage=1) and (linked_ds=1) and (linked_id=' . db_squote($id) . ')');
+    $numFiles = $mysql->result('select count(*) as cnt from ' . prefix . '_files where (storage in (1,2)) and (linked_ds=1) and (linked_id=' . db_squote($id) . ')');
     if ($numFiles) {
         $mysql->query('update ' . prefix . '_news set num_files = ' . intval($numFiles) . ' where id = ' . db_squote($id));
     }
@@ -1049,7 +1056,11 @@ function editNews($mode = [])
 
                 $flagUpdateAttachCount = true;
                 //
-                $up = $fmanager->file_upload(['dsn' => true, 'linked_ds' => 1, 'linked_id' => $id, 'type' => 'file', 'http_var' => 'userfile', 'http_varnum' => $i]);
+                $uploadParams = ['dsn' => true, 'linked_ds' => 1, 'linked_id' => $id, 'type' => 'file', 'http_var' => 'userfile', 'http_varnum' => $i];
+                if (function_exists('finance_news_requires_private_files') && finance_news_requires_private_files((int)$id)) {
+                    $uploadParams['private_storage'] = true;
+                }
+                $up = $fmanager->file_upload($uploadParams);
                 //print "OUT: <pre>".var_export($up, true)."</pre>";
                 if (!is_array($up)) {
                     // Error uploading file
@@ -1067,7 +1078,7 @@ function editNews($mode = [])
     }
 
     // Update attach count if we need this
-    $numFiles = $mysql->result('select count(*) as cnt from ' . prefix . '_files where (storage=1) and (linked_ds=1) and (linked_id=' . db_squote($id) . ')');
+    $numFiles = $mysql->result('select count(*) as cnt from ' . prefix . '_files where (storage in (1,2)) and (linked_ds=1) and (linked_id=' . db_squote($id) . ')');
     if ($numFiles != $row['num_files']) {
         $mysql->query('update ' . prefix . '_news set num_files = ' . intval($numFiles) . ' where id = ' . db_squote($id));
     }
@@ -1268,4 +1279,130 @@ function dbCheckUpgradeRequired(): bool
     }
 
     return false;
+}
+
+/**
+ * Clear Twig cache for multisite
+ * @param string $siteId Site ID to clear cache for (empty = current site, 'all' = all sites)
+ * @return int Number of deleted files
+ */
+function clearTwigCache($siteId = '')
+{
+    global $multiDomainName;
+
+    $deletedCount = 0;
+    $cacheBasePath = root . 'cache/twig/';
+
+    // Determine which sites to clear
+    if ($siteId === 'all') {
+        // Clear all multisites cache
+        $sites = [];
+        if (is_dir($cacheBasePath)) {
+            $dirs = @scandir($cacheBasePath);
+            if ($dirs) {
+                foreach ($dirs as $dir) {
+                    if ($dir != '.' && $dir != '..' && is_dir($cacheBasePath . $dir)) {
+                        $sites[] = $dir;
+                    }
+                }
+            }
+        }
+        // Also clear root cache for backward compatibility
+        if (empty($sites)) {
+            $sites = [''];
+        }
+    } else {
+        // Clear specific site cache (or current if empty)
+        $sites = [$siteId ?: ($multiDomainName ?: 'main')];
+    }
+
+    // Clear cache for each site
+    foreach ($sites as $site) {
+        $cachePath = $site ? $cacheBasePath . $site . '/' : $cacheBasePath;
+        $deletedCount += clearCacheDirectory($cachePath);
+    }
+
+    return $deletedCount;
+}
+
+/**
+ * Clear all cache for multisite (Twig, plugins, auth, etc.)
+ * @param string $siteId Site ID to clear cache for (empty = current site, 'all' = all sites)
+ * @return int Number of deleted files
+ */
+function clearAllCache($siteId = '')
+{
+    global $multiDomainName;
+
+    $deletedCount = 0;
+    $cacheBasePath = root . 'cache/';
+
+    // Determine which sites to clear
+    if ($siteId === 'all') {
+        // Clear cache for all multisites
+        $sites = [];
+        if (is_dir($cacheBasePath)) {
+            $dirs = @scandir($cacheBasePath);
+            if ($dirs) {
+                foreach ($dirs as $dir) {
+                    if ($dir != '.' && $dir != '..' && is_dir($cacheBasePath . $dir)) {
+                        $sites[] = $dir;
+                    }
+                }
+            }
+        }
+    } else {
+        // Clear specific site cache (or current if empty)
+        $sites = [$siteId ?: ($multiDomainName ?: 'main')];
+    }
+
+    // Clear cache for each site
+    foreach ($sites as $site) {
+        $cachePath = $cacheBasePath . $site . '/';
+        if (is_dir($cachePath)) {
+            $deletedCount += clearCacheDirectory($cachePath);
+        }
+    }
+
+    return $deletedCount;
+}
+
+/**
+ * Recursively clear cache directory
+ * @param string $dir Directory path
+ * @return int Number of deleted files
+ */
+function clearCacheDirectory($dir)
+{
+    $deletedCount = 0;
+
+    if (!is_dir($dir)) {
+        return 0;
+    }
+
+    $files = @scandir($dir);
+    if (!$files) {
+        return 0;
+    }
+
+    foreach ($files as $file) {
+        if ($file == '.' || $file == '..') {
+            continue;
+        }
+
+        $filePath = $dir . DIRECTORY_SEPARATOR . $file;
+
+        if (is_dir($filePath)) {
+            // Recursively delete subdirectory
+            $deletedCount += clearCacheDirectory($filePath);
+            @rmdir($filePath);
+        } else {
+            // Delete file
+            if (@unlink($filePath)) {
+                $deletedCount++;
+            }
+        }
+    }
+
+    return $deletedCount;
 }
