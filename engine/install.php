@@ -726,7 +726,6 @@ function doInstall()
 {
     global $tvars, $tpl, $templateDir, $installDir, $adminDirName, $pluginInstallList, $lang, $currentLanguage;
     $tvars['vars']['menu_install'] = ' class="hover"';
-    printHeader();
     $myparams = ['action', 'stage'];
     // Show form
     $hinput = [];
@@ -1063,6 +1062,7 @@ function doInstall()
         include_once root . 'core.php';
         include_once root . 'includes/inc/extraconf.inc.php';
         include_once root . 'includes/inc/extrainst.inc.php';
+        $lang = parse_ini_file(root . 'lang/' . $currentLanguage . '/install.ini', true);
         // Now let's install plugins
         // First: Load informational `version` files
         $list = pluginsGetList();
@@ -1088,6 +1088,7 @@ function doInstall()
     }
     $tvars['vars']['actions'] = $output;
     // Выводим форму проверки
+    printHeader();
     $tpl->template('config_process', $templateDir);
     $tpl->vars('config_process', $tvars);
     echo $tpl->show('config_process');
