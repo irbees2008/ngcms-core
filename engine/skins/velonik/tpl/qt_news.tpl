@@ -17,201 +17,63 @@
 			</button>
 		</div>
 	{% endif %}
-	<div class="btn-group btn-group-sm mr-2">
-		<button type="button" class="btn" onclick="insertext('[b]','[/b]', {{ area }})" title="{{ lang['tags.bold'] }}">
-			<i class="fa fa-bold"></i>
+	<div class="btn-group btn-group-sm mr-2" role="group" aria-label="Заголовки и таблица">
+		<button id="tags-heading" type="button" class="btn dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false" title="Заголовок">
+			<i class="fa fa-header"></i>
 		</button>
-		<button type="button" class="btn" onclick="insertext('[i]','[/i]', {{ area }})" title="{{ lang['tags.italic'] }}">
-			<i class="fa fa-italic"></i>
-		</button>
-		<button type="button" class="btn" onclick="insertext('[u]','[/u]', {{ area }})" title="{{ lang['tags.underline'] }}">
-			<i class="fa fa-underline"></i>
-		</button>
-		<button type="button" class="btn" onclick="insertext('[s]','[/s]', {{ area }})" title="{{ lang['tags.crossline'] }}">
-			<i class="fa fa-strikethrough"></i>
-		</button>
-	</div>
-	<div class="btn-group btn-group-sm mr-2">
-		<button type="button" class="btn" title="{{ lang['tags.image'] }}" data-bs-toggle="modal" data-bs-target="#modal-insert-image" onclick="prepareImgModal({{ area }})">
-			<i class="fa fa-picture-o"></i>
-		</button>
-		<button type="button" class="btn" title="{{ lang['tags.link'] }}" data-bs-toggle="modal" data-bs-target="#modal-insert-url" onclick="prepareUrlModal({{ area }})">
-			<i class="fa fa-link"></i>
-		</button>
-		<button type="button" class="btn" title="{{ lang['tags.email'] }}" data-bs-toggle="modal" data-bs-target="#modal-insert-email" onclick="prepareEmailModal({{ area }})">
-			<i class="fa fa-envelope"></i>
-		</button>
-		{% if pluginIsActive('bb_media') %}
-			<button type="button" class="btn" title="[media]" data-bs-toggle="modal" data-bs-target="#modal-insert-media" onclick="prepareMediaModal({{ area }})">
-				<i class="fa fa-play"></i>
-			</button>
-		{% else %}
-			<button type="button" class="btn" title="[media]" onclick="try{ if(window.show_info){show_info('{{ lang['media.enable'] }}');} else { alert('{{ lang['media.enable'] }}'); } }catch(e){ alert('{{ lang['media.enable'] }}'); } return false;">
-				<i class="fa fa-play"></i>
-			</button>
-		{% endif %}
-	</div>
-	<div class="btn-group btn-group-sm mr-2">
-		<button type="button" class="btn" title="Вставка смайликов" data-bs-toggle="modal" data-bs-target="#modal-smiles">
-			<i class="fa fa-smile-o"></i>
+		<div class="dropdown-menu" aria-labelledby="tags-heading">
+			{% for level in 1..6 %}
+				<a href="#" class="dropdown-item" onclick="insertext('[h={{ level }}]','[/h={{ level }}]', {{ area }}); return false;">Заголовок {{ level }}</a>
+			{% endfor %}
+		</div>
+		<button type="button" class="btn" title="Вставить таблицу" onclick="insertext('[table]\n[tr][th]Заголовок 1[/th][th]Заголовок 2[/th][/tr]\n[tr][td]Ячейка 1[/td][td]Ячейка 2[/td][/tr]\n[/table]','', {{ area }})">
+			<i class="fa fa-table"></i>
 		</button>
 	</div>
 	<div class="btn-group btn-group-sm mr-2">
-		<button onclick="try{document.forms['DATA_tmp_storage'].area.value={{ area }};} catch(err){;} window.open('{{ php_self }}?mod=files&amp;ifield='+{{ area }}, '_Addfile', 'height=600,resizable=yes,scrollbars=yes,width=800');return false;" target="DATA_Addfile" type="button" class="btn" title="{{ lang['tags.file'] }}">
-			<i class="fa fa-folder"></i>
-		</button>
-		<button onclick="try{document.forms['DATA_tmp_storage'].area.value={{ area }};} catch(err){;} window.open('{{ php_self }}?mod=images&amp;ifield='+{{ area }}, '_Addimage', 'height=600,resizable=yes,scrollbars=yes,width=800');return false;" target="DATA_Addimage" type="button" class="btn" title="{{ lang['tags.image'] }}">
-			<i class="fa fa-file-image-o"></i>
-		</button>
-		<!-- Открыть модалку быстрой загрузки -->
-		<button type="button" class="btn" title="Загрузить" data-bs-toggle="modal" data-bs-target="#modal-uplimg" onclick="try{window.__editorAreaId={{ area }};}catch(e){}">
-			<i class="fa fa-folder-open-o"></i>
+		<button type="button" class="btn" title="Абзац" onclick="insertext('[p]','[/p]', {{ area }})">
+			<i class="fa fa-paragraph"></i>
 		</button>
 	</div>
+	<!-- Шрифт: B/I/U/S -->
 	<div class="btn-group btn-group-sm mr-2">
-		<button type="button" class="btn" onclick="insertext('[hide]','[/hide]', {{ area }})" title="{{ lang['tags.code'] }}">
-			<i class="fa fa-eye-slash"></i>
-		</button>
-		<button type="button" class="btn" onclick="insertext('[quote]','[/quote]', {{ area }})" title="{{ lang['tags.comment'] }}">
-			<i class="fa fa-quote-right"></i>
-		</button>
-		<button type="button" class="btn" onclick="insertext('[code]','[/code]', {{ area }})" title="{{ lang.theme.b_code }}">
-			<i class="fa fa-code"></i>
-		</button>
-		<!-- Dropdown: вставка [code=язык]...[/code] -->
-		{% if callPlugin('code_highlight.hasAnyEnabled', {}) %}
-			<div class="btn-group btn-group-sm">
-				<button type="button" class="btn dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false" title="Код с подсветкой (выбрать язык)">
-					<i class="fa fa-angle-down"></i>
-				</button>
-				<ul class="dropdown-menu dropdown-menu-end">
-					<li class="dropdown-header">Язык подсветки</li>
-					{% if callPlugin('code_highlight.brushEnabled', {'name':'php'}) %}
-						<li>
-							<a class="dropdown-item" href="#" onclick="insertCodeBrush('php', {{ area }}); return false;">PHP</a>
-						</li>
-					{% endif %}
-					{% if callPlugin('code_highlight.brushEnabled', {'name':'js'}) %}
-						<li>
-							<a class="dropdown-item" href="#" onclick="insertCodeBrush('js', {{ area }}); return false;">JavaScript</a>
-						</li>
-					{% endif %}
-					{% if callPlugin('code_highlight.brushEnabled', {'name':'sql'}) %}
-						<li>
-							<a class="dropdown-item" href="#" onclick="insertCodeBrush('sql', {{ area }}); return false;">SQL</a>
-						</li>
-					{% endif %}
-					{% if callPlugin('code_highlight.brushEnabled', {'name':'xml'}) %}
-						<li>
-							<a class="dropdown-item" href="#" onclick="insertCodeBrush('xml', {{ area }}); return false;">HTML/XML</a>
-						</li>
-					{% endif %}
-					{% if callPlugin('code_highlight.brushEnabled', {'name':'css'}) %}
-						<li>
-							<a class="dropdown-item" href="#" onclick="insertCodeBrush('css', {{ area }}); return false;">CSS</a>
-						</li>
-					{% endif %}
-					<li><hr class="dropdown-divider"></li>
-					{% if callPlugin('code_highlight.brushEnabled', {'name':'bash'}) %}
-						<li>
-							<a class="dropdown-item" href="#" onclick="insertCodeBrush('bash', {{ area }}); return false;">Bash/Shell</a>
-						</li>
-					{% endif %}
-					{% if callPlugin('code_highlight.brushEnabled', {'name':'python'}) %}
-						<li>
-							<a class="dropdown-item" href="#" onclick="insertCodeBrush('python', {{ area }}); return false;">Python</a>
-						</li>
-					{% endif %}
-					{% if callPlugin('code_highlight.brushEnabled', {'name':'java'}) %}
-						<li>
-							<a class="dropdown-item" href="#" onclick="insertCodeBrush('java', {{ area }}); return false;">Java</a>
-						</li>
-					{% endif %}
-					{% if callPlugin('code_highlight.brushEnabled', {'name':'csharp'}) %}
-						<li>
-							<a class="dropdown-item" href="#" onclick="insertCodeBrush('csharp', {{ area }}); return false;">C#</a>
-						</li>
-					{% endif %}
-					{% if callPlugin('code_highlight.brushEnabled', {'name':'cpp'}) %}
-						<li>
-							<a class="dropdown-item" href="#" onclick="insertCodeBrush('cpp', {{ area }}); return false;">C/C++</a>
-						</li>
-					{% endif %}
-					{% if callPlugin('code_highlight.brushEnabled', {'name':'delphi'}) %}
-						<li>
-							<a class="dropdown-item" href="#" onclick="insertCodeBrush('delphi', {{ area }}); return false;">Delphi/Pascal</a>
-						</li>
-					{% endif %}
-					{% if callPlugin('code_highlight.brushEnabled', {'name':'diff'}) %}
-						<li>
-							<a class="dropdown-item" href="#" onclick="insertCodeBrush('diff', {{ area }}); return false;">Diff/Patch</a>
-						</li>
-					{% endif %}
-					{% if callPlugin('code_highlight.brushEnabled', {'name':'ruby'}) %}
-						<li>
-							<a class="dropdown-item" href="#" onclick="insertCodeBrush('ruby', {{ area }}); return false;">Ruby</a>
-						</li>
-					{% endif %}
-					{% if callPlugin('code_highlight.brushEnabled', {'name':'perl'}) %}
-						<li>
-							<a class="dropdown-item" href="#" onclick="insertCodeBrush('perl', {{ area }}); return false;">Perl</a>
-						</li>
-					{% endif %}
-					{% if callPlugin('code_highlight.brushEnabled', {'name':'vb'}) %}
-						<li>
-							<a class="dropdown-item" href="#" onclick="insertCodeBrush('vb', {{ area }}); return false;">VB/VB.Net</a>
-						</li>
-					{% endif %}
-					{% if callPlugin('code_highlight.brushEnabled', {'name':'powershell'}) %}
-						<li>
-							<a class="dropdown-item" href="#" onclick="insertCodeBrush('powershell', {{ area }}); return false;">PowerShell</a>
-						</li>
-					{% endif %}
-					{% if callPlugin('code_highlight.brushEnabled', {'name':'scala'}) %}
-						<li>
-							<a class="dropdown-item" href="#" onclick="insertCodeBrush('scala', {{ area }}); return false;">Scala</a>
-						</li>
-					{% endif %}
-					{% if callPlugin('code_highlight.brushEnabled', {'name':'groovy'}) %}
-						<li>
-							<a class="dropdown-item" href="#" onclick="insertCodeBrush('groovy', {{ area }}); return false;">Groovy</a>
-						</li>
-					{% endif %}
-					<li><hr class="dropdown-divider"></li>
-					{% if callPlugin('code_highlight.brushEnabled', {'name':'plain'}) %}
-						<li>
-							<a class="dropdown-item" href="#" onclick="insertCodeBrush('plain', {{ area }}); return false;">Plain (без языка)</a>
-						</li>
-					{% endif %}
-					<li>
-						<a class="dropdown-item" href="#" onclick="insertext('[code]','[/code]', {{ area }}); return false;">Без параметра [code]</a>
-					</li>
-					<li>
-						<a class="dropdown-item" href="#" onclick="insertext('[strong]','[/strong]', {{ area }}); return false;">экранирование в строке</a>
-					</li>
-				</ul>
-			</div>
-		{% endif %}
-	</div>
-	<div class="clr"></div>
-	<div class="btn-group btn-group-sm mr-2">
-		<button type="button" class="btn" onclick="insertext('[acronym=]','[/acronym]', {{ area }})" title="{{ lang['tags.acronym'] }}">
+		<button id="tags-font" type="button" class="btn dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false" title="Форматирование текста">
 			<i class="fa fa-font"></i>
 		</button>
+		<div class="dropdown-menu" aria-labelledby="tags-font">
+			<a href="#" class="dropdown-item" onclick="insertext('[b]','[/b]', {{ area }}); return false;">
+				<i class="fa fa-bold"></i>
+				{{ lang['tags.bold'] }}</a>
+			<a href="#" class="dropdown-item" onclick="insertext('[i]','[/i]', {{ area }}); return false;">
+				<i class="fa fa-italic"></i>
+				{{ lang['tags.italic'] }}</a>
+			<a href="#" class="dropdown-item" onclick="insertext('[u]','[/u]', {{ area }}); return false;">
+				<i class="fa fa-underline"></i>
+				{{ lang['tags.underline'] }}</a>
+			<a href="#" class="dropdown-item" onclick="insertext('[s]','[/s]', {{ area }}); return false;">
+				<i class="fa fa-strikethrough"></i>
+				{{ lang['tags.crossline'] }}</a>
+		</div>
 	</div>
+	<!-- Выравнивание -->
 	<div class="btn-group btn-group-sm mr-2">
-		<button type="button" class="btn" onclick="insertext('[left]','[/left]', {{ area }})" title="{{ lang['tags.left'] }}">
+		<button id="tags-align" type="button" class="btn dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false" title="Выравнивание">
 			<i class="fa fa-align-left"></i>
 		</button>
-		<button type="button" class="btn" onclick="insertext('[center]','[/center]', {{ area }})" title="{{ lang['tags.center'] }}">
-			<i class="fa fa-align-center"></i>
-		</button>
-		<button type="button" class="btn" onclick="insertext('[right]','[/right]', {{ area }})" title="{{ lang['tags.right'] }}">
-			<i class="fa fa-align-right"></i>
-		</button>
-		<button type="button" class="btn" onclick="insertext('[justify]','[/justify]', {{ area }})" title="{{ lang['tags.justify'] }}">
-			<i class="fa fa-align-justify"></i>
-		</button>
+		<div class="dropdown-menu" aria-labelledby="tags-align">
+			<a href="#" class="dropdown-item" onclick="insertext('[left]','[/left]', {{ area }}); return false;">
+				<i class="fa fa-align-left"></i>
+				{{ lang['tags.left'] }}</a>
+			<a href="#" class="dropdown-item" onclick="insertext('[center]','[/center]', {{ area }}); return false;">
+				<i class="fa fa-align-center"></i>
+				{{ lang['tags.center'] }}</a>
+			<a href="#" class="dropdown-item" onclick="insertext('[right]','[/right]', {{ area }}); return false;">
+				<i class="fa fa-align-right"></i>
+				{{ lang['tags.right'] }}</a>
+			<a href="#" class="dropdown-item" onclick="insertext('[justify]','[/justify]', {{ area }}); return false;">
+				<i class="fa fa-align-justify"></i>
+				{{ lang['tags.justify'] }}</a>
+		</div>
 	</div>
 	<div class="btn-group btn-group-sm mr-2">
 		<button type="button" class="btn dropdown-toggle" title="{{ lang.theme.b_color }}" data-bs-toggle="dropdown" aria-expanded="false">
@@ -304,26 +166,185 @@
 			</li>
 		</ul>
 	</div>
+
+	<!-- Списки -->
 	<div class="btn-group btn-group-sm mr-2">
-		<button type="button" class="btn" onclick="insertext('[spoiler]','[/spoiler]', {{ area }})" title="{{ lang['tags.spoiler'] }}">
-			<i class="fa fa-text-height"></i>
-		</button>
-	</div>
-	<div class="btn-group btn-group-sm mr-2">
-		<button type="button" class="btn" onclick="insertext('[ul]\n[li][/li]\n[li][/li]\n[li][/li]\n[/ul]','', {{ area }})" title="{{ lang['tags.bulllist'] }}">
+		<button id="tags-lists" type="button" class="btn dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false" title="Списки">
 			<i class="fa fa-list-ul"></i>
 		</button>
-		<button type="button" class="btn" onclick="insertext('[ol]\n[li][/li]\n[li][/li]\n[li][/li]\n[/ol]','', {{ area }})" title="{{ lang['tags.numlist'] }}">
-			<i class="fa fa-list-ol"></i>
+		<div class="dropdown-menu" aria-labelledby="tags-lists">
+			<a href="#" class="dropdown-item" onclick="insertext('[ul]\n[li][/li]\n[li][/li]\n[li][/li]\n[/ul]','', {{ area }}); return false;">
+				<i class="fa fa-list-ul"></i>
+				{{ lang['tags.bulllist'] }}</a>
+			<a href="#" class="dropdown-item" onclick="insertext('[ol]\n[li][/li]\n[li][/li]\n[li][/li]\n[/ol]','', {{ area }}); return false;">
+				<i class="fa fa-list-ol"></i>
+				{{ lang['tags.numlist'] }}</a>
+			<a href="#" class="dropdown-item" onclick="insertext('[quote]','[/quote]', {{ area }}); return false;">
+				<i class="fa fa-quote-left"></i>
+				{{ lang['tags.comment'] }}</a>
+		</div>
+	</div>
+	<!-- Специальные блоки -->
+	<div class="btn-group btn-group-sm mr-2">
+		<button id="tags-special" type="button" class="btn dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false" title="Специальные блоки">
+			<i class="fa fa-puzzle-piece"></i>
+		</button>
+		<div class="dropdown-menu" aria-labelledby="tags-special">
+			<a href="#" class="dropdown-item" onclick="insertext('[spoiler]','[/spoiler]', {{ area }}); return false;">
+				<i class="fa fa-list-alt"></i>
+				{{ lang['tags.spoiler'] }}</a>
+			<a href="#" class="dropdown-item" onclick="insertext('[acronym=]','[/acronym]', {{ area }}); return false;">
+				<i class="fa fa-tags"></i>
+				{{ lang['tags.acronym'] }}</a>
+			<a href="#" class="dropdown-item" onclick="insertext('[hide]','[/hide]', {{ area }}); return false;">
+				<i class="fa fa-shield"></i>
+				{{ lang['tags.hide'] }}</a>
+			{% if pluginIsActive('finance') %}
+				<div class="dropdown-divider"></div>
+				<h6 class="dropdown-header">{{ lang['tags.finance_lock'] }}</h6>
+				{% for block_number in 1..finance_lock_block_count %}
+					{% set open_tag = block_number == 1 ? '[fin_lock]' : '[fin_lock' ~ block_number ~ ']' %}
+					{% set close_tag = block_number == 1 ? '[/fin_lock]' : '[/fin_lock' ~ block_number ~ ']' %}
+					<a href="#" class="dropdown-item" onclick="insertext('{{ open_tag }}','{{ close_tag }}', {{ area }}); return false;">
+						<i class="fa fa-lock"></i> {{ lang['tags.finance_lock'] }} {{ block_number }}</a>
+				{% endfor %}
+			{% endif %}
+		</div>
+	</div>
+	<!-- Ссылки: URL / Email / Image -->
+	<div class="btn-group btn-group-sm mr-2">
+		<button id="tags-link" type="button" class="btn dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false" title="Ссылки и медиа">
+			<i class="fa fa-link"></i>
+		</button>
+		<div class="dropdown-menu" aria-labelledby="tags-link">
+			<a href="#" class="dropdown-item" data-bs-toggle="modal" data-bs-target="#modal-insert-url" onclick="prepareUrlModal({{ area }}); showModalById('modal-insert-url'); return false;">
+				<i class="fa fa-link"></i>
+				{{ lang['tags.link'] }}</a>
+			<a href="#" class="dropdown-item" data-bs-toggle="modal" data-bs-target="#modal-insert-email" onclick="prepareEmailModal({{ area }}); showModalById('modal-insert-email'); return false;">
+				<i class="fa fa-envelope-o"></i>
+				{{ lang['tags.email'] }}</a>
+			<a href="#" class="dropdown-item" data-bs-toggle="modal" data-bs-target="#modal-insert-image" onclick="prepareImgModal({{ area }}); showModalById('modal-insert-image'); return false;">
+				<i class="fa fa-file-image-o"></i>
+				{{ lang['tags.image'] }}</a>
+			{% if pluginIsActive('bb_media') %}
+				<a href="#" class="dropdown-item" data-bs-toggle="modal" data-bs-target="#modal-insert-media" onclick="prepareMediaModal({{ area }}); showModalById('modal-insert-media'); return false;">
+					<i class="fa fa-play-circle"></i> [media]</a>
+			{% else %}
+				<a href="#" class="dropdown-item" onclick="try{ if(window.show_info){show_info('{{ lang['media.enable'] }}');} else { alert('{{ lang['media.enable'] }}'); } }catch(e){ alert('{{ lang['media.enable'] }}'); } return false;">
+					<i class="fa fa-play-circle"></i> [media]</a>
+			{% endif %}
+		</div>
+	</div>
+	<!-- Кнопка открытия модалки загрузки -->
+	<div class="btn-group btn-group-sm mr-2">
+		<button type="button" class="btn" data-bs-toggle="modal" data-bs-target="#modal-uplimg" title="Загрузить" onclick="try{window.__editorAreaId={{ area }};}catch(e){}">
+			<i class="fa fa-folder-open-o"></i>
 		</button>
 	</div>
 	<div class="btn-group btn-group-sm mr-2">
-		<button type="button" class="btn" onclick="insertext('<!--more-->','', {{ area }})" title="{{ lang['tags.more'] }}">
+		<button id="tags-uploads" type="button" class="btn dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false" title="Вставить файл или изображение">
+			<i class="fa fa-file-text-o"></i>
+		</button>
+		<div class="dropdown-menu" aria-labelledby="tags-uploads">
+			<a href="#" class="dropdown-item" onclick="try{document.forms['DATA_tmp_storage'].area.value={{ area }};} catch(err){;} window.open('{{ php_self }}?mod=files&amp;ifield='+{{ area }}, '_Addfile', 'height=600,resizable=yes,scrollbars=yes,width=760');return false;">
+				<i class="fa fa-file-text-o"></i> {{ lang['tags.file'] }}</a>
+			<a href="#" class="dropdown-item" onclick="try{document.forms['DATA_tmp_storage'].area.value={{ area }};} catch(err){;} window.open('{{ php_self }}?mod=images&amp;ifield='+{{ area }}, '_Addimage', 'height=600,resizable=yes,scrollbars=yes,width=760');return false;">
+				<i class="fa fa-file-image-o"></i> {{ lang['tags.image'] }}</a>
+		</div>
+	</div>
+	<div class="btn-group btn-group-sm mr-2">
+		<button id="tags-pagebreak" type="button" class="btn dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false" title="Разрывы страницы">
 			<i class="fa fa-files-o"></i>
 		</button>
-		<button type="button" class="btn" onclick="insertext('<!--nextpage-->','', {{ area }})" title="{{ lang['tags.nextpage'] }}">
-			<i class="fa fa-file-o"></i>
+		<div class="dropdown-menu" aria-labelledby="tags-pagebreak">
+			<a href="#" class="dropdown-item" onclick="insertext('<!--nextpage-->','', {{ area }}); return false;">
+				<i class="fa fa-files-o"></i> {{ lang['tags.nextpage'] }}</a>
+			<a href="#" class="dropdown-item" onclick="insertext('<!--more-->','', {{ area }}); return false;">
+				<i class="fa fa-ellipsis-h"></i> {{ lang['tags.more'] }}</a>
+		</div>
+	</div>
+	<div class="btn-group btn-group-sm mr-2">
+		<button id="tags-smiles" type="button" class="btn dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false" title="Смайлики и emoji">
+			<i class="fa fa-smile-o"></i>
 		</button>
+		<div class="dropdown-menu" aria-labelledby="tags-smiles">
+			<button type="button" class="dropdown-item" data-bs-toggle="modal" data-bs-target="#modal-smiles">
+				<i class="fa fa-smile-o"></i> Смайлики</button>
+			<button type="button" class="dropdown-item" data-bs-toggle="modal" data-bs-target="#modal-emoji" title="Вставить emoji">😀 Вставить emoji</button>
+		</div>
+	</div>
+	<!-- Dropdown: вставка [code=язык]...[/code] -->
+	<div class="btn-group btn-group-sm mr-2">
+		<button id="tags-code" type="button" class="btn dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false" title="Вставить код">
+			<i class="fa fa-code"></i>
+		</button>
+		<div class="dropdown-menu dropdown-menu-end" aria-labelledby="tags-code">
+			<a class="dropdown-item" href="#" onclick="insertext('[code]','[/code]', {{ area }}); return false;">Без параметра [code]</a>
+			<a class="dropdown-item" href="#" onclick="insertext('[strong]','[/strong]', {{ area }}); return false;">Экранирование в строке</a>
+			{% if callPlugin('code_highlight.hasAnyEnabled', {}) %}
+				<div class="dropdown-divider"></div>
+				<h6 class="dropdown-header">Язык подсветки</h6>
+				{% if callPlugin('code_highlight.brushEnabled', {'name':'php'}) %}
+					<a class="dropdown-item" href="#" onclick="insertCodeBrush('php', {{ area }}); return false;">PHP</a>
+				{% endif %}
+				{% if callPlugin('code_highlight.brushEnabled', {'name':'js'}) %}
+					<a class="dropdown-item" href="#" onclick="insertCodeBrush('js', {{ area }}); return false;">JavaScript</a>
+				{% endif %}
+				{% if callPlugin('code_highlight.brushEnabled', {'name':'sql'}) %}
+					<a class="dropdown-item" href="#" onclick="insertCodeBrush('sql', {{ area }}); return false;">SQL</a>
+				{% endif %}
+				{% if callPlugin('code_highlight.brushEnabled', {'name':'xml'}) %}
+					<a class="dropdown-item" href="#" onclick="insertCodeBrush('xml', {{ area }}); return false;">HTML/XML</a>
+				{% endif %}
+				{% if callPlugin('code_highlight.brushEnabled', {'name':'css'}) %}
+					<a class="dropdown-item" href="#" onclick="insertCodeBrush('css', {{ area }}); return false;">CSS</a>
+				{% endif %}
+				<div class="dropdown-divider"></div>
+				{% if callPlugin('code_highlight.brushEnabled', {'name':'bash'}) %}
+					<a class="dropdown-item" href="#" onclick="insertCodeBrush('bash', {{ area }}); return false;">Bash/Shell</a>
+				{% endif %}
+				{% if callPlugin('code_highlight.brushEnabled', {'name':'python'}) %}
+					<a class="dropdown-item" href="#" onclick="insertCodeBrush('python', {{ area }}); return false;">Python</a>
+				{% endif %}
+				{% if callPlugin('code_highlight.brushEnabled', {'name':'java'}) %}
+					<a class="dropdown-item" href="#" onclick="insertCodeBrush('java', {{ area }}); return false;">Java</a>
+				{% endif %}
+				{% if callPlugin('code_highlight.brushEnabled', {'name':'csharp'}) %}
+					<a class="dropdown-item" href="#" onclick="insertCodeBrush('csharp', {{ area }}); return false;">C#</a>
+				{% endif %}
+				{% if callPlugin('code_highlight.brushEnabled', {'name':'cpp'}) %}
+					<a class="dropdown-item" href="#" onclick="insertCodeBrush('cpp', {{ area }}); return false;">C/C++</a>
+				{% endif %}
+				{% if callPlugin('code_highlight.brushEnabled', {'name':'delphi'}) %}
+					<a class="dropdown-item" href="#" onclick="insertCodeBrush('delphi', {{ area }}); return false;">Delphi/Pascal</a>
+				{% endif %}
+				{% if callPlugin('code_highlight.brushEnabled', {'name':'diff'}) %}
+					<a class="dropdown-item" href="#" onclick="insertCodeBrush('diff', {{ area }}); return false;">Diff/Patch</a>
+				{% endif %}
+				{% if callPlugin('code_highlight.brushEnabled', {'name':'ruby'}) %}
+					<a class="dropdown-item" href="#" onclick="insertCodeBrush('ruby', {{ area }}); return false;">Ruby</a>
+				{% endif %}
+				{% if callPlugin('code_highlight.brushEnabled', {'name':'perl'}) %}
+					<a class="dropdown-item" href="#" onclick="insertCodeBrush('perl', {{ area }}); return false;">Perl</a>
+				{% endif %}
+				{% if callPlugin('code_highlight.brushEnabled', {'name':'vb'}) %}
+					<a class="dropdown-item" href="#" onclick="insertCodeBrush('vb', {{ area }}); return false;">VB/VB.Net</a>
+				{% endif %}
+				{% if callPlugin('code_highlight.brushEnabled', {'name':'powershell'}) %}
+					<a class="dropdown-item" href="#" onclick="insertCodeBrush('powershell', {{ area }}); return false;">PowerShell</a>
+				{% endif %}
+				{% if callPlugin('code_highlight.brushEnabled', {'name':'scala'}) %}
+					<a class="dropdown-item" href="#" onclick="insertCodeBrush('scala', {{ area }}); return false;">Scala</a>
+				{% endif %}
+				{% if callPlugin('code_highlight.brushEnabled', {'name':'groovy'}) %}
+					<a class="dropdown-item" href="#" onclick="insertCodeBrush('groovy', {{ area }}); return false;">Groovy</a>
+				{% endif %}
+				<div class="dropdown-divider"></div>
+				{% if callPlugin('code_highlight.brushEnabled', {'name':'plain'}) %}
+					<a class="dropdown-item" href="#" onclick="insertCodeBrush('plain', {{ area }}); return false;">Plain (без языка)</a>
+				{% endif %}
+			{% endif %}
+		</div>
 	</div>
 </div>
 <!-- Modals: URL / Email / Image -->

@@ -52,13 +52,14 @@
 								<label class="col-sm-3 col-form-label">{l_db.type}</label>
 								<div class="col-sm-9">
 									<select name="reg_dbtype" class="custom-select">
-										[pdo]<option value="pdo" {reg_dbtype_PDO}>PDO</option>[/pdo]
+										<option value="pdo" {reg_dbtype_mysql}>MySQL</option>
+										<option value="sqlite" {reg_dbtype_sqlite}>SQLite</option>
 									</select>
 									<div class="form-text text-muted">{l_db.type#desc}</div>
 								</div>
 							</div>
 
-							<div class="form-row mb-3">
+							<div class="form-row mb-3" data-db-group="mysql">
 								<label class="col-sm-3 col-form-label">{l_db.server} <span class="text-danger">*</span></label>
 								<div class="col-sm-9">
 									<input type="text" name="reg_dbhost" value="{reg_dbhost}" class="form-control">
@@ -67,7 +68,7 @@
 								</div>
 							</div>
 
-							<div class="form-row mb-3">
+							<div class="form-row mb-3" data-db-group="mysql">
 								<label class="col-sm-3 col-form-label">{l_db.login} <span class="text-danger">*</span></label>
 								<div class="col-sm-9">
 									<input type="text" name="reg_dbuser" value="{reg_dbuser}" class="form-control" autocomplete="off">
@@ -76,7 +77,7 @@
 								</div>
 							</div>
 
-							<div class="form-row mb-3">
+							<div class="form-row mb-3" data-db-group="mysql">
 								<label class="col-sm-3 col-form-label">{l_db.password}</label>
 								<div class="col-sm-9">
 									<input type="password" name="reg_dbpass" value="{reg_dbpass}" class="form-control" autocomplete="off">
@@ -84,12 +85,21 @@
 								</div>
 							</div>
 
-							<div class="form-row mb-3">
+							<div class="form-row mb-3" data-db-group="mysql">
 								<label class="col-sm-3 col-form-label">{l_db.name} <span class="text-danger">*</span></label>
 								<div class="col-sm-9">
 									<input type="text" name="reg_dbname" value="{reg_dbname}" class="form-control">
 									<div class="invalid-feedback d-block">{err:reg_dbname}</div>
 									<div class="form-text text-muted">{l_db.name#desc}</div>
+								</div>
+							</div>
+
+							<div class="form-row mb-3" data-db-group="sqlite">
+								<label class="col-sm-3 col-form-label">{l_db.sqlite_path}</label>
+								<div class="col-sm-9">
+									<input type="text" name="reg_dbpath" value="{reg_dbpath}" class="form-control">
+									<div class="invalid-feedback d-block">{err:reg_dbpath}</div>
+									<div class="form-text text-muted">{l_db.sqlite_path#desc}</div>
 								</div>
 							</div>
 
@@ -101,6 +111,7 @@
 								</div>
 							</div>
 
+							<div data-db-group="mysql">
 							<div class="form-row mb-3">
 								<label class="col-sm-3 col-form-label"></label>
 								<div class="col-sm-9">
@@ -130,6 +141,7 @@
 									</div>
 								</div>
 							</div>
+							</div>
 						</fieldset>
 					</div>
 
@@ -144,6 +156,35 @@
 </div>
 
 <script type="text/javascript">
+	(function() {
+		var dbSelect = $('select[name="reg_dbtype"]');
+		var autocreate = $('#reg_autocreate');
+		function toggleDbFields() {
+			var v = dbSelect.val() || 'pdo';
+			var mysqlFields = $('[data-db-group="mysql"]');
+			var sqliteFields = $('[data-db-group="sqlite"]');
+			var showMysql = (v === 'pdo');
+			mysqlFields.toggle(showMysql);
+			sqliteFields.toggle(!showMysql);
+			if (!showMysql) {
+				mysqlFields.find('input, select').attr('disabled', true);
+				sqliteFields.find('input, select').removeAttr('disabled');
+				if ($('input[name="reg_dbpath"]').val() === '') {
+					$('input[name="reg_dbpath"]').val($('input[name="reg_dbpath"]').data('default') || '');
+				}
+				if (autocreate.prop('checked')) {
+					autocreate.prop('checked', false);
+				}
+				$('#collapseAutocreate').collapse('hide');
+			} else {
+				mysqlFields.find('input, select').removeAttr('disabled');
+				sqliteFields.find('input, select').attr('disabled', true);
+			}
+		}
+		$('input[name="reg_dbpath"]').data('default', $('input[name="reg_dbpath"]').val());
+		dbSelect.on('change', toggleDbFields);
+		toggleDbFields();
+	})();
 	$('#collapseAutocreate').collapse({
 		toggle: $('#reg_autocreate').prop('checked')
 	});

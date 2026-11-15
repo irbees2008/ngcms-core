@@ -534,7 +534,7 @@ function addNews($mode = [])
 
         $i = '';
         while (is_array($mysql->record('select id from ' . prefix . '_news where alt_name = ' . db_squote($alt_name . $i) . ' limit 1'))) {
-            $i++;
+            $i = $i === '' ? 1 : $i + 1;
         }
         $SQL['alt_name'] = $alt_name . $i;
     }
@@ -619,7 +619,10 @@ function addNews($mode = [])
 
     if (intval($mysql->result('SELECT LAST_INSERT_ID() as id')) == 0) {
         $row = $mysql->record('SELECT id,approve,alt_name,catid  FROM ' . prefix . '_news WHERE title=' . db_squote($title) . ' AND content=' . db_squote($content) . '');
-        if ($row['id']) {
+        if ($row === null) {
+            throw new RuntimeException('Failed to check for duplicate news.');
+        }
+        if (is_array($row) && !empty($row['id'])) {
             msg(['type' => 'error', 'text' => $lang['addnews']['msgi_news_error']]);
             return 0;
         }

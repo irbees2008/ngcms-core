@@ -2808,6 +2808,66 @@ function ngExceptionHandler($exception)
 
             $newsTable = prefix . '_news';
             $viewsTable = prefix . '_news_view';
+            if ($mysql->getDbType() === 'sqlite') {
+                $batchSize = 50;
+                do {
+                    if ($mysql->query('BEGIN IMMEDIATE') === null) {
+                        throw new RuntimeException('Failed to start the delayed view counter transaction.');
+                    }
+                    try {
+                        $viewRows = $mysql->selectUncached(
+                            'SELECT id, cnt FROM ' . $viewsTable . ' ORDER BY id LIMIT ' . $batchSize
+                        );
+                        if (!is_array($viewRows)) {
+                            throw new RuntimeException('Failed to read delayed view counters.');
+                        }
+
+                        $processedIds = [];
+                        foreach ($viewRows as $viewRow) {
+                            $newsId = (int) $viewRow['id'];
+                            $viewCount = (int) $viewRow['cnt'];
+                            if ($newsId < 1 || $viewCount < 0) {
+                                throw new UnexpectedValueException('Invalid delayed view counter row.');
+                            }
+                            $processedIds[] = $newsId;
+                        }
+
+                        if ($processedIds) {
+                            $idList = implode(',', $processedIds);
+                            if ($mysql->query(
+                                'UPDATE ' . $newsTable . ' SET views = views + '
+                                    . '(SELECT cnt FROM ' . $viewsTable . ' WHERE id = ' . $newsTable . '.id)'
+                                    . ' WHERE id IN (' . $idList . ')'
+                            ) === null) {
+                                throw new RuntimeException('Failed to apply delayed view counters.');
+                            }
+                            if ($mysql->query(
+                                'DELETE FROM ' . $viewsTable . ' WHERE id IN (' . $idList . ')'
+                            ) === null) {
+                                throw new RuntimeException('Failed to clear processed delayed view counters.');
+                            }
+                        }
+                        if ($mysql->query('COMMIT') === null) {
+                            throw new RuntimeException('Failed to commit delayed view counters.');
+                        }
+                    } catch (Throwable $e) {
+                        try {
+                            if ($mysql->query('ROLLBACK') === null) {
+                                throw new RuntimeException('ROLLBACK returned no result');
+                            }
+                        } catch (Throwable $rollbackError) {
+                            throw new RuntimeException(
+                                'Failed to roll back delayed view counters: ' . $rollbackError->getMessage(),
+                                0,
+                                $e
+                            );
+                        }
+                        throw $e;
+                    }
+                } while ($processedIds);
+
+                return true;
+            }
             $tableStatuses = $mysql->select(
                 "SHOW TABLE STATUS WHERE Name IN ('" . $newsTable . "', '" . $viewsTable . "')"
             );
@@ -2894,12 +2954,17 @@ function ngExceptionHandler($exception)
         function sysloadTruncate()
         {
             global $mysql;
+            $isSqlite = $mysql->getDbType() === 'sqlite';
             // Store LOAD data only for 1 week
             $mysql->query('delete from ' . prefix . '_load where dt < from_unixtime(unix_timestamp(now()) - 7*86400)');
-            $mysql->query('optimize table ' . prefix . '_load');
+            if (!$isSqlite) {
+                $mysql->query('optimize table ' . prefix . '_load');
+            }
             // Store SYSLOG data only for 1 month
             $mysql->query('delete from ' . prefix . '_syslog where dt < from_unixtime(unix_timestamp(now()) - 30*86400)');
-            $mysql->query('optimize table ' . prefix . '_syslog');
+            if (!$isSqlite) {
+                $mysql->query('optimize table ' . prefix . '_syslog');
+            }
         }
         // Process CRON job calls
         function core_cron($isSysCron, $handler)

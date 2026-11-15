@@ -227,7 +227,9 @@ function manage_showlist($type)
         array_push($filter, 'owner_id=' . db_squote($userROW['id']));
     }
     if (isset($_REQUEST['postdate']) && $_REQUEST['postdate'] && preg_match('/^(\d{4})(\d{2})$/', $_REQUEST['postdate'], $match)) {
-        array_push($filter, '(month(from_unixtime(date)) = ' . db_squote($match[2]) . ' and year(from_unixtime(date)) = ' . db_squote($match[1]) . ')');
+        $month = $mysql->getDbType() === 'sqlite' ? (int) $match[2] : db_squote($match[2]);
+        $year = $mysql->getDbType() === 'sqlite' ? (int) $match[1] : db_squote($match[1]);
+        array_push($filter, '(month(from_unixtime(date)) = ' . $month . ' and year(from_unixtime(date)) = ' . $year . ')');
     }
     // Determine SQL table / directory for files
     $fmanager->get_limits($type);

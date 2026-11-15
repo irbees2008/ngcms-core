@@ -5,13 +5,6 @@
 			<i class="fa fa-floppy-o"></i>
 		</button>
 	</div>
-	{% if pluginIsActive('ai_rewriter') %}
-		<div class="btn-group btn-group-sm mr-2">
-			<button type="button" class="btn btn-outline-primary" title="{{ lang['ai_rewriter:rewrite'] }}" onclick="aiRewriteCurrentArea();">
-				<i class="fa fa-magic"></i>
-			</button>
-		</div>
-	{% endif %}
 	<!-- Undo / Redo -->
 	<div class="btn-group btn-group-sm mr-2">
 		<button type="button" class="btn btn-outline-dark" title="Отменить" onclick="ngToolbarUndo({{ area }})">
@@ -21,60 +14,73 @@
 			<i class="fa fa-repeat"></i>
 		</button>
 	</div>
-	<!-- Параграф -->
-	<div class="btn-group btn-group-sm mr-2">
-		<button type="button" class="btn btn-outline-dark" onclick="insertext('[p]','[/p]', {{ area }})">
-			<i class="fa fa-paragraph"></i>
+	{% if pluginIsActive('ai_rewriter') %}
+		<div class="btn-group btn-group-sm mr-2">
+			<button type="button" class="btn btn-outline-primary" title="{{ lang['ai_rewriter:rewrite'] }}" onclick="aiRewriteCurrentArea();">
+				<i class="fa fa-magic"></i>
+			</button>
+		</div>
+	{% endif %}
+	<div class="btn-group btn-group-sm mr-2" role="group" aria-label="Заголовки и таблица">
+		<button id="tags-heading" type="button" class="btn btn-outline-dark dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" title="Заголовок">
+			<i class="fa fa-header"></i>
+		</button>
+		<div class="dropdown-menu" aria-labelledby="tags-heading">
+			{% for level in 1..6 %}
+				<a href="#" class="dropdown-item" onclick="insertext('[h={{ level }}]','[/h={{ level }}]', {{ area }}); return false;">Заголовок {{ level }}</a>
+			{% endfor %}
+		</div>
+		<button type="button" class="btn btn-outline-dark" title="Вставить таблицу" onclick="insertext('[table]\n[tr][th]Заголовок 1[/th][th]Заголовок 2[/th][/tr]\n[tr][td]Ячейка 1[/td][td]Ячейка 2[/td][/tr]\n[/table]','', {{ area }})">
+			<i class="fa fa-table"></i>
 		</button>
 	</div>
-	<!-- Кнопка открытия модалки загрузки -->
 	<div class="btn-group btn-group-sm mr-2">
-		<button type="button" class="btn btn-outline-dark" data-toggle="modal" data-target="#modal-uplimg" title="Загрузить" onclick="try{window.__editorAreaId={{ area }};}catch(e){}">
-			<i class="fa fa-folder-open-o"></i>
+		<button type="button" class="btn btn-outline-dark" title="Абзац" onclick="insertext('[p]','[/p]', {{ area }})">
+			<i class="fa fa-paragraph"></i>
 		</button>
 	</div>
 	<!-- Шрифт: B/I/U/S -->
 	<div class="btn-group btn-group-sm mr-2">
-		<button id="tags-font" type="button" class="btn btn-outline-dark dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+		<button id="tags-font" type="button" class="btn btn-outline-dark dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" title="Форматирование текста">
 			<i class="fa fa-font"></i>
 		</button>
 		<div class="dropdown-menu" aria-labelledby="tags-font">
-			<a href="#" class="dropdown-item" onclick="insertext('[b]','[/b]', {{ area }})">
+			<a href="#" class="dropdown-item" onclick="insertext('[b]','[/b]', {{ area }}); return false;">
 				<i class="fa fa-bold"></i>
 				{{ lang['tags.bold'] }}</a>
-			<a href="#" class="dropdown-item" onclick="insertext('[i]','[/i]', {{ area }})">
+			<a href="#" class="dropdown-item" onclick="insertext('[i]','[/i]', {{ area }}); return false;">
 				<i class="fa fa-italic"></i>
 				{{ lang['tags.italic'] }}</a>
-			<a href="#" class="dropdown-item" onclick="insertext('[u]','[/u]', {{ area }})">
+			<a href="#" class="dropdown-item" onclick="insertext('[u]','[/u]', {{ area }}); return false;">
 				<i class="fa fa-underline"></i>
 				{{ lang['tags.underline'] }}</a>
-			<a href="#" class="dropdown-item" onclick="insertext('[s]','[/s]', {{ area }})">
+			<a href="#" class="dropdown-item" onclick="insertext('[s]','[/s]', {{ area }}); return false;">
 				<i class="fa fa-strikethrough"></i>
 				{{ lang['tags.crossline'] }}</a>
 		</div>
 	</div>
 	<!-- Выравнивание -->
 	<div class="btn-group btn-group-sm mr-2">
-		<button id="tags-align" type="button" class="btn btn-outline-dark dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+		<button id="tags-align" type="button" class="btn btn-outline-dark dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" title="Выравнивание">
 			<i class="fa fa-align-left"></i>
 		</button>
 		<div class="dropdown-menu" aria-labelledby="tags-align">
-			<a href="#" class="dropdown-item" onclick="insertext('[left]','[/left]', {{ area }})">
+			<a href="#" class="dropdown-item" onclick="insertext('[left]','[/left]', {{ area }}); return false;">
 				<i class="fa fa-align-left"></i>
 				{{ lang['tags.left'] }}</a>
-			<a href="#" class="dropdown-item" onclick="insertext('[center]','[/center]', {{ area }})">
+			<a href="#" class="dropdown-item" onclick="insertext('[center]','[/center]', {{ area }}); return false;">
 				<i class="fa fa-align-center"></i>
 				{{ lang['tags.center'] }}</a>
-			<a href="#" class="dropdown-item" onclick="insertext('[right]','[/right]', {{ area }})">
+			<a href="#" class="dropdown-item" onclick="insertext('[right]','[/right]', {{ area }}); return false;">
 				<i class="fa fa-align-right"></i>
 				{{ lang['tags.right'] }}</a>
-			<a href="#" class="dropdown-item" onclick="insertext('[justify]','[/justify]', {{ area }})">
+			<a href="#" class="dropdown-item" onclick="insertext('[justify]','[/justify]', {{ area }}); return false;">
 				<i class="fa fa-align-justify"></i>
 				{{ lang['tags.justify'] }}</a>
 		</div>
 	</div>
 	<div class="btn-group btn-group-sm mr-2">
-		<button id="paint-brush" type="button" class="btn btn-outline-dark dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+		<button id="paint-brush" type="button" class="btn btn-outline-dark dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" title="Цвет текста">
 			<i class="fa fa-paint-brush"></i>
 		</button>
 		<div class="dropdown-menu p-3" aria-labelledby="paint-brush" style="min-width: 280px;">
@@ -114,47 +120,53 @@ insertext('[color=' + color + ']', '[/color]', area);
 }
 	</script>
 
-	<!-- Блоки/списки/код -->
+	<!-- Списки -->
 	<div class="btn-group btn-group-sm mr-2">
-		<button id="tags-block" type="button" class="btn btn-outline-dark dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-			<i class="fa fa-quote-left"></i>
+		<button id="tags-lists" type="button" class="btn btn-outline-dark dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" title="Списки">
+			<i class="fa fa-list-ul"></i>
 		</button>
-		<div class="dropdown-menu" aria-labelledby="tags-block">
-			<a href="#" class="dropdown-item" onclick="insertext('[ul]\n[li][/li]\n[li][/li]\n[li][/li]\n[/ul]','', {{ area }})">
+		<div class="dropdown-menu" aria-labelledby="tags-lists">
+			<a href="#" class="dropdown-item" onclick="insertext('[ul]\n[li][/li]\n[li][/li]\n[li][/li]\n[/ul]','', {{ area }}); return false;">
 				<i class="fa fa-list-ul"></i>
 				{{ lang['tags.bulllist'] }}</a>
-			<a href="#" class="dropdown-item" onclick="insertext('[ol]\n[li][/li]\n[li][/li]\n[li][/li]\n[/ol]','', {{ area }})">
+			<a href="#" class="dropdown-item" onclick="insertext('[ol]\n[li][/li]\n[li][/li]\n[li][/li]\n[/ol]','', {{ area }}); return false;">
 				<i class="fa fa-list-ol"></i>
 				{{ lang['tags.numlist'] }}</a>
-			<div class="dropdown-divider"></div>
-			<a href="#" class="dropdown-item" onclick="insertext('[quote]','[/quote]', {{ area }})">
+			<a href="#" class="dropdown-item" onclick="insertext('[quote]','[/quote]', {{ area }}); return false;">
 				<i class="fa fa-quote-left"></i>
 				{{ lang['tags.comment'] }}</a>
-			<a href="#" class="dropdown-item" onclick="insertext('[spoiler]','[/spoiler]', {{ area }})">
-				<i class="fa fa-list-alt"></i>
-				{{ lang['tags.spoiler'] }}</a>
-			<a href="#" class="dropdown-item" onclick="insertext('[acronym=]','[/acronym]', {{ area }})">
-				<i class="fa fa-tags"></i>
-				{{ lang['tags.acronym'] }}</a>
-			<a href="#" class="dropdown-item" onclick="insertext('[hide]','[/hide]', {{ area }})">
-				<i class="fa fa-shield"></i>
-				{{ lang['tags.hide'] }}</a>
 		</div>
 	</div>
-	{% if pluginIsActive('finance') %}
-		<div class="btn-group btn-group-sm mr-2">
-			{% for block_number in 1..finance_lock_block_count %}
-				{% set open_tag = block_number == 1 ? '[fin_lock]' : '[fin_lock' ~ block_number ~ ']' %}
-				{% set close_tag = block_number == 1 ? '[/fin_lock]' : '[/fin_lock' ~ block_number ~ ']' %}
-				<button type="button" class="btn btn-outline-dark" title="{{ lang['tags.finance_lock'] }} {{ block_number }}" aria-label="{{ lang['tags.finance_lock'] }} {{ block_number }}" onclick="insertext('{{ open_tag }}','{{ close_tag }}', {{ area }})">
-					<i class="fa fa-lock"></i>{% if block_number > 1 %} {{ block_number }}{% endif %}
-				</button>
-			{% endfor %}
+	<!-- Специальные блоки -->
+	<div class="btn-group btn-group-sm mr-2">
+		<button id="tags-special" type="button" class="btn btn-outline-dark dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" title="Специальные блоки">
+			<i class="fa fa-puzzle-piece"></i>
+		</button>
+		<div class="dropdown-menu" aria-labelledby="tags-special">
+			<a href="#" class="dropdown-item" onclick="insertext('[spoiler]','[/spoiler]', {{ area }}); return false;">
+				<i class="fa fa-list-alt"></i>
+				{{ lang['tags.spoiler'] }}</a>
+			<a href="#" class="dropdown-item" onclick="insertext('[acronym=]','[/acronym]', {{ area }}); return false;">
+				<i class="fa fa-tags"></i>
+				{{ lang['tags.acronym'] }}</a>
+			<a href="#" class="dropdown-item" onclick="insertext('[hide]','[/hide]', {{ area }}); return false;">
+				<i class="fa fa-shield"></i>
+				{{ lang['tags.hide'] }}</a>
+			{% if pluginIsActive('finance') %}
+				<div class="dropdown-divider"></div>
+				<h6 class="dropdown-header">{{ lang['tags.finance_lock'] }}</h6>
+				{% for block_number in 1..finance_lock_block_count %}
+					{% set open_tag = block_number == 1 ? '[fin_lock]' : '[fin_lock' ~ block_number ~ ']' %}
+					{% set close_tag = block_number == 1 ? '[/fin_lock]' : '[/fin_lock' ~ block_number ~ ']' %}
+					<a href="#" class="dropdown-item" onclick="insertext('{{ open_tag }}','{{ close_tag }}', {{ area }}); return false;">
+						<i class="fa fa-lock"></i> {{ lang['tags.finance_lock'] }} {{ block_number }}</a>
+				{% endfor %}
+			{% endif %}
 		</div>
-	{% endif %}
+	</div>
 	<!-- Ссылки: URL / Email / Image -->
 	<div class="btn-group btn-group-sm mr-2">
-		<button id="tags-link" type="button" class="btn btn-outline-dark dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+		<button id="tags-link" type="button" class="btn btn-outline-dark dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" title="Ссылки и медиа">
 			<i class="fa fa-link"></i>
 		</button>
 		<div class="dropdown-menu" aria-labelledby="tags-link">
@@ -167,18 +179,20 @@ insertext('[color=' + color + ']', '[/color]', area);
 			<a href="#" class="dropdown-item" data-toggle="modal" data-target="#modal-insert-image" onclick="prepareImgModal({{ area }}); showModalById('modal-insert-image'); return false;">
 				<i class="fa fa-file-image-o"></i>
 				{{ lang['tags.image'] }}</a>
+			{% if pluginIsActive('bb_media') %}
+				<a href="#" class="dropdown-item" data-toggle="modal" data-target="#modal-insert-media" onclick="prepareMediaModal({{ area }}); showModalById('modal-insert-media'); return false;">
+					<i class="fa fa-play-circle"></i> [media]</a>
+			{% else %}
+				<a href="#" class="dropdown-item" onclick="try{ if(window.show_info){show_info('{{ lang['media.enable'] }}');} else { alert('{{ lang['media.enable'] }}'); } }catch(e){ alert('{{ lang['media.enable'] }}'); } return false;">
+					<i class="fa fa-play-circle"></i> [media]</a>
+			{% endif %}
 		</div>
 	</div>
+	<!-- Кнопка открытия модалки загрузки -->
 	<div class="btn-group btn-group-sm mr-2">
-		{% if pluginIsActive('bb_media') %}
-			<button id="tags-media" type="button" class="btn btn-outline-dark" data-toggle="modal" data-target="#modal-insert-media" onclick="prepareMediaModal({{ area }}); showModalById('modal-insert-media'); return false;" title="[media]">
-				<i class="fa fa-play-circle"></i>
-			</button>
-		{% else %}
-			<button type="button" class="btn btn-outline-dark" title="[media]" onclick="try{ if(window.show_info){show_info('{{ lang['media.enable'] }}');} else { alert('{{ lang['media.enable'] }}'); } }catch(e){ alert('{{ lang['media.enable'] }}'); } return false;">
-				<i class="fa fa-play-circle"></i>
-			</button>
-		{% endif %}
+		<button type="button" class="btn btn-outline-dark" data-toggle="modal" data-target="#modal-uplimg" title="Загрузить" onclick="try{window.__editorAreaId={{ area }};}catch(e){}">
+			<i class="fa fa-folder-open-o"></i>
+		</button>
 	</div>
 	<!-- Modal: AJAX загрузка изображений/файлов -->
 	<div id="modal-uplimg" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="uplimg-modal-label" aria-hidden="true">
@@ -243,34 +257,47 @@ insertext('[color=' + color + ']', '[/color]', area);
 		</div>
 	</div>
 	<div class="btn-group btn-group-sm mr-2">
-		<button onclick="try{document.forms['DATA_tmp_storage'].area.value={{ area }};} catch(err){;} window.open('{{ php_self }}?mod=files&amp;ifield='+{{ area }}, '_Addfile', 'height=600,resizable=yes,scrollbars=yes,width=760');return false;" target="DATA_Addfile" type="button" class="btn btn-outline-dark" title="{{ lang['tags.file'] }}">
+		<button id="tags-uploads" type="button" class="btn btn-outline-dark dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" title="Вставить файл или изображение">
 			<i class="fa fa-file-text-o"></i>
 		</button>
-		<button onclick="try{document.forms['DATA_tmp_storage'].area.value={{ area }};} catch(err){;} window.open('{{ php_self }}?mod=images&amp;ifield='+{{ area }}, '_Addimage', 'height=600,resizable=yes,scrollbars=yes,width=760');return false;" target="DATA_Addimage" type="button" class="btn btn-outline-dark" title="{{ lang['tags.image'] }}">
-			<i class="fa fa-file-image-o"></i>
-		</button>
+		<div class="dropdown-menu" aria-labelledby="tags-uploads">
+			<a href="#" class="dropdown-item" onclick="try{document.forms['DATA_tmp_storage'].area.value={{ area }};} catch(err){;} window.open('{{ php_self }}?mod=files&amp;ifield='+{{ area }}, '_Addfile', 'height=600,resizable=yes,scrollbars=yes,width=760');return false;">
+				<i class="fa fa-file-text-o"></i> {{ lang['tags.file'] }}</a>
+			<a href="#" class="dropdown-item" onclick="try{document.forms['DATA_tmp_storage'].area.value={{ area }};} catch(err){;} window.open('{{ php_self }}?mod=images&amp;ifield='+{{ area }}, '_Addimage', 'height=600,resizable=yes,scrollbars=yes,width=760');return false;">
+				<i class="fa fa-file-image-o"></i> {{ lang['tags.image'] }}</a>
+		</div>
 	</div>
 	<div class="btn-group btn-group-sm mr-2">
-		<button type="button" class="btn btn-outline-dark" title="{{ lang['tags.nextpage'] }}" onclick="insertext('<!--nextpage-->','', {{ area }})">
+		<button id="tags-pagebreak" type="button" class="btn btn-outline-dark dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" title="Разрывы страницы">
 			<i class="fa fa-files-o"></i>
 		</button>
-		<button type="button" class="btn btn-outline-dark" title="{{ lang['tags.more'] }}" onclick="insertext('<!--more-->','', {{ area }})">
-			<i class="fa fa-ellipsis-h"></i>
-		</button>
-		<button type="button" data-toggle="modal" data-target="#modal-smiles" class="btn btn-outline-dark">
+		<div class="dropdown-menu" aria-labelledby="tags-pagebreak">
+			<a href="#" class="dropdown-item" onclick="insertext('<!--nextpage-->','', {{ area }}); return false;">
+				<i class="fa fa-files-o"></i> {{ lang['tags.nextpage'] }}</a>
+			<a href="#" class="dropdown-item" onclick="insertext('<!--more-->','', {{ area }}); return false;">
+				<i class="fa fa-ellipsis-h"></i> {{ lang['tags.more'] }}</a>
+		</div>
+	</div>
+	<div class="btn-group btn-group-sm mr-2">
+		<button id="tags-smiles" type="button" class="btn btn-outline-dark dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" title="Смайлики и emoji">
 			<i class="fa fa-smile-o"></i>
 		</button>
-		<button type="button" data-toggle="modal" data-target="#modal-emoji" class="btn btn-outline-dark" title="Вставить emoji">
-			<span aria-hidden="true">😀</span>
-		</button>
+		<div class="dropdown-menu" aria-labelledby="tags-smiles">
+			<button type="button" class="dropdown-item" data-toggle="modal" data-target="#modal-smiles">
+				<i class="fa fa-smile-o"></i> Смайлики</button>
+			<button type="button" class="dropdown-item" data-toggle="modal" data-target="#modal-emoji" title="Вставить emoji">😀 Вставить emoji</button>
+		</div>
 	</div>
 	<!-- Dropdown: вставка [code=язык]...[/code] -->
-	{% if callPlugin('code_highlight.hasAnyEnabled', {}) %}
-		<div class="btn-group btn-group-sm mr-2">
-			<button id="tags-code" type="button" class="btn btn-outline-dark dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" title="Код с подсветкой (выбрать язык)">
-				<i class="fa fa-code"></i>
-			</button>
-			<div class="dropdown-menu dropdown-menu-right" aria-labelledby="tags-code">
+	<div class="btn-group btn-group-sm mr-2">
+		<button id="tags-code" type="button" class="btn btn-outline-dark dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" title="Вставить код">
+			<i class="fa fa-code"></i>
+		</button>
+		<div class="dropdown-menu dropdown-menu-right" aria-labelledby="tags-code">
+			<a class="dropdown-item" href="#" onclick="insertext('[code]','[/code]', {{ area }}); return false;">Без параметра [code]</a>
+			<a class="dropdown-item" href="#" onclick="insertext('[strong]','[/strong]', {{ area }}); return false;">Экранирование в строке</a>
+			{% if callPlugin('code_highlight.hasAnyEnabled', {}) %}
+				<div class="dropdown-divider"></div>
 				<h6 class="dropdown-header">Язык подсветки</h6>
 				{% if callPlugin('code_highlight.brushEnabled', {'name':'php'}) %}
 					<a class="dropdown-item" href="#" onclick="insertCodeBrush('php', {{ area }}); return false;">PHP</a>
@@ -331,11 +358,9 @@ insertext('[color=' + color + ']', '[/color]', area);
 				{% if callPlugin('code_highlight.brushEnabled', {'name':'plain'}) %}
 					<a class="dropdown-item" href="#" onclick="insertCodeBrush('plain', {{ area }}); return false;">Plain (без языка)</a>
 				{% endif %}
-				<a class="dropdown-item" href="#" onclick="insertext('[code]','[/code]', {{ area }}); return false;">Без параметра [code]</a>
-				<a class="dropdown-item" href="#" onclick="insertext('[strong]','[/strong]', {{ area }}); return false;">экранирование в строке</a>
-			</div>
+			{% endif %}
 		</div>
-	{% endif %}
+	</div>
 </div>
 <!-- Modal: Insert URL -->
 <div id="modal-insert-url" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="url-modal-label" aria-hidden="true">
@@ -553,5 +578,6 @@ window.NGCMS = {};
 
 NGCMS.images_url = "{{ config['images_url']|default('/uploads/images') }}";
 NGCMS.files_url = "{{ config['files_url']|default('/uploads/files') }}";
+NGCMS.content_format = 'bbcode';
 </script>
 <script src="/lib/news_editor.js"></script>

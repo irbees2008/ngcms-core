@@ -494,21 +494,30 @@ function listNewsForm()
     $conditions = [];
     $categoryPageCondition = null;
     $categoryCountID = null;
+    $isSqlite = $mysql->getDbType() === 'sqlite';
+    $indexHint = static function ($name) use ($isSqlite) {
+        return $isSqlite ? '' : ' FORCE INDEX (' . $name . ')';
+    };
     if (!is_null($fCategoryId)) {
         if ($fCategoryId) {
             $categoryCountID = intval($fCategoryId);
-            $legacyCategoryCondition = "catid regexp '\\\\b(" . $categoryCountID . ")\\\\b'";
+            $legacyCategoryCondition = static function ($alias) use ($isSqlite, $categoryCountID) {
+                if ($isSqlite) {
+                    return "instr(',' || " . $alias . ".catid || ',', '," . $categoryCountID . ",') > 0";
+                }
+                return $alias . ".catid regexp '\\\\b(" . $categoryCountID . ")\\\\b'";
+            };
             $newsTable = prefix . '_news';
             $newsMapTable = prefix . '_news_map';
-            $newsFrom = '(SELECT DISTINCT NM.newsID AS id FROM ' . $newsMapTable . ' NM FORCE INDEX (newsmap_category_news)'
+            $newsFrom = '(SELECT DISTINCT NM.newsID AS id FROM ' . $newsMapTable . ' NM' . $indexHint('newsmap_category_news')
                 . ' INNER JOIN ' . $newsTable . ' NP ON NP.id = NM.newsID AND NP.approve = 1'
                 . ' WHERE NM.categoryID = ' . $categoryCountID
                 . ' UNION ALL SELECT ND.id FROM ' . $newsTable . ' ND'
-                . ' WHERE (ND.approve <> 1 OR ND.approve IS NULL) AND ND.' . $legacyCategoryCondition
+                . ' WHERE (ND.approve <> 1 OR ND.approve IS NULL) AND ' . $legacyCategoryCondition('ND')
                 . ') AS category_news INNER JOIN ' . $newsTable . ' N ON N.id = category_news.id';
             $categoryPageCondition = '((N.approve = 1 AND EXISTS (SELECT 1 FROM ' . $newsMapTable . ' NM'
-                . ' FORCE INDEX (idx_news_category) WHERE NM.newsID = N.id AND NM.categoryID = ' . $categoryCountID . '))'
-                . ' OR ((N.approve <> 1 OR N.approve IS NULL) AND N.' . $legacyCategoryCondition . '))';
+                . $indexHint('idx_news_category') . ' WHERE NM.newsID = N.id AND NM.categoryID = ' . $categoryCountID . '))'
+                . ' OR ((N.approve <> 1 OR N.approve IS NULL) AND ' . $legacyCategoryCondition('N') . '))';
         } else {
             array_push($conditions, 'N.catid = ""');
         }
@@ -545,19 +554,19 @@ function listNewsForm()
     $pageFrom = 'from ' . $newsFrom;
     $pageConditions = $conditions;
     if ($categoryPageCondition !== null) {
-        $pageFrom = 'from ' . prefix . '_news N FORCE INDEX (news_id_pagination)';
+        $pageFrom = 'from ' . prefix . '_news N' . $indexHint('news_id_pagination');
         $pageConditions[] = $categoryPageCondition;
     } elseif (is_null($fCategoryId) && !$conditions && in_array($fSort, [' order by N.id', ' order by N.id desc'], true)) {
-        $pageFrom = 'from ' . prefix . '_news N FORCE INDEX (news_id_pagination)';
+        $pageFrom = 'from ' . prefix . '_news N' . $indexHint('news_id_pagination');
     }
     $pageFilter = $pageFrom . (count($pageConditions) ? ' where ' . implode(' AND ', $pageConditions) : '');
     $sqlQ = 'select N.id ' . $pageFilter . ' ' . $fSort;
-    $useCategoryMapPage = $categoryCountID !== null && !$conditions && $fSort === ' order by N.id desc';
+    $useCategoryMapPage = !$isSqlite && $categoryCountID !== null && !$conditions && $fSort === ' order by N.id desc';
     // print "SQL: $sqlQ";
     if ($categoryCountID !== null) {
         if (!$conditions) {
             $publishedCount = $mysql->record(
-                'select count(distinct NM.newsID) as cid from ' . prefix . '_news_map NM FORCE INDEX (newsmap_category_news)'
+                'select count(distinct NM.newsID) as cid from ' . prefix . '_news_map NM' . $indexHint('newsmap_category_news')
                     . ' where NM.categoryID = ' . $categoryCountID
             );
         } else {
@@ -567,18 +576,18 @@ function listNewsForm()
             ];
             $publishedConditions = array_merge($publishedConditions, $conditions);
             $publishedCount = $mysql->record(
-                'select count(distinct NM.newsID) as cid from ' . prefix . '_news_map NM FORCE INDEX (newsmap_category_news)'
+                'select count(distinct NM.newsID) as cid from ' . prefix . '_news_map NM' . $indexHint('newsmap_category_news')
                     . ' INNER JOIN ' . prefix . '_news N ON N.id = NM.newsID'
                     . ' where ' . implode(' AND ', $publishedConditions)
             );
         }
         $draftConditions = [
             '(N.approve <> 1 OR N.approve IS NULL)',
-            'N.' . $legacyCategoryCondition,
+            $legacyCategoryCondition('N'),
         ];
         $draftConditions = array_merge($draftConditions, $conditions);
         $draftCount = $mysql->record(
-            'select count(N.id) as cid from ' . prefix . '_news N FORCE INDEX (idx_news_approved_order)'
+            'select count(N.id) as cid from ' . prefix . '_news N' . $indexHint('idx_news_approved_order')
                 . ' where ' . implode(' AND ', $draftConditions)
         );
         $countNews = intval($publishedCount['cid']) + intval($draftCount['cid']);
@@ -594,12 +603,12 @@ function listNewsForm()
     if ($useCategoryMapPage) {
         $candidateLimit = (($pageNo - 1) * $fRPP) + $fRPP;
         $sqlQ = 'select candidates.id from ('
-            . '(select distinct NM.newsID as id from ' . prefix . '_news_map NM FORCE INDEX (newsmap_category_news)'
+            . '(select distinct NM.newsID as id from ' . prefix . '_news_map NM' . $indexHint('newsmap_category_news')
             . ' where NM.categoryID = ' . $categoryCountID
             . ' order by NM.newsID desc limit ' . $candidateLimit . ')'
             . ' UNION ALL '
-            . '(select N.id as id from ' . prefix . '_news N FORCE INDEX (idx_news_approved_order)'
-            . ' where (N.approve <> 1 OR N.approve IS NULL) AND N.' . $legacyCategoryCondition
+            . '(select N.id as id from ' . prefix . '_news N' . $indexHint('idx_news_approved_order')
+            . ' where (N.approve <> 1 OR N.approve IS NULL) AND ' . $legacyCategoryCondition('N')
             . ' order by N.id desc limit ' . $candidateLimit . ')'
             . ') AS candidates order by candidates.id desc';
     }

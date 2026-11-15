@@ -10,6 +10,19 @@
 		</button>
 	</div>
 	<div class="btn-group btn-group-sm mr-2">
+		<button id="tags-heading" type="button" class="btn btn-outline-dark dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" title="Заголовок">
+			<i class="fa fa-header"></i>
+		</button>
+		<div class="dropdown-menu" aria-labelledby="tags-heading">
+			{% for level in 1..6 %}
+				<a href="#" class="dropdown-item" onclick="insertext('[h={{ level }}]','[/h={{ level }}]', {{ area }}); return false;">Заголовок {{ level }}</a>
+			{% endfor %}
+		</div>
+		<button type="button" class="btn btn-outline-dark" title="Вставить таблицу" onclick="insertext('[table]\n[tr][th]Заголовок 1[/th][th]Заголовок 2[/th][/tr]\n[tr][td]Ячейка 1[/td][td]Ячейка 2[/td][/tr]\n[/table]','', {{ area }})">
+			<i class="fa fa-table"></i>
+		</button>
+	</div>
+	<div class="btn-group btn-group-sm mr-2">
 		<button id="tags-font" type="button" class="btn btn-outline-dark dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
 			<i class="fa fa-font"></i>
 		</button>

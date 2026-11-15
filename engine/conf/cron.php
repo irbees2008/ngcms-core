@@ -32,22 +32,22 @@ return array (
   ),
   3 => 
   array (
-    'min' => '0,5,10,15,20,25,30,35,40,45,50,55',
+    'min' => '0,15,30,45',
+    'hour' => '*',
+    'day' => '*',
+    'month' => '*',
+    'dow' => '*',
+    'plugin' => 'zboard',
+    'handler' => 'zboard_expired',
+  ),
+  4 => 
+  array (
+    'min' => '0',
     'hour' => '*',
     'day' => '*',
     'month' => '*',
     'dow' => '*',
     'plugin' => 'nsched',
     'handler' => 'run',
-  ),
-  4 => 
-  array (
-    'min' => '15',
-    'hour' => '0',
-    'day' => '*',
-    'month' => '*',
-    'dow' => '*',
-    'plugin' => 'filecleaner',
-    'handler' => 'scan',
   ),
 );

@@ -263,12 +263,13 @@ function get_mysql_field_type($table, $field)
 // Database update during install
 function fixdb_plugin_install($module, $params, $mode = 'install', $silent = false, &$is_error = 0)
 {
-    global $lang, $tpl, $mysql, $main_admin, $PHP_SELF;
+    global $lang, $tpl, $mysql, $main_admin, $PHP_SELF, $tvars;
 
     // Load config
     pluginsLoadConfig();
 
     $publish = [];
+    $entries = '';
     if ($mode == 'install') {
         array_push($publish, ['title' => '<b>' . $lang['idbc_process'] . '</b>', 'descr' => '', 'result' => '']);
     } else {
@@ -381,10 +382,43 @@ function fixdb_plugin_install($module, $params, $mode = 'install', $silent = fal
             }
 
             // Check if different character set are supported [ version >= 4.1.1 ]
-            $charset = is_array($mysql->record("show variables like 'character_set_client'")) ? (' DEFAULT CHARSET=' . ($table['charset'] ? $table['charset'] : 'utf8')) : '';
+            $charset = $mysql->getDbType() === 'sqlite' ? '' : (is_array($mysql->record("show variables like 'character_set_client'")) ? (' DEFAULT CHARSET=' . ($table['charset'] ? $table['charset'] : 'utf8')) : '');
 
-            $query = 'create table ' . $chgTableName . ' (' . implode(', ', $fieldlist) . ($table['key'] ? ', ' . $table['key'] : '') . ')' . $charset . ($table['engine'] ? ' engine=' . $table['engine'] : '');
-            $mysql->query($query);
+            $query = 'create table ' . $chgTableName . ' (' . implode(', ', $fieldlist) . (!empty($table['key']) ? ', ' . $table['key'] : '') . ')' . $charset . (!empty($table['engine']) ? ' engine=' . $table['engine'] : '');
+            $createResult = $mysql->query($query);
+            if ($createResult === null || $createResult === false) {
+                $publish_result = 'Failed to create table';
+                $publish_error = 1;
+                break;
+            }
+            if ($mysql->getDbType() === 'sqlite' && !empty($table['key']) && preg_match_all('/(UNIQUE\s+)?KEY\s+`?([A-Za-z_][A-Za-z0-9_]*)`?\s*\(([^)]*)\)/i', $table['key'], $indexes, PREG_SET_ORDER)) {
+                foreach ($indexes as $index) {
+                    $columns = [];
+                    foreach (explode(',', $index[3]) as $column) {
+                        if (!preg_match('/^\s*`?([A-Za-z_][A-Za-z0-9_]*)`?(?:\s+(ASC|DESC))?\s*$/i', $column, $columnMatch)) {
+                            $publish_result = 'Unsupported SQLite index definition';
+                            $publish_error = 1;
+                            break;
+                        }
+                        $columns[] = '"' . $columnMatch[1] . '"' . (empty($columnMatch[2]) ? '' : ' ' . strtoupper($columnMatch[2]));
+                    }
+                    if ($publish_error) {
+                        break;
+                    }
+                    $tableIdentifier = '"' . str_replace('"', '""', $chgTableName) . '"';
+                    $indexIdentifier = '"' . str_replace('"', '""', $chgTableName . '_' . $index[2]) . '"';
+                    $indexQuery = 'CREATE ' . (empty($index[1]) ? '' : 'UNIQUE ') . 'INDEX IF NOT EXISTS ' . $indexIdentifier . ' ON ' . $tableIdentifier . ' (' . implode(', ', $columns) . ')';
+                    $indexResult = $mysql->query($indexQuery);
+                    if ($indexResult === null || $indexResult === false) {
+                        $publish_result = 'Failed to create SQLite index';
+                        $publish_error = 1;
+                        break;
+                    }
+                }
+                if ($publish_error) {
+                    break;
+                }
+            }
             array_push($publish, ['title' => $publish_title, 'descr' => "SQL: [$query]", 'result' => ($publish_result ? $publish_result : ($error ? $lang['idbc_fail'] : $lang['idbc_ok']))]);
         } else {
             foreach ($table['fields'] as $field) {
@@ -436,6 +470,9 @@ function fixdb_plugin_install($module, $params, $mode = 'install', $silent = fal
                     continue;
                 }
                 if ($field['action'] == 'cmodify') {
+                    if ($ft && $mysql->getDbType() === 'sqlite') {
+                        continue;
+                    }
                     if (!$ft) {
                         $query = 'alter table ' . $chgTableName . ' add column `' . $field['name'] . '` ' . $field['type'] . ' ' . $field['params'];
                     } else {
@@ -463,18 +500,14 @@ function fixdb_plugin_install($module, $params, $mode = 'install', $silent = fal
     // Write an info
     foreach ($publish as $v) {
         $tvars['vars'] = $v;
-        if ($tvars['vars']['error']) {
+        if (!empty($tvars['vars']['error'])) {
             $tvars['vars']['result'] = '<font color="red">' . $tvars['vars']['result'] . '</font>';
         }
         $tpl->vars('install-entries', $tvars);
         $entries .= $tpl->show('install-entries');
     }
 
-    if ($publish_error) {
-        $is_error = 0;
-    }
-
-    $is_error = 1;
+    $is_error = $publish_error ? 0 : 1;
 
     $tpl->template('install-process', tpl_actions . 'extra-config');
     $tvars['vars'] = [

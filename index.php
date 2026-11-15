@@ -8,7 +8,7 @@
 // Override charset
 @header('content-type: text/html; charset=utf-8');
 // Check for minimum supported PHP version
-if (version_compare(PHP_VERSION, '8.1.0') < 0) {
+if (version_compare(PHP_VERSION, '8.2.0') < 0) {
     @header('Content-Type: text/html; charset=utf-8');
     $current_version = PHP_VERSION;
     echo <<<HTML
@@ -114,14 +114,14 @@ if (version_compare(PHP_VERSION, '8.1.0') < 0) {
                 <p>Your PHP version doesn't meet the system requirements for NGCMS.</p>
                 <div class="current-version">
                     Current PHP version: <span class="version">$current_version</span><br>
-                    Required PHP version: <span class="required">8.1.0 or higher</span>
+                    Required PHP version: <span class="required">8.2.0 or higher</span>
                 </div>
                 <h2>English</h2>
-                <p>NGCMS requires PHP version <b>8.1.0</b> or higher to run properly.</p>
+                <p>NGCMS requires PHP version <b>8.2.0</b> or higher to run properly.</p>
                 <p>Please contact your hosting provider and ask them to upgrade your PHP version.</p>
                 <div class="divider"></div>
                 <h2>Русский</h2>
-                <p>Для работы NGCMS требуется PHP версии <b>8.1.0</b> или выше.</p>
+                <p>Для работы NGCMS требуется PHP версии <b>8.2.0</b> или выше.</p>
                 <p>Пожалуйста, обратитесь к вашему хостинг-провайдеру с просьбой обновить версию PHP.</p>
             </div>
             <div class="footer">

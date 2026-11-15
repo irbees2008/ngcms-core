@@ -23,16 +23,32 @@ function admConfigurationTestDB($params)
     if (!checkPermission(['plugin' => '#admin', 'item' => 'configuration'], null, 'modify')) {
         return ['status' => 0, 'errorCode' => 1, 'errorText' => 'Permission denied'];
     }
-    if (!is_array($params) || !isset($params['dbhost']) || !isset($params['dbname']) || !isset($params['dbpasswd']) || !isset($params['dbname'])) {
+    if (!is_array($params) || !isset($params['token'])) {
         return ['status' => 0, 'errorCode' => 2, 'errorText' => 'Wrong params type'];
     }
     if ($params['token'] != genUToken('admin.configuration')) {
         return ['status' => 0, 'errorCode' => 3, 'errorText' => 'Wrong security code'];
     }
+    $dbType = strtolower((string) ($params['dbtype'] ?? 'mysql'));
+    $dbParams = ['dbtype' => $dbType];
+    if ($dbType === 'sqlite') {
+        $dbParams['dbpath'] = $params['dbpath'] ?? $params['dbname'] ?? '';
+        if (!$dbParams['dbpath']) {
+            return ['status' => 0, 'errorCode' => 2, 'errorText' => 'Wrong params type'];
+        }
+    } else {
+        if (!isset($params['dbhost']) || !isset($params['dbname']) || !isset($params['dbpasswd']) || !isset($params['dbname'])) {
+            return ['status' => 0, 'errorCode' => 2, 'errorText' => 'Wrong params type'];
+        }
+        $dbParams['host'] = $params['dbhost'];
+        $dbParams['user'] = $params['dbuser'];
+        $dbParams['pass'] = $params['dbpasswd'];
+        $dbParams['db'] = $params['dbname'];
+    }
     // Check if DB connection params are correct
     try {
         $sx = NGEngine::getInstance();
-        $sx->set('db', new NGPDO(['host' => $params['dbhost'], 'user' => $params['dbuser'], 'pass' => $params['dbpasswd'], 'db' => $params['dbname']]));
+        $sx->set('db', new NGPDO($dbParams));
         $sx->set('legacyDB', new NGLegacyDB(false));
         $sx->getLegacyDB()->connect('', '', '');
         $sqlTest = $sx->getLegacyDB();

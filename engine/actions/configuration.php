@@ -93,8 +93,22 @@ function systemConfigSave()
     // Check if DB connection params are correct (only for main config)
     if (!$siteId) {
         try {
+            $dbType = strtolower((string) ($save_con['dbtype'] ?? 'mysql'));
+            $dbParams = ['dbtype' => $dbType];
+            if ($dbType === 'sqlite') {
+                $dbParams['dbpath'] = $save_con['dbpath'] ?? $save_con['dbname'] ?? '';
+                if (!$dbParams['dbpath']) {
+                    msgSticker($lang['dbcheck_error'], 'error');
+                    return false;
+                }
+            } else {
+                $dbParams['host'] = $save_con['dbhost'];
+                $dbParams['user'] = $save_con['dbuser'];
+                $dbParams['pass'] = $save_con['dbpasswd'];
+                $dbParams['db'] = $save_con['dbname'];
+            }
             $sx = NGEngine::getInstance();
-            $sx->set('db', new NGPDO(['host' => $save_con['dbhost'], 'user' => $save_con['dbuser'], 'pass' => $save_con['dbpasswd'], 'db' => $save_con['dbname']]));
+            $sx->set('db', new NGPDO($dbParams));
             $sx->set('legacyDB', new NGLegacyDB(false));
             $sx->getLegacyDB()->connect('', '', '');
             $sqlTest = $sx->getLegacyDB();

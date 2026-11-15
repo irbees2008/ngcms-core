@@ -21,7 +21,7 @@ $confPermUser = array (
     array (
       'system' => 
       array (
-        'admpanel.view' => false,
+        'admpanel.view' => true,
         'lockedsite.view' => false,
         'debug.view' => false,
         '*' => false,

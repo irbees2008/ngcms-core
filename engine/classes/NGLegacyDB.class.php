@@ -31,6 +31,9 @@ class NGLegacyDB
 
     public function select_db($db)
     {
+        if ($this->db && $this->db->getDbType() === 'sqlite') {
+            return true;
+        }
         return $this->db->exec('use '.$db);
     }
 
@@ -39,6 +42,11 @@ class NGLegacyDB
         return $this->runWithQueryCache('select', $sql, function () use ($sql) {
             return $this->db->query($sql);
         });
+    }
+
+    public function selectUncached($sql)
+    {
+        return $this->db->query($sql);
     }
 
     public function record($sql, $assocMode = 1)
@@ -113,6 +121,11 @@ class NGLegacyDB
     public function mysql_version()
     {
         return $this->db->getVersion();
+    }
+
+    public function getDbType()
+    {
+        return $this->db ? $this->db->getDbType() : 'mysql';
     }
 
     public function close()

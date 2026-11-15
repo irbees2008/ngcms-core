@@ -83,6 +83,9 @@
 				<tr>
 					<td colspan="2" class="h3 font-weight-light">{{ lang['db_connect'] }}</td>
 				</tr>
+				{% if config['dbtype']|default('pdo') == 'sqlite' %}
+				{% include 'skins/default/tpl/configuration_sqlite_db.tpl' %}
+				{% else %}
 				<tr>
 					<td width="50%">{{ lang['dbtype'] }}
 						<small class="form-text text-muted">{{ lang['example'] }}
@@ -128,6 +131,7 @@
 						<input id="db_dbpasswd" type="password" name='save_con[dbpasswd]' value='{{ config['dbpasswd'] }}' class="form-control"/>
 					</td>
 				</tr>
+				{% endif %}
 				<tr>
 					<td width="50%">{{ lang['dbprefix'] }}
 						<small class="form-text text-muted">{{ lang['example'] }}
@@ -145,6 +149,9 @@
 				</tr>
 			</table>
 			<!-- END: TABLE DB//Connection -->
+			{% if config['dbtype']|default('pdo') == 'sqlite' %}
+			{% include 'skins/default/tpl/configuration_sqlite_backup.tpl' %}
+			{% else %}
 			<!-- TABLE DB//Backup -->
 			<table class="table table-sm">
 				<tr>
@@ -168,6 +175,7 @@
 				</tr>
 			</table>
 			<!-- END: TABLE DB//Backup -->
+			{% endif %}
 		</div>
 		<!-- ########################## SECURITY TAB ########################## -->
 		<div id="userTabs-security" class="tab-pane">
@@ -690,11 +698,11 @@
 					</td>
 				</tr>
 				<tr>
-					<td width="50%">{{ lang['use_bbcodes'] }}
-						<small class="form-text text-muted">{{ lang['use_bbcodes_desc'] }}</small>
+					<td width="50%">{{ lang['content_format'] }}
+						<small class="form-text text-muted">{{ lang['content_format_desc'] }}</small>
 					</td>
 					<td width="50%">
-						{{ mkSelectYN({'name' : 'save_con[use_bbcodes]', 'value' : config['use_bbcodes'] }) }}
+						{{ mkSelect({'name' : 'save_con[content_format]', 'value' : config['content_format'], 'values' : {'disabled': lang['content_format_disabled'], 'bbcode': lang['content_format_bbcode'], 'markdown': lang['content_format_markdown']} }) }}
 					</td>
 				</tr>
 				<tr>
@@ -1346,6 +1354,7 @@
 	return post('admin.configuration.dbCheck', {
 	'token': '{{ token }}',
 	'dbtype': $("#db_dbtype").val(),
+	'dbpath': $("#db_dbpath").val(),
 	'dbhost': $("#db_dbhost").val(),
 	'dbname': $("#db_dbname").val(),
 	'dbuser': $("#db_dbuser").val(),

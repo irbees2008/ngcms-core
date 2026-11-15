@@ -628,4 +628,157 @@ $urlLibrary = array (
       ),
     ),
   ),
+  'gallery' => 
+  array (
+    'widget' => 
+    array (
+      'vars' => 
+      array (
+        'name' => 
+        array (
+          'matchRegex' => '.+?',
+          'descr' => 
+          array (
+            'russian' => 'Имя виджета',
+          ),
+        ),
+        'id' => 
+        array (
+          'matchRegex' => '\\d{1,4}',
+          'descr' => 
+          array (
+            'russian' => 'Код виджета',
+          ),
+        ),
+        'sort' => 
+        array (
+          'matchRegex' => '\\d{1,4}',
+          'descr' => 
+          array (
+            'russian' => 'Сортировка',
+          ),
+        ),
+      ),
+      'descr' => 
+      array (
+        'russian' => 'Собственная страница галереи',
+      ),
+    ),
+  ),
+  'gsmg' => 
+  array (
+    '' => 
+    array (
+      'vars' => 
+      array (
+      ),
+      'descr' => 
+      array (
+        'russian' => 'Лента gsmg',
+      ),
+    ),
+  ),
+  'lastcomments' => 
+  array (
+    '' => 
+    array (
+      'vars' => 
+      array (
+      ),
+      'descr' => 
+      array (
+        'russian' => 'Страница с последними комментариями',
+      ),
+    ),
+    'rss' => 
+    array (
+      'vars' => 
+      array (
+      ),
+      'descr' => 
+      array (
+        'russian' => 'Rss лента последних комментариев',
+      ),
+    ),
+  ),
+  'quotes' => 
+  array (
+    '' => 
+    array (
+      'vars' => 
+      array (
+        'page' => 
+        array (
+          'matchRegex' => '\\d{1,4}',
+          'descr' => 
+          array (
+            'russian' => 'Постраничная навигация',
+          ),
+        ),
+      ),
+      'descr' => 
+      array (
+        'russian' => 'Главная страница цитатника',
+      ),
+    ),
+    'show' => 
+    array (
+      'vars' => 
+      array (
+        'id' => 
+        array (
+          'matchRegex' => '\\d+',
+          'descr' => 
+          array (
+            'russian' => 'ID цитаты',
+          ),
+        ),
+      ),
+      'descr' => 
+      array (
+        'russian' => 'Ссылка на цитату',
+      ),
+    ),
+    'add' => 
+    array (
+      'vars' => 
+      array (
+      ),
+      'descr' => 
+      array (
+        'russian' => 'Добавить новость',
+      ),
+    ),
+    'rss' => 
+    array (
+      'vars' => 
+      array (
+      ),
+      'descr' => 
+      array (
+        'russian' => 'RSS цитатника',
+      ),
+    ),
+  ),
+  'uprofile_del' => 
+  array (
+    'user_id' => 
+    array (
+      'vars' => 
+      array (
+        'id' => 
+        array (
+          'matchRegex' => '\\d+',
+          'descr' => 
+          array (
+            'russian' => 'ИД пользователя',
+          ),
+        ),
+      ),
+      'descr' => 
+      array (
+        'russian' => 'Удалить свой аккаунт',
+      ),
+    ),
+  ),
 );

@@ -61,6 +61,9 @@
 					<tr>
 						<td colspan="2" class="h3 font-weight-light">{{ lang['db_connect'] }}</td>
 					</tr>
+					{% if config['dbtype']|default('pdo') == 'sqlite' %}
+					{% include 'skins/default/tpl/configuration_sqlite_db.tpl' %}
+					{% else %}
 					<tr>
 						<td width="50%">{{ lang['dbtype'] }}
 							<small class="form-text text-muted">{{ lang['example'] }}pdo</small>
@@ -68,14 +71,6 @@
 						<td width="50%" class="ng-select">
 							{{ mkSelect({'name' : 'save_con[dbtype]', 'value' : config['dbtype'], 'id' : 'db_dbtype', 'values' : { 'pdo' : lang['pdo'] } }) }}
 						</td>
-					<tr>
-						<td width="50%">{{ lang['smilies_mode'] }}
-							<small class="form-text text-muted">{{ lang['smilies_mode_desc'] }}</small>
-						</td>
-						<td>
-							{{ mkSelect({'name' : 'save_con[smilies_mode]', 'value' : config['smilies_mode']|default('emoji'), 'values' : {'emoji': lang['smilies_mode_emoji'], 'images': lang['smilies_mode_images']} }) }}
-						</td>
-					</tr>
 					</tr>
 					<tr>
 						<td width="50%">{{ lang['dbhost'] }}
@@ -109,6 +104,7 @@
 							<input id="db_dbpasswd" type="password" name='save_con[dbpasswd]' value='{{ config['dbpasswd'] }}' class="form-control"/>
 						</td>
 					</tr>
+					{% endif %}
 					<tr>
 						<td width="50%">{{ lang['dbprefix'] }}
 							<small class="form-text text-muted">{{ lang['example'] }}ng</small>
@@ -125,6 +121,9 @@
 					</tr>
 				</table>
 				<!-- END: TABLE DB//Connection -->
+				{% if config['dbtype']|default('pdo') == 'sqlite' %}
+				{% include 'skins/default/tpl/configuration_sqlite_backup.tpl' %}
+				{% else %}
 				<!-- TABLE DB//Backup -->
 				<table class="table table-sm">
 					<tr>
@@ -148,6 +147,7 @@
 					</tr>
 				</table>
 				<!-- END: TABLE DB//Backup -->
+				{% endif %}
 			</div>
 			<!-- ########################## SECURITY TAB ########################## -->
 			<div id="userTabs-security" class="tab-pane">
@@ -198,22 +198,7 @@
 							<input type="text" name='save_con[flood_time]' value='{{ config['flood_time'] }}' class="form-control"/>
 						</td>
 					</tr>
-					<tr>
-						<td width="50%">{{ lang['use_captcha'] }}
-							<small class="form-text text-muted">{{ lang['use_captcha_desc'] }}</small>
-						</td>
-						<td width="50%" class="ng-select">
-							{{ mkSelectYN({'name' : 'save_con[use_captcha]', 'value' : config['use_captcha'] }) }}
-						</td>
-					</tr>
-					<tr>
-						<td width="50%">{{ lang['captcha_font'] }}
-							<small class="form-text text-muted">{{ lang['captcha_font_desc'] }}</small>
-						</td>
-						<td width="50%" class="ng-select">
-							{{ mkSelect({'name' : 'save_con[captcha_font]', 'value' : config['captcha_font'], 'values' : list['captcha_font'] }) }}
-						</td>
-					</tr>
+					
 					<tr>
 						<td width="50%">{{ lang['use_cookies'] }}
 							<small class="form-text text-muted">{{ lang['use_cookies_desc'] }}</small>
@@ -634,6 +619,14 @@
 								{{ timestamp_updated_now }}</small>
 						</td>
 					</tr>
+          <tr>
+						<td width="50%">{{ lang['smilies_mode'] }}
+							<small class="form-text text-muted">{{ lang['smilies_mode_desc'] }}</small>
+						</td>
+						<td>
+							{{ mkSelect({'name' : 'save_con[smilies_mode]', 'value' : config['smilies_mode']|default('emoji'), 'values' : {'emoji': lang['smilies_mode_emoji'], 'images': lang['smilies_mode_images']} }) }}
+						</td>
+					</tr>
 					<tr>
 						<td width="50%">{{ lang['smilies'] }}
 							<small class="form-text text-muted">{{ lang['smilies_desc'] }}
@@ -668,11 +661,11 @@
 						</td>
 					</tr>
 					<tr>
-						<td width="50%">{{ lang['use_bbcodes'] }}
-							<small class="form-text text-muted">{{ lang['use_bbcodes_desc'] }}</small>
+						<td width="50%">{{ lang['content_format'] }}
+							<small class="form-text text-muted">{{ lang['content_format_desc'] }}</small>
 						</td>
 						<td width="50%" class="ng-select">
-							{{ mkSelectYN({'name' : 'save_con[use_bbcodes]', 'value' : config['use_bbcodes'] }) }}
+							{{ mkSelect({'name' : 'save_con[content_format]', 'value' : config['content_format'], 'values' : {'disabled': lang['content_format_disabled'], 'bbcode': lang['content_format_bbcode'], 'markdown': lang['content_format_markdown']} }) }}
 						</td>
 					</tr>
 					<tr>
@@ -1154,7 +1147,15 @@
 											</tr>
 										</thead>
 										<tbody>
-										</td>
+											{% for MR in multiConfig %}
+												<tr>
+													<td>
+														{% if (MR['active']) %}On{% else %}Off
+														{% endif %}
+													</td>
+													<td>{{ MR['key'] }}</td>
+													<td>
+														{% for domain in MR['domains'] %}
 															{{ domain }}
 															{% else %}-
 															{{ lang['not_specified'] }}
@@ -1243,6 +1244,7 @@
 	post('admin.configuration.dbCheck', {
 	'token': '{{ token }}',
 	'dbtype': $("#db_dbtype").val(),
+	'dbpath': $("#db_dbpath").val(),
 	'dbhost': $("#db_dbhost").val(),
 	'dbname': $("#db_dbname").val(),
 	'dbuser': $("#db_dbuser").val(),

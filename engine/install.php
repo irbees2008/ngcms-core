@@ -6,7 +6,7 @@
 // Author: Vitaly Ponomarev
 //
 header('content-type: text/html; charset=utf-8');
-if (version_compare(PHP_VERSION, '8.1.0') < 0) {
+if (version_compare(PHP_VERSION, '8.2.0') < 0) {
     $current_version = PHP_VERSION;
     echo <<<HTML
 <!DOCTYPE html>
@@ -111,14 +111,14 @@ if (version_compare(PHP_VERSION, '8.1.0') < 0) {
                 <p>Your PHP version doesn't meet the system requirements for NGCMS.</p>
                 <div class="current-version">
                     Current PHP version: <span class="version">$current_version</span><br>
-                    Required PHP version: <span class="required">8.1.0 or higher</span>
+                    Required PHP version: <span class="required">8.2.0 or higher</span>
                 </div>
                 <h2>English</h2>
-                <p>NGCMS requires PHP version <b>8.1.0</b> or higher to run properly.</p>
+                <p>NGCMS requires PHP version <b>8.2.0</b> or higher to run properly.</p>
                 <p>Please contact your hosting provider and ask them to upgrade your PHP version.</p>
                 <div class="divider"></div>
                 <h2>Русский</h2>
-                <p>Для работы NGCMS требуется PHP версии <b>8.1.0</b> или выше.</p>
+                <p>Для работы NGCMS требуется PHP версии <b>8.2.0</b> или выше.</p>
                 <p>Пожалуйста, обратитесь к вашему хостинг-провайдеру с просьбой обновить версию PHP.</p>
             </div>
             <div class="footer">
@@ -366,8 +366,8 @@ function doConfig()
 function doConfig_db($check)
 {
     global $tvars, $tpl, $templateDir, $SQL_VERSION, $lang;
-    $myparams = ['action', 'stage', 'reg_dbtype', 'reg_dbhost', 'reg_dbname', 'reg_dbuser', 'reg_dbpass', 'reg_dbprefix', 'reg_autocreate', 'reg_dbadminuser', 'reg_dbadminpass'];
-    $DEFAULT = ['reg_dbhost' => 'localhost', 'reg_dbprefix' => 'ng'];
+    $myparams = ['action', 'stage', 'reg_dbtype', 'reg_dbhost', 'reg_dbname', 'reg_dbuser', 'reg_dbpass', 'reg_dbprefix', 'reg_dbpath', 'reg_autocreate', 'reg_dbadminuser', 'reg_dbadminpass'];
+    $DEFAULT = ['reg_dbhost' => 'localhost', 'reg_dbprefix' => 'ng', 'reg_dbpath' => confroot . 'site.sqlite'];
     // Show form
     $hinput = [];
     foreach ($_POST as $k => $v) {
@@ -381,38 +381,103 @@ function doConfig_db($check)
         // Check passed parameters. Check for required params
         $error = 0;
         $ac = 0;
-        foreach (['reg_dbtype', 'reg_dbhost', 'reg_dbname', 'reg_dbuser'] as $k) {
-            if (!strlen($_POST[$k])) {
+        $dbType = $_POST['reg_dbtype'] ?? 'pdo';
+        if (!in_array($dbType, ['pdo', 'mysql', 'sqlite'], true)) {
+            $tvars['vars']['error_message'] = '<div class="errorDiv">' . $lang['error.dbtype'] . '</div>';
+            $error++;
+        } elseif ($dbType === 'mysql') {
+            $_POST['reg_dbtype'] = 'pdo';
+            $dbType = 'pdo';
+        }
+        $_POST['reg_dbprefix'] = trim((string) ($_POST['reg_dbprefix'] ?? ''));
+        if ($_POST['reg_dbprefix'] === '') {
+            $tvars['vars']['err:reg_dbprefix'] = $lang['error.notfilled'];
+            $error++;
+        } elseif (!preg_match('/^[A-Za-z0-9_]+$/', $_POST['reg_dbprefix'])) {
+            $tvars['vars']['err:reg_dbprefix'] = $lang['error.dbprefix'];
+            $error++;
+        }
+        if ($dbType === 'sqlite') {
+            $_POST['reg_dbpath'] = trim((string) ($_POST['reg_dbpath'] ?? ''));
+            if ($_POST['reg_dbpath'] === '') {
+                $_POST['reg_dbpath'] = $DEFAULT['reg_dbpath'];
+            }
+            $isAbsolutePath = $_POST['reg_dbpath'] !== ':memory:' && (
+                $_POST['reg_dbpath'][0] === '/' ||
+                $_POST['reg_dbpath'][0] === '\\' ||
+                preg_match('/^[A-Za-z]:[\\\\\/]/', $_POST['reg_dbpath'])
+            );
+            if (!$isAbsolutePath) {
+                $tvars['vars']['err:reg_dbpath'] = $lang['error.sqlite_path'];
+                $error++;
+            }
+            if (!extension_loaded('pdo_sqlite')) {
+                $tvars['vars']['error_message'] = '<div class="errorDiv">' . $lang['error.sqlite_driver'] . '</div>';
+                $error++;
+            } elseif ($isAbsolutePath) {
+                $dbDir = dirname($_POST['reg_dbpath']);
+                if (!is_dir($dbDir) && !@mkdir($dbDir, 0777, true) && !is_dir($dbDir)) {
+                    $tvars['vars']['err:reg_dbpath'] = $lang['error.sqlite_path'];
+                    $error++;
+                } elseif (!is_writable($dbDir) || (file_exists($_POST['reg_dbpath']) && !is_writable($_POST['reg_dbpath']))) {
+                    $tvars['vars']['err:reg_dbpath'] = $lang['error.sqlite_path'];
+                    $error++;
+                } else {
+                    try {
+                        $sx = NGEngine::getInstance();
+                        $sx->set('events', new NGEvents());
+                        $sx->set('errorHandler', new NGErrorHandler());
+                        $sx->set('db', new NGPDO(['dbtype' => 'sqlite', 'dbpath' => $_POST['reg_dbpath']]));
+                        $sx->set('legacyDB', new NGLegacyDB(false));
+                        $sx->getLegacyDB()->connect('', '', '');
+                        $sqlr = $sx->getLegacyDB()->mysql_version();
+                        if (preg_match('/^(\d+)\.(\d+)/', $sqlr, $regex)) {
+                            $SQL_VERSION = [$sqlr, intval($regex[1]), intval($regex[2])];
+                        } else {
+                            $SQL_VERSION = $sqlr;
+                        }
+                        $sx->getLegacyDB()->close();
+                    } catch (Exception $e) {
+                        $tvars['vars']['error_message'] = '<div class="errorDiv">' . $lang['error.dbconnect'] . ' "' . htmlspecialchars($_POST['reg_dbpath'], ENT_QUOTES, 'UTF-8') . '":<br/> (' . $e->getCode() . ') ' . htmlspecialchars($e->getMessage(), ENT_QUOTES, 'UTF-8') . '</div>';
+                        $error++;
+                    }
+                }
+            }
+        }
+        foreach ($dbType === 'pdo' || $dbType === 'mysql' ? ['reg_dbhost', 'reg_dbname', 'reg_dbuser'] : [] as $k) {
+            if (!strlen($_POST[$k] ?? '')) {
                 $tvars['vars']['err:' . $k] = $lang['error.notfilled'];
                 $error++;
             }
         }
         // Check for autocreate mode
-        if (isset($_POST['reg_autocreate'])) {
+        if (($dbType === 'pdo' || $dbType === 'mysql') && isset($_POST['reg_autocreate'])) {
             // Check for user filled
-            if (!strlen($_POST['reg_dbadminuser'])) {
+            if (!strlen($_POST['reg_dbadminuser'] ?? '')) {
                 $tvars['vars']['err:reg_dbadminuser'] = '<span style="color: red;">' . $lang['err.reg_dbadminuser'] . '</span>';
                 $error++;
             }
             $ac = 1;
         }
-        try {
-            $sx = NGEngine::getInstance();
-            $sx->set('events', new NGEvents());
-            $sx->set('errorHandler', new NGErrorHandler());
-            $sx->set('db', new NGPDO(['host' => $_POST['reg_dbhost'], 'user' => $_POST['reg_db' . ($ac ? 'admin' : '') . 'user'], 'pass' => $_POST['reg_db' . ($ac ? 'admin' : '') . 'pass']]));
-            $sx->set('legacyDB', new NGLegacyDB(false));
-            $sx->getLegacyDB()->connect('', '', '');
-            $mysql = $sx->getLegacyDB();
-            $sqlr = $mysql->mysql_version();
-            if (preg_match('/^(\d+)\.(\d+)/', $sqlr, $regex)) {
-                $SQL_VERSION = [$sqlr, intval($regex[1]), intval($regex[2])];
-            } else {
-                $SQL_VERSION = $sqlr;
+        if (!$error && $dbType !== 'sqlite') {
+            try {
+                $sx = NGEngine::getInstance();
+                $sx->set('events', new NGEvents());
+                $sx->set('errorHandler', new NGErrorHandler());
+                $sx->set('db', new NGPDO(['host' => $_POST['reg_dbhost'], 'user' => $_POST['reg_db' . ($ac ? 'admin' : '') . 'user'], 'pass' => $_POST['reg_db' . ($ac ? 'admin' : '') . 'pass'] ?? '']));
+                $sx->set('legacyDB', new NGLegacyDB(false));
+                $sx->getLegacyDB()->connect('', '', '');
+                $mysql = $sx->getLegacyDB();
+                $sqlr = $mysql->mysql_version();
+                if (preg_match('/^(\d+)\.(\d+)/', $sqlr, $regex)) {
+                    $SQL_VERSION = [$sqlr, intval($regex[1]), intval($regex[2])];
+                } else {
+                    $SQL_VERSION = $sqlr;
+                }
+            } catch (Exception $e) {
+                $tvars['vars']['error_message'] = '<div class="errorDiv">' . $lang['error.dbconnect'] . ' "' . $_POST['reg_dbhost'] . '":<br/> (' . $e->getCode() . ') ' . $e->getMessage() . '</div>';
+                $error = 1;
             }
-        } catch (Exception $e) {
-            $tvars['vars']['error_message'] = '<div class="errorDiv">' . $lang['error.dbconnect'] . ' "' . $_POST['reg_dbhost'] . '":<br/> (' . $e->getCode() . ') ' . $e->getMessage() . '</div>';
-            $error = 1;
         }
         if (isset($mysql) != null) {
             $mysql->close();
@@ -429,15 +494,16 @@ function doConfig_db($check)
             'reg_dbpass',
             'reg_dbname',
             'reg_dbprefix',
+            'reg_dbpath',
             'reg_autocreate',
             'reg_dbadminuser',
             'reg_dbadminpass',
         ] as $k
     ) {
         if ($k == 'reg_dbtype') {
-            foreach (['pdo'] as $s) {
-                $tvars['vars'][$k . '_' . $s] = isset($_POST[$k]) && $_POST[$k] == $s ? ' selected' : '';
-            }
+            $selected = $_POST[$k] ?? 'pdo';
+            $tvars['vars']['reg_dbtype_mysql'] = in_array($selected, ['pdo', 'mysql'], true) ? ' selected' : '';
+            $tvars['vars']['reg_dbtype_sqlite'] = $selected === 'sqlite' ? ' selected' : '';
         } else {
             $tvars['vars'][$k] = htmlspecialchars($_POST[$k] ?? $DEFAULT[$k] ?? '', ENT_COMPAT | ENT_HTML401, 'UTF-8');
         }
@@ -445,12 +511,12 @@ function doConfig_db($check)
             $tvars['vars']['err:' . $k] = '';
         }
     }
-    if (isset($_POST['reg_autocreate'])) {
+    if (isset($_POST['reg_autocreate']) && $dbType !== 'sqlite') {
         $tvars['vars']['reg_autocreate'] = 'checked="checked"';
     }
     $tvars['vars']['menu_db'] = ' class="hover"';
     printHeader();
-    $tvars['regx']["'\[pdo\](.*?)\[/pdo\]'si"] = (extension_loaded('pdo') || extension_loaded('pdo_mysql')) ? '$1' : '';
+    $tvars['regx']["'\[pdo\](.*?)\[/pdo\]'si"] = extension_loaded('pdo') && (extension_loaded('pdo_mysql') || extension_loaded('pdo_sqlite')) ? '$1' : '';
     // Выводим форму проверки
     $tpl->template('config_db', $templateDir);
     $tpl->vars('config_db', $tvars);
@@ -487,7 +553,7 @@ function doConfig_perm()
     }
     $tvars['vars']['chmod'] = $chmod;
     // PHP Version
-    if (version_compare(phpversion(), '5.3') < 0) {
+    if (version_compare(phpversion(), '8.2.0') < 0) {
         $tvars['vars']['php_version'] = '<span style="color: red;">' . phpversion() . '</span>';
         $error = 1;
     } else {
@@ -513,7 +579,9 @@ function doConfig_perm()
         $error = 1;
     }
     // PDO support
-    if (extension_loaded('PDO') && extension_loaded('pdo_mysql') && class_exists('PDO')) {
+    $selectedDbType = $_POST['reg_dbtype'] ?? 'pdo';
+    $hasSelectedDriver = $selectedDbType === 'sqlite' ? extension_loaded('pdo_sqlite') : extension_loaded('pdo_mysql');
+    if (extension_loaded('PDO') && $hasSelectedDriver && class_exists('PDO')) {
         $tvars['vars']['pdo'] = $lang['perm.yes'];
     } else {
         $tvars['vars']['pdo'] = '<span style="color: red;">' . $lang['perm.no'] . '</span>';
@@ -725,8 +793,20 @@ function doConfig_common()
 function doInstall()
 {
     global $tvars, $tpl, $templateDir, $installDir, $adminDirName, $pluginInstallList, $lang, $currentLanguage;
+    $dbType = $_POST['reg_dbtype'] ?? 'pdo';
+    if ($dbType === 'mysql') {
+        $dbType = 'pdo';
+    }
+    if (!in_array($dbType, ['pdo', 'sqlite'], true)) {
+        doConfig_db(1);
+        return false;
+    }
+    if (!preg_match('/^[A-Za-z0-9_]+$/', (string) ($_POST['reg_dbprefix'] ?? ''))) {
+        doConfig_db(1);
+        return false;
+    }
+    $_POST['reg_dbtype'] = $dbType;
     $tvars['vars']['menu_install'] = ' class="hover"';
-    printHeader();
     $myparams = ['action', 'stage'];
     // Show form
     $hinput = [];
@@ -762,6 +842,8 @@ function doInstall()
             try {
                 $sx = NGEngine::getInstance();
                 switch ($_POST['reg_dbtype']) {
+                    case 'sqlite':
+                        break;
                     case 'pdo':
                         $sx->set('db', new NGPDO(['host' => $_POST['reg_dbhost'], 'user' => $_POST['reg_dbadminuser'], 'pass' => $_POST['reg_dbadminpass']]));
                         break;
@@ -814,6 +896,32 @@ function doInstall()
         try {
             $sx = NGEngine::getInstance();
             switch ($_POST['reg_dbtype']) {
+                case 'sqlite':
+                    if (!extension_loaded('pdo_sqlite')) {
+                        throw new Exception($lang['error.sqlite_driver']);
+                    }
+                    $dbPath = trim((string) ($_POST['reg_dbpath'] ?? ''));
+                    if ($dbPath === '') {
+                        $dbPath = confroot . 'site.sqlite';
+                    }
+                    $isAbsolutePath = $dbPath !== ':memory:' && (
+                        $dbPath[0] === '/' ||
+                        $dbPath[0] === '\\' ||
+                        preg_match('/^[A-Za-z]:[\\\\\/]/', $dbPath)
+                    );
+                    if (!$isAbsolutePath) {
+                        throw new Exception($lang['error.sqlite_path']);
+                    }
+                    $dbDirectory = dirname($dbPath);
+                    if (!is_dir($dbDirectory) && !@mkdir($dbDirectory, 0777, true) && !is_dir($dbDirectory)) {
+                        throw new Exception($lang['error.sqlite_path']);
+                    }
+                    if (!is_writable($dbDirectory) || (file_exists($dbPath) && !is_writable($dbPath))) {
+                        throw new Exception($lang['error.sqlite_path']);
+                    }
+                    $_POST['reg_dbpath'] = $dbPath;
+                    $sx->set('db', new NGPDO(['dbtype' => 'sqlite', 'dbpath' => $dbPath]));
+                    break;
                 case 'pdo':
                     $sx->set('db', new NGPDO(['host' => $_POST['reg_dbhost'], 'user' => $_POST['reg_dbuser'], 'pass' => $_POST['reg_dbpass']]));
                     break;
@@ -821,17 +929,45 @@ function doInstall()
             $sx->set('legacyDB', new NGLegacyDB(false));
             $sx->getLegacyDB()->connect('', '', '');
             $mysql = $sx->getLegacyDB();
-            array_push($LOG, 'Подключение к серверу БД "' . $_POST['reg_dbhost'] . '" используя логин "' . $_POST['reg_dbuser'] . '" ... OK');
-            if ($mysql->select_db('`' . $_POST['reg_dbname'] . '`') === null) {
+            if ($dbType === 'sqlite') {
+                array_push($LOG, 'Подключение к SQLite-файлу "' . $_POST['reg_dbpath'] . '" ... OK');
+            } else {
+                array_push($LOG, 'Подключение к серверу БД "' . $_POST['reg_dbhost'] . '" используя логин "' . $_POST['reg_dbuser'] . '" ... OK');
+            }
+            if ($dbType !== 'sqlite' && $mysql->select_db('`' . $_POST['reg_dbname'] . '`') === null) {
                 array_push($ERROR, 'Невозможно открыть БД "' . $_POST['reg_dbname'] . '"<br/>Вам необходимо создать эту БД самостоятельно.');
                 $error = 1;
                 break;
             }
         } catch (Exception $e) {
-            array_push($ERROR, 'Невозможно подключиться к серверу БД "' . $_POST['reg_dbhost'] . '" используя логин "' . $_POST['reg_dbuser'] . '" (пароль: "' . $_POST['reg_dbpass'] . '")');
+            $target = $dbType === 'sqlite' ? ($_POST['reg_dbpath'] ?? '') : ($_POST['reg_dbhost'] ?? '');
+            array_push($ERROR, 'Невозможно подключиться к БД "' . htmlspecialchars($target, ENT_QUOTES, 'UTF-8') . '": ' . htmlspecialchars($e->getMessage(), ENT_QUOTES, 'UTF-8'));
             $error = 1;
             break;
         }
+        if ($dbType === 'sqlite') {
+            try {
+                $tableNames = NGSQLiteSchemaInstaller::install(
+                    $sx->getDB()->getDriver(),
+                    root . 'trash/tables.sqlite.sql',
+                    $_POST['reg_dbprefix'],
+                    [
+                    'name' => $_POST['admin_login'],
+                    'pass' => md5(md5($_POST['admin_password'])),
+                    'mail' => $_POST['admin_email'],
+                    'reg' => time(),
+                    ]
+                );
+                foreach ($tableNames as $tableName) {
+                    array_push($LOG, 'Создание таблицы "<b>' . htmlspecialchars($tableName, ENT_QUOTES, 'UTF-8') . '</b>" ... OK');
+                }
+                array_push($LOG, 'Создание индексов и начальных данных SQLite ... OK');
+            } catch (Throwable $e) {
+                array_push($ERROR, $lang['error.sqlite_schema'] . ' ' . htmlspecialchars($e->getMessage(), ENT_QUOTES, 'UTF-8'));
+                $error = 1;
+                break;
+            }
+        } else {
         // Check if different character set are supported [ version >= 4.1.1 ]
         $charsetEngine = 0;
         // Проверяем, поддерживает ли сервер utf8mb4
@@ -931,6 +1067,7 @@ function doInstall()
         // 1.6 Сохраняем конфигурационные переменные database.engine.version, database.engine.revision
         $mysql->query('insert into `' . $_POST['reg_dbprefix'] . "_config` (name, value) values ('database.engine.version', '0.9.8 Release')");
         $mysql->query('insert into `' . $_POST['reg_dbprefix'] . "_config` (name, value) values ('database.engine.revision', '13')");
+        }
         // Вычищаем лишний перевод строки из 'home_url'
         if (substr($_POST['home_url'], -1, 1) == '/') {
             $_POST['home_url'] = substr($_POST['home_url'], 0, -1);
@@ -938,10 +1075,11 @@ function doInstall()
         // 1.7. Формируем конфигурационный файл
         $newconf = [
             'dbtype'              => $_POST['reg_dbtype'],
-            'dbhost'              => $_POST['reg_dbhost'],
-            'dbname'              => $_POST['reg_dbname'],
-            'dbuser'              => $_POST['reg_dbuser'],
-            'dbpasswd'            => $_POST['reg_dbpass'],
+            'dbhost'              => $dbType === 'sqlite' ? '' : $_POST['reg_dbhost'],
+            'dbname'              => $dbType === 'sqlite' ? $_POST['reg_dbpath'] : $_POST['reg_dbname'],
+            'dbuser'              => $dbType === 'sqlite' ? '' : $_POST['reg_dbuser'],
+            'dbpasswd'            => $dbType === 'sqlite' ? '' : $_POST['reg_dbpass'],
+            'dbpath'              => $dbType === 'sqlite' ? $_POST['reg_dbpath'] : '',
             'prefix'              => $_POST['reg_dbprefix'],
             'home_url'            => $_POST['home_url'],
             'admin_url'           => $_POST['home_url'] . '/' . $adminDirName,
@@ -1063,6 +1201,7 @@ function doInstall()
         include_once root . 'core.php';
         include_once root . 'includes/inc/extraconf.inc.php';
         include_once root . 'includes/inc/extrainst.inc.php';
+        $lang = parse_ini_file(root . 'lang/' . $currentLanguage . '/install.ini', true);
         // Now let's install plugins
         // First: Load informational `version` files
         $list = pluginsGetList();
@@ -1088,6 +1227,7 @@ function doInstall()
     }
     $tvars['vars']['actions'] = $output;
     // Выводим форму проверки
+    printHeader();
     $tpl->template('config_process', $templateDir);
     $tpl->vars('config_process', $tvars);
     echo $tpl->show('config_process');

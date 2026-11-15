@@ -376,7 +376,7 @@ function news_showone($newsID, $alt_name, $callingParams = [])
 function newsProcessFilter($conditions)
 {
     //print "CALL newsProcessFilter(".var_export($conditions, true).")<br/>\n";
-    if (!is_array($conditions)) {
+    if (!is_array($conditions) || !$conditions) {
         return '';
     }
     switch (mb_strtoupper($conditions[0])) {
@@ -549,6 +549,9 @@ function news_showlist($filterConditions = [], $paginationParams = [], $callingP
     $output = '';
     $outputList = [];
     $categoryMapID = null;
+    $indexHint = static function ($name) use ($mysql) {
+        return $mysql->getDbType() === 'sqlite' ? '' : ' FORCE INDEX (' . $name . ')';
+    };
     // Call `SELECT` query
     // * Check if we need to override query
     if (isset($callingParams['overrideSQLquery']) && ($callingParams['overrideSQLquery'] != '')) {
@@ -566,7 +569,11 @@ function news_showlist($filterConditions = [], $paginationParams = [], $callingP
         intval($filterConditions[3]) === intval($callingParams['paginationCategoryID'])
     ) {
         $categoryMapID = intval($callingParams['paginationCategoryID']);
-        $query['result'] = 'SELECT N.* FROM (SELECT DISTINCT N.id, N.catpinned, N.postdate FROM ' . prefix . '_news_map NM FORCE INDEX (newsmap_category_news) INNER JOIN ' . prefix . '_news N ON N.id = NM.newsID WHERE NM.categoryID = ' . db_squote($categoryMapID) . ' AND N.approve = 1 ORDER BY N.catpinned DESC, N.postdate DESC LIMIT ' . $limit_start . ', ' . $limit_count . ') AS NP JOIN ' . prefix . '_news N ON N.id = NP.id ORDER BY NP.catpinned DESC, NP.postdate DESC';
+        if ($limit_start >= 10000) {
+            $query['result'] = 'SELECT N.* FROM (SELECT N.id, N.catpinned, N.postdate FROM ' . prefix . '_news N' . $indexHint('idx_news_approved_order') . ' WHERE N.approve = 1 AND EXISTS (SELECT 1 FROM ' . prefix . '_news_map NM' . $indexHint('idx_news_category') . ' WHERE NM.newsID = N.id AND NM.categoryID = ' . db_squote($categoryMapID) . ') ORDER BY N.catpinned DESC, N.postdate DESC LIMIT ' . $limit_start . ', ' . $limit_count . ') AS NP JOIN ' . prefix . '_news N ON N.id = NP.id ORDER BY NP.catpinned DESC, NP.postdate DESC';
+        } else {
+            $query['result'] = 'SELECT N.* FROM (SELECT DISTINCT N.id, N.catpinned, N.postdate FROM ' . prefix . '_news_map NM' . $indexHint('newsmap_category_news') . ' INNER JOIN ' . prefix . '_news N ON N.id = NM.newsID WHERE NM.categoryID = ' . db_squote($categoryMapID) . ' AND N.approve = 1 ORDER BY N.catpinned DESC, N.postdate DESC LIMIT ' . $limit_start . ', ' . $limit_count . ') AS NP JOIN ' . prefix . '_news N ON N.id = NP.id ORDER BY NP.catpinned DESC, NP.postdate DESC';
+        }
     } elseif (
         is_array($filterConditions) &&
         count($filterConditions) === 4 &&
@@ -576,7 +583,7 @@ function news_showlist($filterConditions = [], $paginationParams = [], $callingP
         intval($filterConditions[3]) === 1 &&
         $orderBy === 'pinned desc, postdate desc'
     ) {
-        $query['result'] = 'SELECT N.* FROM (SELECT N.id, N.pinned, N.postdate FROM ' . prefix . '_news N FORCE INDEX (idx_news_home_order) WHERE N.approve = 1 AND N.mainpage = 1 ORDER BY N.pinned DESC, N.postdate DESC LIMIT ' . $limit_start . ', ' . $limit_count . ') AS NP JOIN ' . prefix . '_news N ON N.id = NP.id ORDER BY NP.pinned DESC, NP.postdate DESC';
+        $query['result'] = 'SELECT N.* FROM (SELECT N.id, N.pinned, N.postdate FROM ' . prefix . '_news N' . $indexHint('idx_news_home_order') . ' WHERE N.approve = 1 AND N.mainpage = 1 ORDER BY N.pinned DESC, N.postdate DESC LIMIT ' . $limit_start . ', ' . $limit_count . ') AS NP JOIN ' . prefix . '_news N ON N.id = NP.id ORDER BY NP.pinned DESC, NP.postdate DESC';
     } elseif (
         is_array($filterConditions) &&
         count($filterConditions) === 4 &&
@@ -586,12 +593,12 @@ function news_showlist($filterConditions = [], $paginationParams = [], $callingP
         intval($filterConditions[3]) === 1 &&
         $orderBy === 'pinned desc, id desc'
     ) {
-        $query['result'] = 'SELECT N.* FROM ' . prefix . '_news N FORCE INDEX (news_mainid) WHERE N.approve = 1 AND N.mainpage = 1' . $query['orderby'];
+        $query['result'] = 'SELECT N.* FROM ' . prefix . '_news N' . $indexHint('news_mainid') . ' WHERE N.approve = 1 AND N.mainpage = 1' . $query['orderby'];
     } else {
         $newsTable = prefix . '_news';
         $newsIndex = '';
         if (!$filterConditions && $orderBy === 'pinned desc, postdate desc') {
-            $newsIndex = ' FORCE INDEX (idx_news_approved_pinned_order)';
+            $newsIndex = $indexHint('idx_news_approved_pinned_order');
         }
         $query['result'] = 'SELECT N.* FROM ' . $newsTable . ' N JOIN (SELECT id FROM ' . $newsTable . $newsIndex
             . ' WHERE ' . $query['filter'] . $query['orderby'] . ') as NT on NT.id=N.id'
