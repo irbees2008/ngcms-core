@@ -5,10 +5,6 @@
 // Description: core
 // Author: NGCMS project team
 //
-if (version_compare(PHP_VERSION, '8.2.0') < 0) {
-    header('Content-Type: text/html; charset=utf-8');
-    exit('NGCMS requires PHP 8.2.0 or higher / Для работы NGCMS требуется PHP 8.2.0 или выше. Current version: ' . PHP_VERSION);
-}
 // Configure error display mode
 error_reporting(E_ALL ^ E_NOTICE);
 // Define global directory constants
@@ -441,27 +437,13 @@ include_once root . 'includes/classes/cache.class.php';
 NGRun(function () use ($config) {
     global $mysql;
     $sx = NGEngine::getInstance();
-    $dbType = isset($config['dbtype']) ? strtolower((string) $config['dbtype']) : 'mysql';
-    $dbParams = ['charset' => 'utf8'];
-    if ($dbType === 'sqlite') {
-        $dbParams['dbtype'] = 'sqlite';
-        $dbParams['dbpath'] = $config['dbpath'] ?? $config['dbname'] ?? root . 'engine/conf/site.sqlite';
-    } else {
-        $dbParams['dbtype'] = 'mysql';
-        $dbParams['host'] = $config['dbhost'];
-        $dbParams['user'] = $config['dbuser'];
-        $dbParams['pass'] = $config['dbpasswd'];
-        $dbParams['db'] = $config['dbname'];
-    }
-    $sx->set('db', new NGPDO($dbParams));
+    $sx->set('db', new NGPDO(['host' => $config['dbhost'], 'user' => $config['dbuser'], 'pass' => $config['dbpasswd'], 'db' => $config['dbname'], 'charset' => 'utf8']));
     $sx->set('config', $config);
     $sx->set('legacyDB', new NGLegacyDB(false));
     $sx->getLegacyDB()->connect('', '', '');
     $mysql = $sx->getLegacyDB();
-    if ($mysql->getDbType() === 'mysql') {
-        // Sync PHP <=> MySQL timezones
-        $mysql->query('SET @@session.time_zone = "' . date('P') . '"');
-    }
+    // Sync PHP <=> MySQL timezones
+    $mysql->query('SET @@session.time_zone = "' . date('P') . '"');
 });
 // [[MARKER]] MySQL connection is established
 $timer->registerEvent('DB connection established');
