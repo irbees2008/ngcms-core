@@ -1,6 +1,6 @@
 <?php
 //
-// Copyright (C) 2006-2016 Next Generation CMS (http://ngcms.org)
+// Copyright (C) 2006-2026 Next Generation CMS (http://ngcms.org)
 // Name: install.php
 // Description: System installer
 // Author: Vitaly Ponomarev
