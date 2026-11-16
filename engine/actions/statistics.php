@@ -132,6 +132,7 @@ $tVars = [
     'php_self'         => $PHP_SELF,
     'php_os'           => PHP_OS,
     'php_version'      => phpversion(),
+    'db_version_label' => $mysql->getDbType() === 'sqlite' ? $lang['sqlite_version'] : $lang['mysql_version'],
     'mysql_version'    => $mysql->mysql_version(),
     'gd_version'       => isset($gd_version) ? $gd_info : '<font color="red"><b>NOT INSTALLED</b></font>',
     'currentVersion'   => $displayEngineVersion,

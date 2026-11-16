@@ -159,7 +159,7 @@
 						<td>{{ php_version }}</td>
 					</tr>
 					<tr>
-						<td>{{ lang['mysql_version'] }}</td>
+						<td>{{ db_version_label }}</td>
 						<td>{{ mysql_version }}</td>
 					</tr>
 					<tr>
