@@ -697,7 +697,7 @@ Remove-Item -Path "c:\OSPanel\home\it\engine\cache\*" -Recurse -Force
 
 ### Требования:
 
-- **PHP:** 8.1+ (NGCMS требование)
+- **PHP:** 8.2+ (NGCMS требование)
 - **MySQL:** 5.7+ / MariaDB 10.3+
 - **Windows:** Junction links работают только на Windows (на Linux используются symlinks)
 - **OSPanel:** Настроено для OSPanel, на других средах требует адаптации

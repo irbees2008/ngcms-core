@@ -8,7 +8,7 @@ $urlLibrary = array (
       array (
         'page' => 
         array (
-          'matchRegex' => '\\d{1,4}',
+          'matchRegex' => '\\d+',
           'descr' => 
           array (
             'russian' => 'Страница',
@@ -42,7 +42,7 @@ $urlLibrary = array (
         ),
         'page' => 
         array (
-          'matchRegex' => '\\d{1,4}',
+          'matchRegex' => '\\d+',
           'descr' => 
           array (
             'russian' => 'Страница',
@@ -100,7 +100,7 @@ $urlLibrary = array (
         ),
         'page' => 
         array (
-          'matchRegex' => '\\d{1,4}',
+          'matchRegex' => '\\d+',
           'descr' => 
           array (
             'russian' => 'Страница внутри новости',
@@ -150,7 +150,7 @@ $urlLibrary = array (
         ),
         'page' => 
         array (
-          'matchRegex' => '\\d{1,4}',
+          'matchRegex' => '\\d+',
           'descr' => 
           array (
             'russian' => 'Страница',
@@ -184,7 +184,7 @@ $urlLibrary = array (
         ),
         'page' => 
         array (
-          'matchRegex' => '\\d{1,4}',
+          'matchRegex' => '\\d+',
           'descr' => 
           array (
             'russian' => 'Страница',
@@ -226,7 +226,7 @@ $urlLibrary = array (
         ),
         'page' => 
         array (
-          'matchRegex' => '\\d{1,4}',
+          'matchRegex' => '\\d+',
           'descr' => 
           array (
             'russian' => 'Страница',
@@ -284,7 +284,7 @@ $urlLibrary = array (
         ),
         'page' => 
         array (
-          'matchRegex' => '\\d{1,4}',
+          'matchRegex' => '\\d+',
           'descr' => 
           array (
             'russian' => 'Страница внутри новости',
@@ -300,7 +300,7 @@ $urlLibrary = array (
         ),
         'id' => 
         array (
-          'matchRegex' => '\\d{1,4}',
+          'matchRegex' => '\\d+',
           'descr' => 
           array (
             'russian' => 'ID новости',
@@ -326,7 +326,7 @@ $urlLibrary = array (
       array (
         'page' => 
         array (
-          'matchRegex' => '\\d{1,4}',
+          'matchRegex' => '\\d+',
           'descr' => 
           array (
             'russian' => 'Страница',
@@ -709,7 +709,7 @@ $urlLibrary = array (
       array (
         'page' => 
         array (
-          'matchRegex' => '\\d{1,4}',
+          'matchRegex' => '\\d+',
           'descr' => 
           array (
             'russian' => 'Постраничная навигация',
